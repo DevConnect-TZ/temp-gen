@@ -4,8 +4,20 @@
 @section('page_title', 'Create New Page')
 
 @section('content')
-<form method="POST" action="/pages" class="space-y-8 max-w-4xl">
+<form method="POST" action="/pages" enctype="multipart/form-data" class="space-y-8 max-w-4xl">
     @csrf
+
+    <!-- Display Validation Errors -->
+    @if ($errors->any())
+    <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+        <p class="text-red-800 font-medium text-sm mb-2">There were errors with your submission:</p>
+        <ul class="text-red-700 text-sm space-y-1">
+            @foreach ($errors->all() as $error)
+                <li>• {{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+    @endif
 
     <!-- Page Title Section -->
     <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
@@ -19,9 +31,14 @@
                 id="title"
                 name="title"
                 placeholder="Enter page title"
-                class="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                value="{{ old('title') }}"
+                class="w-full px-4 py-3 border {{ $errors->has('title') ? 'border-red-500' : 'border-gray-300' }} rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
             >
-            <p class="text-xs text-gray-600 mt-1">This title will appear in the page header</p>
+            @if ($errors->has('title'))
+                <p class="text-red-600 text-xs mt-1">{{ $errors->first('title') }}</p>
+            @else
+                <p class="text-xs text-gray-600 mt-1">This title will appear in the page header</p>
+            @endif
         </div>
 
         <!-- Auto-generated Slug -->
@@ -47,7 +64,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
             <!-- Template 1: YouTubeX -->
             <label class="cursor-pointer group">
-                <input type="radio" name="template" value="template1" class="hidden template-radio" data-is-preset="true" checked>
+                <input type="radio" name="template" value="template1" class="hidden template-radio" data-is-preset="true" {{ old('template') === 'template1' || (!old('template') && !$errors->any()) ? 'checked' : '' }}>
                 <div class="template-card border-2 border-indigo-600 rounded-lg overflow-hidden transition group-hover:shadow-lg">
                     <!-- Preview Image -->
                     <div class="h-40 bg-gray-900 overflow-hidden flex items-center justify-center">
@@ -72,7 +89,7 @@
 
             <!-- Template 2: UTAMU+ -->
             <label class="cursor-pointer group">
-                <input type="radio" name="template" value="template2" class="hidden template-radio" data-is-preset="true">
+                <input type="radio" name="template" value="template2" class="hidden template-radio" data-is-preset="true" {{ old('template') === 'template2' ? 'checked' : '' }}>
                 <div class="template-card border-2 border-gray-300 rounded-lg overflow-hidden transition hover:border-indigo-400 group-hover:shadow-lg">
                     <!-- Preview Image -->
                     <div class="h-40 bg-gray-900 overflow-hidden flex items-center justify-center">
@@ -97,7 +114,7 @@
 
             <!-- Template 3: Custom Build -->
             <label class="cursor-pointer group">
-                <input type="radio" name="template" value="custom" class="hidden template-radio" data-is-preset="false">
+                <input type="radio" name="template" value="custom" class="hidden template-radio" data-is-preset="false" {{ old('template') === 'custom' ? 'checked' : '' }}>
                 <div class="template-card border-2 border-gray-300 rounded-lg overflow-hidden transition hover:border-indigo-400 group-hover:shadow-lg">
                     <!-- Custom Build Icon -->
                     <div class="h-40 bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center">
@@ -125,20 +142,23 @@
                 </div>
             </label>
         </div>
+        @if ($errors->has('template'))
+            <p class="text-red-600 text-xs mt-3">{{ $errors->first('template') }}</p>
+        @endif
     </div>
 
     <!-- Video Upload Section (only for custom template) -->
-    <div id="videoSection" class="hidden bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+    <div id="videoSection" class="hidden bg-white rounded-xl shadow-sm p-6 border {{ $errors->has('video') ? 'border-red-500' : 'border-gray-200' }}">
         <h2 class="text-lg font-bold text-gray-900 mb-6">Background Video</h2>
 
         <!-- Drag & Drop Area -->
         <div
             id="dragDropZone"
-            class="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center hover:border-indigo-500 hover:bg-indigo-50 transition cursor-pointer"
+            class="border-2 border-dashed {{ $errors->has('video') ? 'border-red-500 bg-red-50' : 'border-gray-300' }} rounded-lg p-12 text-center hover:border-indigo-500 hover:bg-indigo-50 transition cursor-pointer"
         >
             <input type="file" id="videoFile" name="video" accept="video/*" class="hidden">
 
-            <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-12 h-12 {{ $errors->has('video') ? 'text-red-400' : 'text-gray-400' }} mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
             </svg>
 
@@ -150,6 +170,10 @@
                 <p class="text-sm font-medium text-green-600">✓ Video selected</p>
             </div>
         </div>
+
+        @if ($errors->has('video'))
+            <p class="text-red-600 text-xs mt-2">{{ $errors->first('video') }}</p>
+        @endif
     </div>
 
     <!-- Payment Settings Section -->
@@ -169,10 +193,15 @@
                         placeholder="0.00"
                         step="0.01"
                         min="0"
-                        class="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                        value="{{ old('price') }}"
+                        class="w-full pl-8 pr-4 py-3 border {{ $errors->has('price') ? 'border-red-500' : 'border-gray-300' }} rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
                     >
                 </div>
-                <p class="text-xs text-gray-600 mt-1">Set the price for accessing this page</p>
+                @if ($errors->has('price'))
+                    <p class="text-red-600 text-xs mt-1">{{ $errors->first('price') }}</p>
+                @else
+                    <p class="text-xs text-gray-600 mt-1">Set the price for accessing this page</p>
+                @endif
             </div>
 
             <!-- Payment Delay -->
@@ -197,7 +226,7 @@
             <div class="space-y-3">
                 <!-- Stripe -->
                 <label class="flex items-center p-4 border border-gray-300 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 transition cursor-pointer">
-                    <input type="radio" name="gateway" value="stripe" class="w-4 h-4 text-indigo-600 checked" checked>
+                    <input type="radio" name="payment_gateway" value="stripe" class="w-4 h-4 text-indigo-600" {{ old('payment_gateway') === 'stripe' || (!old('payment_gateway') && !$errors->any()) ? 'checked' : '' }}>
                     <span class="ml-3 flex items-center space-x-3 flex-1">
                         <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor" class="text-indigo-600">
                             <path d="M16.465 9.07H9.5v2.5h5.45c-.275 1.6-.925 2.85-2.825 3.6V19h2.875c2.65-2.45 4.125-6.05 4.125-9.93z"/>
@@ -211,7 +240,7 @@
 
                 <!-- PayPal -->
                 <label class="flex items-center p-4 border border-gray-300 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 transition cursor-pointer">
-                    <input type="radio" name="gateway" value="paypal" class="w-4 h-4 text-indigo-600">
+                    <input type="radio" name="payment_gateway" value="paypal" class="w-4 h-4 text-indigo-600" {{ old('payment_gateway') === 'paypal' ? 'checked' : '' }}>
                     <span class="ml-3 flex items-center space-x-3 flex-1">
                         <svg class="w-6 h-6 text-blue-600" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M9 12c0 1.657 1.343 3 3 3s3-1.343 3-3-1.343-3-3-3-3 1.343-3 3z"/>
