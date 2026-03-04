@@ -44,52 +44,83 @@
     <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
         <h2 class="text-lg font-bold text-gray-900 mb-6">Select Template</h2>
 
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <!-- Template 1 -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <!-- Template 1: YouTubeX -->
             <label class="cursor-pointer group">
-                <input type="radio" name="template" value="template1" class="hidden template-radio" data-is-preset="true">
-                <div class="border-2 border-indigo-600 rounded-lg overflow-hidden transition group-hover:shadow-lg">
-                    <div class="bg-gradient-to-b from-gray-900 to-gray-800 h-32 flex items-center justify-center">
-                        <svg class="w-12 h-12 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
+                <input type="radio" name="template" value="template1" class="hidden template-radio" data-is-preset="true" checked>
+                <div class="template-card border-2 border-indigo-600 rounded-lg overflow-hidden transition group-hover:shadow-lg">
+                    <!-- Preview Image -->
+                    <div class="h-40 bg-gray-900 overflow-hidden flex items-center justify-center">
+                        <img src="/images/youtubex.jpeg" alt="YouTubeX Template Preview" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<svg class=\"w-12 h-12 text-gray-600\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z\"/><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M21 12a9 9 0 11-18 0 9 9 0 0118 0z\"/></svg>'">
                     </div>
+                    <!-- Template Info -->
                     <div class="p-4 bg-white">
-                        <p class="font-medium text-gray-900">YouTube Template</p>
-                        <p class="text-xs text-gray-600 mt-1">Pre-built template</p>
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <p class="font-medium text-gray-900">YouTubeX Template</p>
+                                <p class="text-xs text-gray-600 mt-1">Video streaming platform</p>
+                            </div>
+                            <div class="template-check hidden">
+                                <svg class="w-5 h-5 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </label>
 
-            <!-- Template 2 -->
+            <!-- Template 2: UTAMU+ -->
             <label class="cursor-pointer group">
                 <input type="radio" name="template" value="template2" class="hidden template-radio" data-is-preset="true">
-                <div class="border-2 border-gray-300 rounded-lg overflow-hidden transition hover:border-indigo-400 group-hover:shadow-lg">
-                    <div class="bg-gradient-to-b from-red-900 to-red-800 h-32 flex items-center justify-center">
-                        <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16a1 1 0 001 1h8a1 1 0 001-1V4m0 0H4m12 0h4"/>
-                        </svg>
+                <div class="template-card border-2 border-gray-300 rounded-lg overflow-hidden transition hover:border-indigo-400 group-hover:shadow-lg">
+                    <!-- Preview Image -->
+                    <div class="h-40 bg-gray-900 overflow-hidden flex items-center justify-center">
+                        <img src="/images/utamuplus.png" alt="UTAMU+ Template Preview" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<svg class=\"w-12 h-12 text-gray-400\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M7 4v16a1 1 0 001 1h8a1 1 0 001-1V4m0 0H4m12 0h4\"/></svg>'">
                     </div>
+                    <!-- Template Info -->
                     <div class="p-4 bg-white">
-                        <p class="font-medium text-gray-900">Netflix Template</p>
-                        <p class="text-xs text-gray-600 mt-1">Pre-built template</p>
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <p class="font-medium text-gray-900">UTAMU+ Template</p>
+                                <p class="text-xs text-gray-600 mt-1">Premium content platform</p>
+                            </div>
+                            <div class="template-check hidden">
+                                <svg class="w-5 h-5 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </label>
 
-            <!-- Custom Upload -->
+            <!-- Template 3: Custom Build -->
             <label class="cursor-pointer group">
                 <input type="radio" name="template" value="custom" class="hidden template-radio" data-is-preset="false">
-                <div class="border-2 border-gray-300 rounded-lg overflow-hidden transition hover:border-indigo-400 group-hover:shadow-lg">
-                    <div class="bg-gradient-to-b from-blue-100 to-blue-50 h-32 flex items-center justify-center">
-                        <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                        </svg>
+                <div class="template-card border-2 border-gray-300 rounded-lg overflow-hidden transition hover:border-indigo-400 group-hover:shadow-lg">
+                    <!-- Custom Build Icon -->
+                    <div class="h-40 bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center">
+                        <div class="text-center">
+                            <svg class="w-12 h-12 text-indigo-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            <p class="text-xs text-indigo-600 font-medium">Upload Video</p>
+                        </div>
                     </div>
+                    <!-- Template Info -->
                     <div class="p-4 bg-white">
-                        <p class="font-medium text-gray-900">Custom Build</p>
-                        <p class="text-xs text-gray-600 mt-1">Upload your own video</p>
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <p class="font-medium text-gray-900">Custom Build</p>
+                                <p class="text-xs text-gray-600 mt-1">Create with your own video</p>
+                            </div>
+                            <div class="template-check hidden">
+                                <svg class="w-5 h-5 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </label>
@@ -230,10 +261,33 @@
 
 <script>
     const templateRadios = document.querySelectorAll('.template-radio');
+    const templateCards = document.querySelectorAll('.template-card');
     const videoSection = document.getElementById('videoSection');
     const dragDropZone = document.getElementById('dragDropZone');
     const videoFile = document.getElementById('videoFile');
     const videoPreview = document.getElementById('videoPreview');
+
+    // Update visual selection state
+    function updateTemplateSelection() {
+        const selectedTemplate = document.querySelector('.template-radio:checked');
+        
+        templateCards.forEach((card, index) => {
+            const radio = templateRadios[index];
+            const checkIcon = card.querySelector('.template-check');
+            
+            if (radio.checked) {
+                // Add selected state
+                card.classList.remove('border-gray-300');
+                card.classList.add('border-indigo-600', 'shadow-lg');
+                checkIcon.classList.remove('hidden');
+            } else {
+                // Remove selected state
+                card.classList.remove('border-indigo-600', 'shadow-lg');
+                card.classList.add('border-gray-300');
+                checkIcon.classList.add('hidden');
+            }
+        });
+    }
 
     // Show/hide video section based on template selection
     function updateFormVisibility() {
@@ -247,6 +301,8 @@
             videoSection.classList.remove('hidden');
             videoFile.setAttribute('required', 'required');
         }
+        
+        updateTemplateSelection();
     }
 
     templateRadios.forEach(radio => {

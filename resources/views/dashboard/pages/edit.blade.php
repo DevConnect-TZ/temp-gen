@@ -46,9 +46,43 @@
     <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
         <h2 class="text-lg font-bold text-gray-900 mb-6">Template Information</h2>
 
+        <!-- Template Preview -->
+        <div class="mb-6 border border-gray-200 rounded-lg overflow-hidden">
+            <div class="h-40 bg-gray-900 flex items-center justify-center">
+                @if($page->template === 'template1')
+                    <img src="/images/youtubex.jpeg" alt="YouTubeX Template" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                    <svg class="w-12 h-12 text-gray-600 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                @elseif($page->template === 'template2')
+                    <img src="/images/utamuplus.png" alt="UTAMU+ Template" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                    <svg class="w-12 h-12 text-gray-400 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16a1 1 0 001 1h8a1 1 0 001-1V4m0 0H4m12 0h4"/>
+                    </svg>
+                @else
+                    <div class="text-center">
+                        <svg class="w-12 h-12 text-indigo-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        <p class="text-xs text-indigo-600 font-medium">Custom Template</p>
+                    </div>
+                @endif
+            </div>
+        </div>
+
+        <!-- Template Details -->
         <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
             <p class="text-sm text-gray-600">Template Type</p>
-            <p class="text-lg font-medium text-gray-900 mt-1">{{ ucfirst(str_replace('template', 'Template ', $page->template)) }}</p>
+            <p class="text-lg font-medium text-gray-900 mt-1">
+                @if($page->template === 'template1')
+                    YouTubeX Template
+                @elseif($page->template === 'template2')
+                    UTAMU+ Template
+                @else
+                    Custom Template
+                @endif
+            </p>
             <p class="text-xs text-gray-600 mt-2">
                 @if($page->template === 'custom')
                     Custom template with uploaded video
