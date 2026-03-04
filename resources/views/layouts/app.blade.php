@@ -206,31 +206,72 @@
     </div>
 
     <script>
-        const openSidebarBtn = document.getElementById('openSidebar');
-        const closeSidebarBtn = document.getElementById('closeSidebar');
-        const mobileSidebar = document.getElementById('mobileSidebar');
-        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        // Initialize sidebar controls and make them resilient to Livewire navigation
+        function initializeSidebarControls() {
+            const openSidebarBtn = document.getElementById('openSidebar');
+            const closeSidebarBtn = document.getElementById('closeSidebar');
+            const mobileSidebar = document.getElementById('mobileSidebar');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
 
-        function closeMobileSidebar() {
-            mobileSidebar?.classList.add('-translate-x-full');
-            sidebarOverlay?.classList.add('hidden');
-            if (openSidebarBtn) { openSidebarBtn.setAttribute('aria-expanded', 'false'); }
+            function closeMobileSidebar() {
+                if (mobileSidebar) mobileSidebar.classList.add('-translate-x-full');
+                if (sidebarOverlay) sidebarOverlay.classList.add('hidden');
+                if (openSidebarBtn) openSidebarBtn.setAttribute('aria-expanded', 'false');
+            }
+
+            function openMobileSidebar() {
+                if (mobileSidebar) mobileSidebar.classList.remove('-translate-x-full');
+                if (sidebarOverlay) sidebarOverlay.classList.remove('hidden');
+                if (openSidebarBtn) openSidebarBtn.setAttribute('aria-expanded', 'true');
+            }
+
+            // Fresh event listeners using onclick
+            if (openSidebarBtn) {
+                openSidebarBtn.onclick = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    openMobileSidebar();
+                };
+            }
+
+            if (closeSidebarBtn) {
+                closeSidebarBtn.onclick = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    closeMobileSidebar();
+                };
+            }
+
+            if (sidebarOverlay) {
+                sidebarOverlay.onclick = closeMobileSidebar;
+            }
+
+            // Expose to window for sidebar links
+            window.closeMobileSidebar = closeMobileSidebar;
         }
 
-        openSidebarBtn?.addEventListener('click', () => {
-            mobileSidebar?.classList.remove('-translate-x-full');
-            sidebarOverlay?.classList.remove('hidden');
-            if (openSidebarBtn) { openSidebarBtn.setAttribute('aria-expanded', 'true'); }
-        });
+        // Initialize on first load
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeSidebarControls);
+        } else {
+            initializeSidebarControls();
+        }
 
-        closeSidebarBtn?.addEventListener('click', closeMobileSidebar);
+        // Re-initialize after every Livewire navigation
+        if (typeof window !== 'undefined' && window.Livewire) {
+            window.Livewire.hook('navigate.end', () => {
+                setTimeout(initializeSidebarControls, 100);
+            });
+        }
 
-        sidebarOverlay?.addEventListener('click', closeMobileSidebar);
-
-        // Auto-close sidebar on escape key
+        // Global escape key handler
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
-                closeMobileSidebar();
+                const mobileSidebar = document.getElementById('mobileSidebar');
+                if (mobileSidebar && !mobileSidebar.classList.contains('-translate-x-full')) {
+                    const openBtn = document.getElementById('openSidebar');
+                    if (openBtn) openBtn.click();
+                }
             }
         });
     </script>
