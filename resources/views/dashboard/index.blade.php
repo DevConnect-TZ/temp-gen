@@ -59,8 +59,8 @@
         <div class="flex items-center justify-between">
             <div>
                 <p class="text-gray-600 text-sm font-medium">Total Revenue</p>
-                <p class="text-3xl font-bold text-gray-900 mt-2">TZS4,280</p>
-                <p class="text-green-600 text-xs font-medium mt-2">↑ 12+% from last month</p>
+                <p class="text-3xl font-bold text-gray-900 mt-2">TZS {{ number_format($totalRevenue, 0) }}</p>
+                <p class="text-green-600 text-xs font-medium mt-2">From completed transactions</p>
             </div>
             <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
                 <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -163,58 +163,29 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
+                    @forelse($recentPages as $page)
                     <tr class="hover:bg-gray-50 transition">
-                        <td class="px-6 py-4 text-sm font-medium text-gray-900">Summer Promo Campaign</td>
-                        <td class="px-6 py-4 text-sm text-indigo-600 hover:underline cursor-pointer">summer-promo-2026</td>
-                        <td class="px-6 py-4 text-sm text-gray-600">Modern Minimalist</td>
+                        <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ $page->title }}</td>
+                        <td class="px-6 py-4 text-sm text-indigo-600 hover:underline cursor-pointer">{{ $page->slug }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-600">{{ ucfirst(str_replace('_', ' ', $page->template)) }}</td>
                         <td class="px-6 py-4 text-sm">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Active</span>
+                            @if($page->is_active)
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Active</span>
+                            @else
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Inactive</span>
+                            @endif
                         </td>
-                        <td class="px-6 py-4 text-sm font-medium text-gray-900">TZS29.99</td>
-                        <td class="px-6 py-4 text-sm text-gray-600">Mar 1, 2026</td>
+                        <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ $page->price ? 'TZS ' . number_format($page->price, 2) : 'Free' }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-600">{{ $page->created_at->format('M d, Y') }}</td>
                         <td class="px-6 py-4 text-sm text-center">
-                            <button class="text-indigo-600 hover:text-indigo-900 font-medium">Edit</button>
+                            <a href="{{ route('pages.edit', $page) }}" class="text-indigo-600 hover:text-indigo-900 font-medium">Edit</a>
                         </td>
                     </tr>
-                    <tr class="hover:bg-gray-50 transition">
-                        <td class="px-6 py-4 text-sm font-medium text-gray-900">Q1 Product Launch</td>
-                        <td class="px-6 py-4 text-sm text-indigo-600 hover:underline cursor-pointer">q1-product-launch</td>
-                        <td class="px-6 py-4 text-sm text-gray-600">Bold & Bright</td>
-                        <td class="px-6 py-4 text-sm">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Active</span>
-                        </td>
-                        <td class="px-6 py-4 text-sm font-medium text-gray-900">TZS 49.99</td>
-                        <td class="px-6 py-4 text-sm text-gray-600">Feb 28, 2026</td>
-                        <td class="px-6 py-4 text-sm text-center">
-                            <button class="text-indigo-600 hover:text-indigo-900 font-medium">Edit</button>
-                        </td>
+                    @empty
+                    <tr>
+                        <td colspan="7" class="px-6 py-4 text-center text-gray-600">No pages created yet</td>
                     </tr>
-                    <tr class="hover:bg-gray-50 transition">
-                        <td class="px-6 py-4 text-sm font-medium text-gray-900">Black Friday Deals</td>
-                        <td class="px-6 py-4 text-sm text-indigo-600 hover:underline cursor-pointer">black-friday-deals</td>
-                        <td class="px-6 py-4 text-sm text-gray-600">Dark Premium</td>
-                        <td class="px-6 py-4 text-sm">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Inactive</span>
-                        </td>
-                        <td class="px-6 py-4 text-sm font-medium text-gray-900">TZS 39.99</td>
-                        <td class="px-6 py-4 text-sm text-gray-600">Feb 15, 2026</td>
-                        <td class="px-6 py-4 text-sm text-center">
-                            <button class="text-indigo-600 hover:text-indigo-900 font-medium">Edit</button>
-                        </td>
-                    </tr>
-                    <tr class="hover:bg-gray-50 transition">
-                        <td class="px-6 py-4 text-sm font-medium text-gray-900">Newsletter Signup</td>
-                        <td class="px-6 py-4 text-sm text-indigo-600 hover:underline cursor-pointer">newsletter-signup</td>
-                        <td class="px-6 py-4 text-sm text-gray-600">Clean & Simple</td>
-                        <td class="px-6 py-4 text-sm">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Active</span>
-                        </td>
-                        <td class="px-6 py-4 text-sm font-medium text-gray-900">$19.99</td>
-                        <td class="px-6 py-4 text-sm text-gray-600">Feb 10, 2026</td>
-                        <td class="px-6 py-4 text-sm text-center">
-                            <button class="text-indigo-600 hover:text-indigo-900 font-medium">Edit</button>
-                        </td>
-                    </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>

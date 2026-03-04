@@ -30,11 +30,15 @@ Route::middleware(['auth.custom'])->group(function () {
         $totalPages = \App\Models\Page::count();
         $activePages = \App\Models\Page::where('is_active', true)->count();
         $inactivePages = \App\Models\Page::where('is_active', false)->count();
+        $totalRevenue = \App\Models\Transaction::where('payment_status', 'COMPLETED')->sum('amount');
+        $recentPages = \App\Models\Page::latest()->take(5)->get();
 
         return view('dashboard.index', [
             'totalPages' => $totalPages,
             'activePages' => $activePages,
             'inactivePages' => $inactivePages,
+            'totalRevenue' => $totalRevenue,
+            'recentPages' => $recentPages,
         ]);
     })->name('dashboard');
 
@@ -51,7 +55,20 @@ Route::middleware(['auth.custom'])->group(function () {
 
     // Templates
     Route::get('/templates', function () {
-        return view('dashboard.templates.index');
+        $templates = [
+            [
+                'id' => 'template1',
+                'name' => 'template1',
+                'cover' => '/images/youtubex.jpeg',
+            ],
+            [
+                'id' => 'template2',
+                'name' => 'template2',
+                'cover' => '/images/utamuplus.png',
+            ],
+        ];
+
+        return view('dashboard.templates.index', ['templates' => $templates]);
     })->name('templates.index');
 
     // Payment Gateway Settings

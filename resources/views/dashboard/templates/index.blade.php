@@ -1,235 +1,49 @@
 @extends('layouts.app')
 
-@section('title', 'Manage Templates')
-@section('page_title', 'Manage Templates')
+@section('title', 'Templates')
+@section('page_title', 'Templates')
 
 @section('content')
 <div>
-    <p class="text-gray-600 text-sm mb-8">Choose and customize templates for your landing pages</p>
+    <p class="text-gray-600 text-sm mb-8">Select a template to create your landing page</p>
 
     <!-- Templates Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <!-- Template 1: Modern Minimalist -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition">
-            <!-- Thumbnail -->
-            <div class="bg-gradient-to-b from-gray-200 to-gray-100 h-48 flex items-center justify-center">
-                <svg class="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2H4V5z"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v12a2 2 0 002 2h12a2 2 0 002-2V7"/>
-                </svg>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        @foreach($templates as $template)
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300 group">
+            <!-- Cover Image -->
+            <div class="relative h-64 overflow-hidden bg-gray-200">
+                <img src="{{ $template['cover'] }}" alt="{{ $template['name'] }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                <div class="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition"></div>
             </div>
 
-            <!-- Content -->
-            <div class="p-6">
-                <h3 class="text-lg font-bold text-gray-900 mb-1">Modern Minimalist</h3>
-                <p class="text-sm text-gray-600 mb-4">Clean & simple design for professional pages</p>
-
-                <!-- Gateway Info -->
-                <div class="mb-4 pb-4 border-b border-gray-200">
-                    <p class="text-xs text-gray-600 mb-1">Default Gateway: <span class="font-medium text-gray-900">Stripe</span></p>
-                    <p class="text-xs text-gray-600">Default Price: <span class="font-medium text-gray-900">$29.99</span></p>
+            <!-- Template Info -->
+            <div class="p-8">
+                <!-- Template Name -->
+                <div class="mb-6">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-1">{{ $template['name'] }}</h3>
+                    <div class="inline-flex items-center px-3 py-1 bg-indigo-100 text-indigo-700 text-xs font-medium rounded-full">
+                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                        Built-in Template
+                    </div>
                 </div>
 
-                <!-- Status Toggle -->
-                <div class="flex items-center justify-between mb-4">
-                    <p class="text-sm font-medium text-gray-900">Status</p>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" class="sr-only peer" checked>
-                        <div class="w-9 h-5 bg-gray-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
-                    </label>
+                <!-- Template ID -->
+                <div class="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <p class="text-xs text-gray-600 mb-1">Template File</p>
+                    <p class="text-sm font-mono font-medium text-gray-900">{{ $template['name'] }}.html</p>
                 </div>
 
-                <!-- Edit Button -->
-                <button class="w-full px-4 py-2 border border-indigo-600 text-indigo-600 hover:bg-indigo-50 rounded-lg font-medium transition">
-                    Customize
-                </button>
+                <!-- Use Template Button -->
+                <a href="/pages/create?template={{ $template['name'] }}" class="w-full inline-flex items-center justify-center px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition duration-200 shadow-sm hover:shadow-md">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Use Template
+                </a>
             </div>
         </div>
-
-        <!-- Template 2: Bold & Bright -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition">
-            <!-- Thumbnail -->
-            <div class="bg-gradient-to-b from-gray-200 to-gray-100 h-48 flex items-center justify-center">
-                <svg class="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2H4V5z"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v12a2 2 0 002 2h12a2 2 0 002-2V7"/>
-                </svg>
-            </div>
-
-            <!-- Content -->
-            <div class="p-6">
-                <h3 class="text-lg font-bold text-gray-900 mb-1">Bold & Bright</h3>
-                <p class="text-sm text-gray-600 mb-4">Vibrant colors for eye-catching campaigns</p>
-
-                <!-- Gateway Info -->
-                <div class="mb-4 pb-4 border-b border-gray-200">
-                    <p class="text-xs text-gray-600 mb-1">Default Gateway: <span class="font-medium text-gray-900">PayPal</span></p>
-                    <p class="text-xs text-gray-600">Default Price: <span class="font-medium text-gray-900">$39.99</span></p>
-                </div>
-
-                <!-- Status Toggle -->
-                <div class="flex items-center justify-between mb-4">
-                    <p class="text-sm font-medium text-gray-900">Status</p>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" class="sr-only peer" checked>
-                        <div class="w-9 h-5 bg-gray-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
-                    </label>
-                </div>
-
-                <!-- Edit Button -->
-                <button class="w-full px-4 py-2 border border-indigo-600 text-indigo-600 hover:bg-indigo-50 rounded-lg font-medium transition">
-                    Customize
-                </button>
-            </div>
-        </div>
-
-        <!-- Template 3: Dark Premium -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition">
-            <!-- Thumbnail -->
-            <div class="bg-gradient-to-b from-gray-200 to-gray-100 h-48 flex items-center justify-center">
-                <svg class="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2H4V5z"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v12a2 2 0 002 2h12a2 2 0 002-2V7"/>
-                </svg>
-            </div>
-
-            <!-- Content -->
-            <div class="p-6">
-                <h3 class="text-lg font-bold text-gray-900 mb-1">Dark Premium</h3>
-                <p class="text-sm text-gray-600 mb-4">Elegant & sophisticated design</p>
-
-                <!-- Gateway Info -->
-                <div class="mb-4 pb-4 border-b border-gray-200">
-                    <p class="text-xs text-gray-600 mb-1">Default Gateway: <span class="font-medium text-gray-900">Stripe</span></p>
-                    <p class="text-xs text-gray-600">Default Price: <span class="font-medium text-gray-900">$49.99</span></p>
-                </div>
-
-                <!-- Status Toggle -->
-                <div class="flex items-center justify-between mb-4">
-                    <p class="text-sm font-medium text-gray-900">Status</p>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" class="sr-only peer">
-                        <div class="w-9 h-5 bg-gray-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
-                    </label>
-                </div>
-
-                <!-- Edit Button -->
-                <button class="w-full px-4 py-2 border border-indigo-600 text-indigo-600 hover:bg-indigo-50 rounded-lg font-medium transition">
-                    Customize
-                </button>
-            </div>
-        </div>
-
-        <!-- Template 4: Eco Friendly -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition">
-            <!-- Thumbnail -->
-            <div class="bg-gradient-to-b from-gray-200 to-gray-100 h-48 flex items-center justify-center">
-                <svg class="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2H4V5z"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v12a2 2 0 002 2h12a2 2 0 002-2V7"/>
-                </svg>
-            </div>
-
-            <!-- Content -->
-            <div class="p-6">
-                <h3 class="text-lg font-bold text-gray-900 mb-1">Eco Friendly</h3>
-                <p class="text-sm text-gray-600 mb-4">Nature-inspired design with green tones</p>
-
-                <!-- Gateway Info -->
-                <div class="mb-4 pb-4 border-b border-gray-200">
-                    <p class="text-xs text-gray-600 mb-1">Default Gateway: <span class="font-medium text-gray-900">PayPal</span></p>
-                    <p class="text-xs text-gray-600">Default Price: <span class="font-medium text-gray-900">$24.99</span></p>
-                </div>
-
-                <!-- Status Toggle -->
-                <div class="flex items-center justify-between mb-4">
-                    <p class="text-sm font-medium text-gray-900">Status</p>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" class="sr-only peer" checked>
-                        <div class="w-9 h-5 bg-gray-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
-                    </label>
-                </div>
-
-                <!-- Edit Button -->
-                <button class="w-full px-4 py-2 border border-indigo-600 text-indigo-600 hover:bg-indigo-50 rounded-lg font-medium transition">
-                    Customize
-                </button>
-            </div>
-        </div>
-
-        <!-- Template 5: Tech Startup -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition">
-            <!-- Thumbnail -->
-            <div class="bg-gradient-to-b from-gray-200 to-gray-100 h-48 flex items-center justify-center">
-                <svg class="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2H4V5z"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v12a2 2 0 002 2h12a2 2 0 002-2V7"/>
-                </svg>
-            </div>
-
-            <!-- Content -->
-            <div class="p-6">
-                <h3 class="text-lg font-bold text-gray-900 mb-1">Tech Startup</h3>
-                <p class="text-sm text-gray-600 mb-4">Modern design perfect for tech companies</p>
-
-                <!-- Gateway Info -->
-                <div class="mb-4 pb-4 border-b border-gray-200">
-                    <p class="text-xs text-gray-600 mb-1">Default Gateway: <span class="font-medium text-gray-900">Stripe</span></p>
-                    <p class="text-xs text-gray-600">Default Price: <span class="font-medium text-gray-900">$59.99</span></p>
-                </div>
-
-                <!-- Status Toggle -->
-                <div class="flex items-center justify-between mb-4">
-                    <p class="text-sm font-medium text-gray-900">Status</p>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" class="sr-only peer" checked>
-                        <div class="w-9 h-5 bg-gray-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
-                    </label>
-                </div>
-
-                <!-- Edit Button -->
-                <button class="w-full px-4 py-2 border border-indigo-600 text-indigo-600 hover:bg-indigo-50 rounded-lg font-medium transition">
-                    Customize
-                </button>
-            </div>
-        </div>
-
-        <!-- Template 6: Corporate -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition">
-            <!-- Thumbnail -->
-            <div class="bg-gradient-to-b from-gray-200 to-gray-100 h-48 flex items-center justify-center">
-                <svg class="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2H4V5z"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v12a2 2 0 002 2h12a2 2 0 002-2V7"/>
-                </svg>
-            </div>
-
-            <!-- Content -->
-            <div class="p-6">
-                <h3 class="text-lg font-bold text-gray-900 mb-1">Corporate</h3>
-                <p class="text-sm text-gray-600 mb-4">Professional corporate landing page</p>
-
-                <!-- Gateway Info -->
-                <div class="mb-4 pb-4 border-b border-gray-200">
-                    <p class="text-xs text-gray-600 mb-1">Default Gateway: <span class="font-medium text-gray-900">PayPal</span></p>
-                    <p class="text-xs text-gray-600">Default Price: <span class="font-medium text-gray-900">$44.99</span></p>
-                </div>
-
-                <!-- Status Toggle -->
-                <div class="flex items-center justify-between mb-4">
-                    <p class="text-sm font-medium text-gray-900">Status</p>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" class="sr-only peer" checked>
-                        <div class="w-9 h-5 bg-gray-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
-                    </label>
-                </div>
-
-                <!-- Edit Button -->
-                <button class="w-full px-4 py-2 border border-indigo-600 text-indigo-600 hover:bg-indigo-50 rounded-lg font-medium transition">
-                    Customize
-                </button>
-            </div>
-        </div>
+        @endforeach
     </div>
 </div>
 @endsection
