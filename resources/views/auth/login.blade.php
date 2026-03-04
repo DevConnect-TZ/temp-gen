@@ -30,7 +30,7 @@
                         value="{{ old('email') }}"
                         required
                         class="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
-                        placeholder="admin@example.com"
+                        placeholder="mail@example.com"
                     >
                     @error('email')
                         <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
@@ -74,12 +74,7 @@
                     </div>
                 @endif
 
-                <!-- Demo Credentials Notice -->
-                <div class="rounded-lg bg-blue-50 border border-blue-200 p-4">
-                    <p class="text-xs text-blue-700 font-medium">Demo Credentials</p>
-                    <p class="text-xs text-blue-600 mt-1">Email: <code class="bg-blue-100 px-1 rounded">admin@example.com</code></p>
-                    <p class="text-xs text-blue-600">Password: <code class="bg-blue-100 px-1 rounded">password</code></p>
-                </div>
+                
 
                 <!-- Login Button -->
                 <button
@@ -93,7 +88,7 @@
             <!-- Footer -->
             <div class="mt-8 pt-6 border-t border-gray-200">
                 <p class="text-center text-sm text-gray-600">
-                    © 2026 LandingHub. All rights reserved.
+                    © 2026 powered by. <a href="https://devconnecttz.site">DevconnectTz</a>
                 </p>
             </div>
         </div>
