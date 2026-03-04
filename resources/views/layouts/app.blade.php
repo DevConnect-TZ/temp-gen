@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Admin Dashboard')</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @livewireStyles
 </head>
 <body class="bg-gray-50 text-gray-900">
     <div class="flex h-screen bg-gray-50">
@@ -22,42 +23,42 @@
 
             <!-- Navigation Menu -->
             <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
-                <a href="/dashboard" class="flex items-center space-x-3 px-4 py-3 rounded-lg font-medium transition-colors {{ request()->is('dashboard') ? 'text-gray-100 bg-indigo-600' : 'text-gray-400 hover:text-gray-100 hover:bg-gray-800' }}">
+                <a href="/dashboard" wire:navigate class="flex items-center space-x-3 px-4 py-3 rounded-lg font-medium transition-colors {{ request()->is('dashboard') ? 'text-gray-100 bg-indigo-600' : 'text-gray-400 hover:text-gray-100 hover:bg-gray-800' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-3m0 0l7-4 7 4M5 9v10a1 1 0 001 1h12a1 1 0 001-1V9m-9 11l4-4m0 0l4 4m-4-4v4"></path>
                     </svg>
                     <span>Dashboard</span>
                 </a>
 
-                <a href="/pages" class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors {{ request()->is('pages') || request()->is('pages/*') ? 'text-gray-100 bg-indigo-600' : 'text-gray-400 hover:text-gray-100 hover:bg-gray-800' }}">
+                <a href="/pages" wire:navigate class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors {{ request()->is('pages') || request()->is('pages/*') ? 'text-gray-100 bg-indigo-600' : 'text-gray-400 hover:text-gray-100 hover:bg-gray-800' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
                     </svg>
                     <span>Manage Pages</span>
                 </a>
 
-                <a href="/pages/create" class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors {{ request()->is('pages/create') ? 'text-gray-100 bg-indigo-600' : 'text-gray-400 hover:text-gray-100 hover:bg-gray-800' }}">
+                <a href="/pages/create" wire:navigate class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors {{ request()->is('pages/create') ? 'text-gray-100 bg-indigo-600' : 'text-gray-400 hover:text-gray-100 hover:bg-gray-800' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                     </svg>
                     <span>Create New Page</span>
                 </a>
 
-                <a href="/templates" class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors {{ request()->is('templates') ? 'text-gray-100 bg-indigo-600' : 'text-gray-400 hover:text-gray-100 hover:bg-gray-800' }}">
+                <a href="/templates" wire:navigate class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors {{ request()->is('templates') ? 'text-gray-100 bg-indigo-600' : 'text-gray-400 hover:text-gray-100 hover:bg-gray-800' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.5a2 2 0 00-1 3.75A2 2 0 0010 19h-3z"></path>
                     </svg>
                     <span>Templates</span>
                 </a>
 
-                <a href="/payment-gateways" class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors {{ request()->is('payment-gateways') || request()->is('payment-gateways/*') ? 'text-gray-100 bg-indigo-600' : 'text-gray-400 hover:text-gray-100 hover:bg-gray-800' }}">
+                <a href="/payment-gateways" wire:navigate class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors {{ request()->is('payment-gateways') || request()->is('payment-gateways/*') ? 'text-gray-100 bg-indigo-600' : 'text-gray-400 hover:text-gray-100 hover:bg-gray-800' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
                     <span>Payment Gateways</span>
                 </a>
 
-                <a href="/settings" class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors {{ request()->is('settings') ? 'text-gray-100 bg-indigo-600' : 'text-gray-400 hover:text-gray-100 hover:bg-gray-800' }}">
+                <a href="/settings" wire:navigate class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors {{ request()->is('settings') ? 'text-gray-100 bg-indigo-600' : 'text-gray-400 hover:text-gray-100 hover:bg-gray-800' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -102,37 +103,37 @@
             </div>
 
             <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
-                <a href="/dashboard" onclick="closeMobileSidebar()" class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors {{ request()->is('dashboard') ? 'text-gray-100 bg-indigo-600 font-medium' : 'text-gray-400 hover:text-gray-100 hover:bg-gray-800' }}">
+                <a href="/dashboard" wire:navigate onclick="closeMobileSidebar()" class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors {{ request()->is('dashboard') ? 'text-gray-100 bg-indigo-600 font-medium' : 'text-gray-400 hover:text-gray-100 hover:bg-gray-800' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-3m0 0l7-4 7 4M5 9v10a1 1 0 001 1h12a1 1 0 001-1V9m-9 11l4-4m0 0l4 4m-4-4v4"></path>
                     </svg>
                     <span>Dashboard</span>
                 </a>
-                <a href="/pages" onclick="closeMobileSidebar()" class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors {{ request()->is('pages') || request()->is('pages/*') ? 'text-gray-100 bg-indigo-600 font-medium' : 'text-gray-400 hover:text-gray-100 hover:bg-gray-800' }}">
+                <a href="/pages" wire:navigate onclick="closeMobileSidebar()" class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors {{ request()->is('pages') || request()->is('pages/*') ? 'text-gray-100 bg-indigo-600 font-medium' : 'text-gray-400 hover:text-gray-100 hover:bg-gray-800' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
                     </svg>
                     <span>Manage Pages</span>
                 </a>
-                <a href="/pages/create" onclick="closeMobileSidebar()" class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors {{ request()->is('pages/create') ? 'text-gray-100 bg-indigo-600 font-medium' : 'text-gray-400 hover:text-gray-100 hover:bg-gray-800' }}">
+                <a href="/pages/create" wire:navigate onclick="closeMobileSidebar()" class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors {{ request()->is('pages/create') ? 'text-gray-100 bg-indigo-600 font-medium' : 'text-gray-400 hover:text-gray-100 hover:bg-gray-800' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                     </svg>
                     <span>Create New Page</span>
                 </a>
-                <a href="/templates" onclick="closeMobileSidebar()" class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors {{ request()->is('templates') ? 'text-gray-100 bg-indigo-600 font-medium' : 'text-gray-400 hover:text-gray-100 hover:bg-gray-800' }}">
+                <a href="/templates" wire:navigate onclick="closeMobileSidebar()" class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors {{ request()->is('templates') ? 'text-gray-100 bg-indigo-600 font-medium' : 'text-gray-400 hover:text-gray-100 hover:bg-gray-800' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.5a2 2 0 00-1 3.75A2 2 0 0010 19h-3z"></path>
                     </svg>
                     <span>Templates</span>
                 </a>
-                <a href="/payment-gateways" onclick="closeMobileSidebar()" class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors {{ request()->is('payment-gateways') || request()->is('payment-gateways/*') ? 'text-gray-100 bg-indigo-600 font-medium' : 'text-gray-400 hover:text-gray-100 hover:bg-gray-800' }}">
+                <a href="/payment-gateways" wire:navigate onclick="closeMobileSidebar()" class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors {{ request()->is('payment-gateways') || request()->is('payment-gateways/*') ? 'text-gray-100 bg-indigo-600 font-medium' : 'text-gray-400 hover:text-gray-100 hover:bg-gray-800' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
                     <span>Payment Gateways</span>
                 </a>
-                <a href="/settings" onclick="closeMobileSidebar()" class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors {{ request()->is('settings') ? 'text-gray-100 bg-indigo-600 font-medium' : 'text-gray-400 hover:text-gray-100 hover:bg-gray-800' }}">
+                <a href="/settings" wire:navigate onclick="closeMobileSidebar()" class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors {{ request()->is('settings') ? 'text-gray-100 bg-indigo-600 font-medium' : 'text-gray-400 hover:text-gray-100 hover:bg-gray-800' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -232,5 +233,7 @@
                 closeMobileSidebar();
             }
         });
-    </script></body>
+    </script>
+    @livewireScripts
+</body>
 </html>

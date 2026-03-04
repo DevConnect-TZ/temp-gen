@@ -5,6 +5,25 @@
 @source '../**/*.blade.php';
 @source '../**/*.js';
 
+/* Livewire Loading Bar */
+@keyframes progress {
+    from { background-position: 0 0; }
+    to { background-position: 200% 0; }
+}
+
+[data-loading] {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #4f46e5 0%, #7c3aed 50%, #4f46e5 100%);
+    background-size: 200% 100%;
+    animation: progress 1.5s ease-in-out infinite;
+    z-index: 9999;
+    box-shadow: 0 2px 8px rgba(79, 70, 229, 0.2);
+}
+
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
