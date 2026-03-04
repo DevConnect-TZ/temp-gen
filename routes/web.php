@@ -1,8 +1,8 @@
 <?php
 
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\PaymentGatewayController;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
 
 // Public Routes - Login
 Route::middleware('guest')->group(function () {
@@ -15,8 +15,10 @@ Route::middleware('guest')->group(function () {
         // For now, simple demo - in production use proper validation
         if (request('email') === 'admin@example.com' && request('password') === 'password') {
             session(['admin_authenticated' => true]);
+
             return redirect('/dashboard');
         }
+
         return back()->withErrors(['password' => 'Invalid credentials']);
     })->name('login.store');
 });
@@ -28,6 +30,7 @@ Route::middleware(['auth.custom'])->group(function () {
         $totalPages = \App\Models\Page::count();
         $activePages = \App\Models\Page::where('is_active', true)->count();
         $inactivePages = \App\Models\Page::where('is_active', false)->count();
+
         return view('dashboard.index', [
             'totalPages' => $totalPages,
             'activePages' => $activePages,
@@ -51,10 +54,12 @@ Route::middleware(['auth.custom'])->group(function () {
         return view('dashboard.templates.index');
     })->name('templates.index');
 
-    // Payment Gateways
-    Route::get('/gateways', function () {
-        return view('dashboard.gateways.settings');
-    })->name('gateways.settings');
+    // Payment Gateway Settings
+    Route::controller(PaymentGatewayController::class)->prefix('payment-gateways')->group(function () {
+        Route::get('/', 'index')->name('payment-gateways.index');
+        Route::post('/{gateway}/update', 'update')->name('payment-gateways.update');
+        Route::post('/{gateway}/toggle', 'toggle')->name('payment-gateways.toggle');
+    });
 
     // Settings
     Route::get('/settings', function () {
@@ -64,6 +69,7 @@ Route::middleware(['auth.custom'])->group(function () {
     // Logout
     Route::post('/logout', function () {
         session()->forget('admin_authenticated');
+
         return redirect('/login');
     })->name('logout');
 });
@@ -82,5 +88,6 @@ Route::get('/', function () {
     if (session('admin_authenticated')) {
         return redirect('/dashboard');
     }
+
     return redirect('/login');
 });

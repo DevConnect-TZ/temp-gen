@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Page;
+use App\Models\PaymentGateway;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -58,6 +59,16 @@ class PaymentController extends Controller
      */
     private function createSonicPesaOrder(Page $page, string $phone, array $data)
     {
+        // Get SonicPesa gateway config from database
+        $gatewayConfig = PaymentGateway::where('name', 'sonicpesa')->first();
+
+        if (! $gatewayConfig || ! $gatewayConfig->is_active) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'SonicPesa gateway is not configured or inactive.',
+            ], 400);
+        }
+
         // Create transaction record
         $transaction = Transaction::create([
             'page_id' => $page->id,
@@ -74,7 +85,7 @@ class PaymentController extends Controller
         try {
             // Call SonicPesa API to create order
             $response = Http::withHeaders([
-                'X-API-KEY' => config('services.sonicpesa.api_key'),
+                'X-API-KEY' => $gatewayConfig->api_key,
             ])->post(self::SONICPESA_API_URL.'/create_order', [
                 'buyer_email' => $transaction->buyer_email,
                 'buyer_name' => $transaction->buyer_name,
@@ -135,6 +146,16 @@ class PaymentController extends Controller
      */
     private function createSnippeOrder(Page $page, string $phone, array $data)
     {
+        // Get Snippe gateway config from database
+        $gatewayConfig = PaymentGateway::where('name', 'snippe')->first();
+
+        if (! $gatewayConfig || ! $gatewayConfig->is_active) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Snippe gateway is not configured or inactive.',
+            ], 400);
+        }
+
         // Generate unique order ID
         $orderId = 'ORD-'.uniqid().'-'.time();
 
@@ -154,7 +175,7 @@ class PaymentController extends Controller
         try {
             // Call Snippe API to create payment
             $response = Http::withHeaders([
-                'Authorization' => 'Bearer '.config('services.snippe.api_key'),
+                'Authorization' => 'Bearer '.$gatewayConfig->api_key,
             ])->post(self::SNIPPE_API_URL.'/payments', [
                 'payment_type' => 'mobile',
                 'details' => [
@@ -167,7 +188,7 @@ class PaymentController extends Controller
                     'lastname' => isset(explode(' ', $transaction->buyer_name)[1]) ? implode(' ', array_slice(explode(' ', $transaction->buyer_name), 1)) : 'User',
                     'email' => $transaction->buyer_email,
                 ],
-                'webhook_url' => config('services.snippe.webhook_url'),
+                'webhook_url' => $gatewayConfig->webhook_url ?? 'https://example.com/webhook',
                 'metadata' => [
                     'order_id' => $orderId,
                 ],
@@ -285,9 +306,19 @@ class PaymentController extends Controller
      */
     private function checkSonicPesaStatus(Transaction $transaction)
     {
+        // Get SonicPesa gateway config from database
+        $gatewayConfig = PaymentGateway::where('name', 'sonicpesa')->first();
+
+        if (! $gatewayConfig) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'SonicPesa gateway is not configured.',
+            ], 400);
+        }
+
         try {
             $response = Http::withHeaders([
-                'X-API-KEY' => config('services.sonicpesa.api_key'),
+                'X-API-KEY' => $gatewayConfig->api_key,
             ])->post(self::SONICPESA_API_URL.'/order_status', [
                 'order_id' => $transaction->order_id,
             ]);
@@ -337,9 +368,19 @@ class PaymentController extends Controller
      */
     private function checkSnippeStatus(Transaction $transaction)
     {
+        // Get Snippe gateway config from database
+        $gatewayConfig = PaymentGateway::where('name', 'snippe')->first();
+
+        if (! $gatewayConfig) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Snippe gateway is not configured.',
+            ], 400);
+        }
+
         try {
             $response = Http::withHeaders([
-                'Authorization' => 'Bearer '.config('services.snippe.api_key'),
+                'Authorization' => 'Bearer '.$gatewayConfig->api_key,
             ])->get(self::SNIPPE_API_URL.'/payments/'.$transaction->reference);
 
             if ($response->failed()) {
