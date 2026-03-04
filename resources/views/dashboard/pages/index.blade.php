@@ -90,7 +90,14 @@
                     <td class="px-6 py-4 text-sm text-gray-600">{{ $page->created_at->format('M d, Y') }}</td>
                     <td class="px-6 py-4 text-sm text-center">
                         <div class="flex justify-center items-center space-x-2">
-                            <button class="text-indigo-600 hover:text-indigo-900 font-medium hover:underline" title="Edit">Edit</button>
+                            <a href="{{ route('pages.edit', $page) }}" class="text-indigo-600 hover:text-indigo-900 font-medium hover:underline" title="Edit">Edit</a>
+                            <form action="{{ route('pages.toggle', $page) }}" method="POST" class="inline">
+                                @csrf
+                                @method('PATCH')
+                                <button type="submit" class="text-{{ $page->is_active ? 'red' : 'green' }}-600 hover:text-{{ $page->is_active ? 'red' : 'green' }}-900 font-medium hover:underline" title="{{ $page->is_active ? 'Deactivate' : 'Activate' }}">
+                                    {{ $page->is_active ? 'Deactivate' : 'Activate' }}
+                                </button>
+                            </form>
                             <form action="{{ route('pages.destroy', $page) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this page? This action cannot be undone.');">
                                 @csrf
                                 @method('DELETE')

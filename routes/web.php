@@ -25,7 +25,14 @@ Route::middleware('guest')->group(function () {
 Route::middleware(['auth.custom'])->group(function () {
     // Dashboard
     Route::get('/dashboard', function () {
-        return view('dashboard.index');
+        $totalPages = \App\Models\Page::count();
+        $activePages = \App\Models\Page::where('is_active', true)->count();
+        $inactivePages = \App\Models\Page::where('is_active', false)->count();
+        return view('dashboard.index', [
+            'totalPages' => $totalPages,
+            'activePages' => $activePages,
+            'inactivePages' => $inactivePages,
+        ]);
     })->name('dashboard');
 
     // Pages Management
@@ -33,7 +40,10 @@ Route::middleware(['auth.custom'])->group(function () {
         Route::get('/', 'index')->name('pages.index');
         Route::get('/create', 'create')->name('pages.create');
         Route::post('/', 'store')->name('pages.store');
+        Route::get('/{page}/edit', 'edit')->name('pages.edit');
+        Route::put('/{page}', 'update')->name('pages.update');
         Route::delete('/{page}', 'destroy')->name('pages.destroy');
+        Route::patch('/{page}/toggle', 'toggle')->name('pages.toggle');
     });
 
     // Templates

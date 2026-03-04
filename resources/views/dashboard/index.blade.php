@@ -11,8 +11,8 @@
         <div class="flex items-center justify-between">
             <div>
                 <p class="text-gray-600 text-sm font-medium">Total Generated Pages</p>
-                <p class="text-3xl font-bold text-gray-900 mt-2">24</p>
-                <p class="text-green-600 text-xs font-medium mt-2">↑ 8+% from last month</p>
+                <p class="text-3xl font-bold text-gray-900 mt-2">{{ $totalPages }}</p>
+                <p class="text-green-600 text-xs font-medium mt-2">Total pages created</p>
             </div>
             <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                 <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -27,7 +27,7 @@
         <div class="flex items-center justify-between">
             <div>
                 <p class="text-gray-600 text-sm font-medium">Active Pages</p>
-                <p class="text-3xl font-bold text-gray-900 mt-2">18</p>
+                <p class="text-3xl font-bold text-gray-900 mt-2">{{ $activePages }}</p>
                 <p class="text-gray-600 text-xs font-medium mt-2">Currently live</p>
             </div>
             <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
@@ -43,7 +43,7 @@
         <div class="flex items-center justify-between">
             <div>
                 <p class="text-gray-600 text-sm font-medium">Inactive Pages</p>
-                <p class="text-3xl font-bold text-gray-900 mt-2">6</p>
+                <p class="text-3xl font-bold text-gray-900 mt-2">{{ $inactivePages }}</p>
                 <p class="text-gray-600 text-xs font-medium mt-2">Paused or disabled</p>
             </div>
             <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">

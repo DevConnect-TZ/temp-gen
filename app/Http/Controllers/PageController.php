@@ -85,6 +85,59 @@ class PageController extends Controller
     }
 
     /**
+     * Toggle page active/inactive status.
+     */
+    public function toggle(Page $page)
+    {
+        $page->update(['is_active' => !$page->is_active]);
+        
+        $status = $page->is_active ? 'activated' : 'deactivated';
+        return redirect('/pages')->with('success', 'Page ' . $status . ' successfully!');
+    }
+
+    /**
+     * Show the form for editing a page.
+     */
+    public function edit(Page $page)
+    {
+        return view('dashboard.pages.edit', ['page' => $page]);
+    }
+
+    /**
+     * Update a page in storage.
+     */
+    public function update(Request $request, Page $page)
+    {
+        $rules = [
+            'title' => 'required|string|max:255',
+            'price' => 'nullable|numeric|min:0',
+            'payment_gateway' => 'nullable|string|in:stripe,paypal',
+        ];
+
+        // Only validate video if custom template and video is being uploaded
+        if ($page->template === 'custom' && $request->hasFile('video')) {
+            $rules['video'] = 'file|mimes:mp4,webm,ogv|max:512000'; // 500MB
+        }
+
+        $validated = $request->validate($rules);
+        $validated['is_active'] = $request->has('is_active');
+
+        // Handle video upload for custom template
+        if ($page->template === 'custom' && $request->hasFile('video')) {
+            // Delete old video if exists
+            if ($page->video_path && \Storage::disk('public')->exists($page->video_path)) {
+                \Storage::disk('public')->delete($page->video_path);
+            }
+            $videoPath = $request->file('video')->store('videos', 'public');
+            $validated['video_path'] = $videoPath;
+        }
+
+        $page->update($validated);
+
+        return redirect('/pages')->with('success', 'Page updated successfully!');
+    }
+
+    /**
      * Display the specified page (public route).
      */
     public function show(Page $page)
