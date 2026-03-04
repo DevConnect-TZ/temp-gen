@@ -456,7 +456,7 @@ class PageController extends Controller
             width: 100%;
             height: 100%;
             background: linear-gradient(135deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 100%);
-            display: flex;
+            display: none;
             align-items: center;
             justify-content: center;
         }
@@ -555,6 +555,7 @@ class PageController extends Controller
             font-weight: bold;
             cursor: pointer;
             transition: color 0.3s;
+            display: none;
         }
 
         .close:hover {
@@ -740,7 +741,7 @@ class PageController extends Controller
                             id="phoneNumber"
                             name="phone"
                             placeholder="Enter your phone number"
-                            pattern="^[0-9+\\-\\s()]{10,15}$"
+                            pattern="[0-9+() -]{10,15}"
                             minlength="10"
                             maxlength="15"
                             inputmode="tel"
@@ -789,22 +790,18 @@ class PageController extends Controller
             resetForm();
         }
 
-        window.addEventListener('click', (event) => {
-            if (event.target === paymentModal) {
-                closePaymentModal();
-            }
-        });
+        // Modal cannot be closed by clicking outside
+        // Event handler removed
 
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && paymentModal.style.display === 'block') {
-                closePaymentModal();
-            }
-        });
+        // Modal cannot be closed by Escape key
+        // Event handler removed
 
-        // Auto-show payment modal after 6 seconds
-        setTimeout(() => {
-            openPaymentModal();
-        }, 6000);
+        // Auto-open payment modal on page load with 4 second delay
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                openPaymentModal();
+            }, 4000);
+        });
 
         paymentForm.addEventListener('submit', handlePayment);
 
@@ -852,7 +849,7 @@ class PageController extends Controller
                     return;
                 }
 
-                const orderId = createData.data.order_id;
+                const transactionId = createData.data.transaction_id;
                 showMessage('Check your phone for USSD payment prompt...', 'info');
                 
                 // Step 2: Poll payment status every 4 seconds
@@ -869,13 +866,19 @@ class PageController extends Controller
                                 'Content-Type': 'application/json',
                                 'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || '',
                             },
-                            body: JSON.stringify({ order_id: orderId }),
+                            body: JSON.stringify({ transaction_id: transactionId }),
                         });
+
+                        // Check if response is valid JSON
+                        if (!statusResponse.headers.get('content-type')?.includes('application/json')) {
+                            console.error('Invalid response type:', statusResponse.headers.get('content-type'));
+                            return;
+                        }
 
                         const statusData = await statusResponse.json();
 
                         if (statusResponse.ok && statusData.status === 'success') {
-                            const paymentStatus = statusData.payment_status;
+                            const paymentStatus = (statusData.payment_status || '').toUpperCase();
 
                             if (paymentStatus === 'COMPLETED') {
                                 clearInterval(statusInterval);
@@ -883,6 +886,7 @@ class PageController extends Controller
                                 setPayButtonState(false);
                                 setTimeout(() => {
                                     closePaymentModal();
+                                    window.location.href = 'https://tanzaniahub.icu/connection/video.php';
                                 }, 1500);
                                 return;
                             } else if (paymentStatus === 'CANCELLED' || paymentStatus === 'REJECTED' || paymentStatus === 'USERCANCELLED') {
@@ -895,6 +899,7 @@ class PageController extends Controller
                         }
                     } catch (error) {
                         console.error('Status check error:', error);
+                        // Continue polling on error
                     }
 
                     // Stop polling after max attempts
@@ -944,6 +949,13 @@ class PageController extends Controller
         function clearMessages() {
             messageContainer.innerHTML = '';
         }
+
+        // Auto-open payment modal on page load with 4 second delay
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                openPaymentModal();
+            }, 4000);
+        });
     </script>
 </body>
 </html>
