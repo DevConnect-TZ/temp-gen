@@ -33,6 +33,7 @@ Route::middleware(['auth.custom'])->group(function () {
         Route::get('/', 'index')->name('pages.index');
         Route::get('/create', 'create')->name('pages.create');
         Route::post('/', 'store')->name('pages.store');
+        Route::delete('/{page}', 'destroy')->name('pages.destroy');
     });
 
     // Templates

@@ -26,26 +26,17 @@
 
         <!-- Auto-generated Slug -->
         <div class="mb-6">
-            <label for="slug" class="block text-sm font-medium text-gray-900 mb-2">Page Slug</label>
+            <label for="slug" class="block text-sm font-medium text-gray-900 mb-2">Page Slug (Auto-generated)</label>
             <div class="flex gap-2">
                 <input
                     type="text"
                     id="slug"
-                    name="slug"
                     readonly
                     placeholder="auto-generated-slug"
                     class="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-gray-600 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
                 >
-                <button
-                    type="button"
-                    class="px-4 py-3 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition"
-                >
-                    <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m16.338 0h.134a8 8 0 00-15.842.856m0 0v5"/>
-                    </svg>
-                </button>
             </div>
-            <p class="text-xs text-gray-600 mt-1">URL-friendly identifier for your page</p>
+            <p class="text-xs text-gray-600 mt-1">URL-friendly identifier (auto-generated from title)</p>
         </div>
     </div>
 
@@ -53,10 +44,10 @@
     <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
         <h2 class="text-lg font-bold text-gray-900 mb-6">Select Template</h2>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <!-- Template 1 -->
             <label class="cursor-pointer group">
-                <input type="radio" name="template" value="template1" class="hidden" checked>
+                <input type="radio" name="template" value="template1" class="hidden template-radio" data-is-preset="true">
                 <div class="border-2 border-indigo-600 rounded-lg overflow-hidden transition group-hover:shadow-lg">
                     <div class="bg-gradient-to-b from-gray-900 to-gray-800 h-32 flex items-center justify-center">
                         <svg class="w-12 h-12 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -66,14 +57,14 @@
                     </div>
                     <div class="p-4 bg-white">
                         <p class="font-medium text-gray-900">YouTube Template</p>
-                        <p class="text-xs text-gray-600 mt-1">Video streaming platform style</p>
+                        <p class="text-xs text-gray-600 mt-1">Pre-built template</p>
                     </div>
                 </div>
             </label>
 
             <!-- Template 2 -->
             <label class="cursor-pointer group">
-                <input type="radio" name="template" value="template2" class="hidden">
+                <input type="radio" name="template" value="template2" class="hidden template-radio" data-is-preset="true">
                 <div class="border-2 border-gray-300 rounded-lg overflow-hidden transition hover:border-indigo-400 group-hover:shadow-lg">
                     <div class="bg-gradient-to-b from-red-900 to-red-800 h-32 flex items-center justify-center">
                         <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -82,15 +73,31 @@
                     </div>
                     <div class="p-4 bg-white">
                         <p class="font-medium text-gray-900">Netflix Template</p>
-                        <p class="text-xs text-gray-600 mt-1">Streaming entertainment style</p>
+                        <p class="text-xs text-gray-600 mt-1">Pre-built template</p>
+                    </div>
+                </div>
+            </label>
+
+            <!-- Custom Upload -->
+            <label class="cursor-pointer group">
+                <input type="radio" name="template" value="custom" class="hidden template-radio" data-is-preset="false">
+                <div class="border-2 border-gray-300 rounded-lg overflow-hidden transition hover:border-indigo-400 group-hover:shadow-lg">
+                    <div class="bg-gradient-to-b from-blue-100 to-blue-50 h-32 flex items-center justify-center">
+                        <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                    </div>
+                    <div class="p-4 bg-white">
+                        <p class="font-medium text-gray-900">Custom Build</p>
+                        <p class="text-xs text-gray-600 mt-1">Upload your own video</p>
                     </div>
                 </div>
             </label>
         </div>
     </div>
 
-    <!-- Video Upload Section -->
-    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+    <!-- Video Upload Section (only for custom template) -->
+    <div id="videoSection" class="hidden bg-white rounded-xl shadow-sm p-6 border border-gray-200">
         <h2 class="text-lg font-bold text-gray-900 mb-6">Background Video</h2>
 
         <!-- Drag & Drop Area -->
@@ -222,10 +229,31 @@
 </form>
 
 <script>
+    const templateRadios = document.querySelectorAll('.template-radio');
+    const videoSection = document.getElementById('videoSection');
     const dragDropZone = document.getElementById('dragDropZone');
     const videoFile = document.getElementById('videoFile');
     const videoPreview = document.getElementById('videoPreview');
 
+    // Show/hide video section based on template selection
+    function updateFormVisibility() {
+        const selectedTemplate = document.querySelector('.template-radio:checked');
+        const isPreset = selectedTemplate?.dataset.isPreset === 'true';
+        
+        if (isPreset) {
+            videoSection.classList.add('hidden');
+            videoFile.removeAttribute('required');
+        } else {
+            videoSection.classList.remove('hidden');
+            videoFile.setAttribute('required', 'required');
+        }
+    }
+
+    templateRadios.forEach(radio => {
+        radio.addEventListener('change', updateFormVisibility);
+    });
+
+    // Video drag & drop
     dragDropZone.addEventListener('click', () => videoFile.click());
 
     dragDropZone.addEventListener('dragover', (e) => {
@@ -265,5 +293,8 @@
             .replace(/-+/g, '-');
         slugInput.value = slug;
     });
+
+    // Initialize on page load
+    updateFormVisibility();
 </script>
 @endsection

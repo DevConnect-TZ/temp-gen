@@ -71,7 +71,7 @@
                 <tr class="hover:bg-gray-50 transition">
                     <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ $page->title }}</td>
                     <td class="px-6 py-4 text-sm">
-                        <a href="/" target="_blank" class="text-indigo-600 hover:underline cursor-pointer font-medium">
+                        <a href="/{{ $page->slug }}" target="_blank" class="text-indigo-600 hover:underline cursor-pointer font-medium">
                             {{ $page->slug }}
                             <svg class="w-4 h-4 inline ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
@@ -91,7 +91,11 @@
                     <td class="px-6 py-4 text-sm text-center">
                         <div class="flex justify-center items-center space-x-2">
                             <button class="text-indigo-600 hover:text-indigo-900 font-medium hover:underline" title="Edit">Edit</button>
-                            <button class="text-red-600 hover:text-red-900 font-medium hover:underline" title="Delete">Delete</button>
+                            <form action="{{ route('pages.destroy', $page) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this page? This action cannot be undone.');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="text-red-600 hover:text-red-900 font-medium hover:underline" title="Delete">Delete</button>
+                            </form>
                         </div>
                     </td>
                 </tr>
