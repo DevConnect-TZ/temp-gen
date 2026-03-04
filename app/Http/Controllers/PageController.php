@@ -165,16 +165,21 @@ class PageController extends Controller
 
         // Inject payment system into template
         if ($page->price) {
+            // Inject variables early in the head so template scripts can access them
+            $variablesJs = "
+            <script>
+                // Initialize payment variables immediately
+                window.pageId = {$page->id};
+                window.pagePrice = {$page->price};
+                window.csrfTokenValue = '{$csrfToken}';
+            </script>";
+
+            $html = str_replace('</head>', $variablesJs.'</head>', $html);
+
             $paymentJs = "
             <script>
-                // SonicPesa Payment Integration
-                const pageId = {$page->id};
-                const pagePrice = {$page->price};
-                const csrfToken = '{$csrfToken}';
-                // Declare variables for global scope
-                let currentTransactionId = null;
-                let currentOrderId = null;
-                let pollingInterval = null;
+                // SonicPesa Payment Integration - Additional payment handlers
+                // Variables already set above in head
 
                 // Update hardcoded template amounts with dynamic page price
                 document.addEventListener('DOMContentLoaded', function() {
@@ -182,49 +187,49 @@ class PageController extends Controller
                     // Update modal heading amount (Lipia TSH 2000/= Kuendelea)
                     const heading = document.querySelector('h4.fw-bold');
                     if (heading && heading.textContent.includes('2000')) {
-                        heading.textContent = 'Lipia TSH ' + pagePrice + '/= Kuendelea';
+                        heading.textContent = 'Lipia TSH ' + window.pagePrice + '/= Kuendelea';
                     }
                     
                     // Update amount display in form (Tsh 2000)
                     const amountSpan = document.querySelector('span.fw-bold.text-primary');
                     if (amountSpan && amountSpan.textContent.includes('2000')) {
-                        amountSpan.textContent = 'Tsh ' + pagePrice;
+                        amountSpan.textContent = 'Tsh ' + window.pagePrice;
                     }
                     
                     // Update hidden package input
                     const packageInput = document.getElementById('package3');
                     if (packageInput) {
-                        packageInput.value = pagePrice;
+                        packageInput.value = window.pagePrice;
                     }
 
                     // === TEMPLATE2 ===
                     // Replace all 'TSH 1000' displays with dynamic price
                     document.querySelectorAll('span.card-price').forEach(el => {
                         if (el.textContent.includes('1000')) {
-                            el.textContent = 'TSH ' + pagePrice;
+                            el.textContent = 'TSH ' + window.pagePrice;
                         }
                     });
 
                     // Replace price-amount display
                     const priceAmountDiv = document.querySelector('.price-amount');
                     if (priceAmountDiv && priceAmountDiv.textContent.includes('1000')) {
-                        priceAmountDiv.textContent = 'TSH ' + pagePrice;
+                        priceAmountDiv.textContent = 'TSH ' + window.pagePrice;
                     }
 
                     // Replace hero description amount if it mentions price
                     const heroDesc = document.querySelector('.hero-desc');
                     if (heroDesc && heroDesc.textContent.includes('1000')) {
-                        heroDesc.textContent = heroDesc.textContent.replace(/tsh 1000/i, 'tsh ' + pagePrice);
+                        heroDesc.textContent = heroDesc.textContent.replace(/tsh 1000/i, 'tsh ' + window.pagePrice);
                     }
 
                     // Replace row title amount if it mentions price
                     const rowTitle = document.querySelector('.row-title');
                     if (rowTitle && rowTitle.textContent.includes('1000')) {
-                        rowTitle.textContent = rowTitle.textContent.replace(/TSH 1000/i, 'TSH ' + pagePrice);
+                        rowTitle.textContent = rowTitle.textContent.replace(/TSH 1000/i, 'TSH ' + window.pagePrice);
                     }
 
                     // Update amount variable for template2 payment form
-                    window.amount = pagePrice;
+                    window.amount = window.pagePrice;
                 });
 
                 // Patch the payment form submission
@@ -255,10 +260,10 @@ class PageController extends Controller
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
-                                'X-CSRF-Token': csrfToken,
+                                'X-CSRF-Token': window.csrfTokenValue,
                             },
                             body: JSON.stringify({
-                                page_id: pageId,
+                                page_id: window.pageId,
                                 buyer_phone: phoneNumber,
                                 buyer_name: document.getElementById('fullName')?.value || document.getElementById('firstname')?.value || 'Customer',
                                 buyer_email: document.getElementById('email')?.value || 'customer@example.com',
@@ -319,7 +324,7 @@ class PageController extends Controller
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
-                                    'X-CSRF-Token': csrfToken,
+                                    'X-CSRF-Token': window.csrfTokenValue,
                                 },
                                 body: JSON.stringify({ transaction_id: currentTransactionId }),
                             });

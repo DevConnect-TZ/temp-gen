@@ -10,12 +10,6 @@
         <button class="pb-4 font-medium text-gray-900 border-b-2 border-indigo-600 text-indigo-600">
             General
         </button>
-        <button class="pb-4 font-medium text-gray-600 hover:text-gray-900 border-b-2 border-transparent">
-            Security
-        </button>
-        <button class="pb-4 font-medium text-gray-600 hover:text-gray-900 border-b-2 border-transparent">
-            API
-        </button>
     </div>
 
     <!-- General Settings -->
@@ -76,11 +70,11 @@
                 <div>
                     <label for="currency" class="block text-sm font-medium text-gray-900 mb-2">Default Currency</label>
                     <select id="currency" class="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
-                        <option selected>USD - United States Dollar</option>
+                        <option selected>TZS - Tanzania Shilling</option>
+                        <option>USD - United States Dollar</option>
                         <option>EUR - Euro</option>
                         <option>GBP - British Pound</option>
-                        <option>CAD - Canadian Dollar</option>
-                        <option>AUD - Australian Dollar</option>
+                        <option>KES - Kenyan Shilling</option>
                     </select>
                     <p class="text-xs text-gray-600 mt-1">Default currency for all new pages</p>
                 </div>
@@ -89,12 +83,12 @@
                 <div>
                     <label for="timezone" class="block text-sm font-medium text-gray-900 mb-2">Time Zone</label>
                     <select id="timezone" class="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
-                        <option selected>America/New_York - Eastern Time</option>
-                        <option>America/Chicago - Central Time</option>
-                        <option>America/Denver - Mountain Time</option>
-                        <option>America/Los_Angeles - Pacific Time</option>
+                        <option selected>Africa/Dar_es_Salaam - East Africa Time</option>
+                        <option>Africa/Nairobi - East Africa Time</option>
+                        <option>Africa/Johannesburg - South Africa Standard Time</option>
                         <option>Europe/London - London</option>
                         <option>Europe/Paris - Paris</option>
+                        <option>America/New_York - Eastern Time</option>
                     </select>
                     <p class="text-xs text-gray-600 mt-1">Time zone for timestamps and scheduling</p>
                 </div>
