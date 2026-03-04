@@ -68,6 +68,12 @@ Route::middleware(['auth.custom'])->group(function () {
     })->name('logout');
 });
 
+// Payment Routes (accessible by anyone for public pages)
+Route::controller(\App\Http\Controllers\PaymentController::class)->prefix('api/payments')->group(function () {
+    Route::post('/create-order', 'createOrder')->name('payments.create-order');
+    Route::post('/check-status', 'checkStatus')->name('payments.check-status');
+});
+
 // Public Routes - Pages (must be last so dashboard routes take priority)
 Route::get('/{page}', [PageController::class, 'show'])->where('page', '[a-z0-9-]+')->name('page.show');
 

@@ -183,9 +183,9 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <!-- Price Input -->
             <div>
-                <label for="price" class="block text-sm font-medium text-gray-900 mb-2">Price</label>
+                <label for="price" class="block text-sm font-medium text-gray-900 mb-2">Price (TZS)</label>
                 <div class="relative">
-                    <span class="absolute left-4 top-3 text-gray-600">$</span>
+                    <span class="absolute left-4 top-3 text-gray-600">TZS</span>
                     <input
                         type="number"
                         id="price"
@@ -194,13 +194,13 @@
                         step="0.01"
                         min="0"
                         value="{{ old('price') }}"
-                        class="w-full pl-8 pr-4 py-3 border {{ $errors->has('price') ? 'border-red-500' : 'border-gray-300' }} rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                        class="w-full pl-12 pr-4 py-3 border {{ $errors->has('price') ? 'border-red-500' : 'border-gray-300' }} rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
                     >
                 </div>
                 @if ($errors->has('price'))
                     <p class="text-red-600 text-xs mt-1">{{ $errors->first('price') }}</p>
                 @else
-                    <p class="text-xs text-gray-600 mt-1">Set the price for accessing this page</p>
+                    <p class="text-xs text-gray-600 mt-1">Set the price in Tanzanian Shilling (TZS) for accessing this page</p>
                 @endif
             </div>
 
@@ -224,30 +224,30 @@
             <label class="block text-sm font-medium text-gray-900 mb-4">Payment Gateway</label>
 
             <div class="space-y-3">
-                <!-- Stripe -->
+                <!-- SonicPesa -->
                 <label class="flex items-center p-4 border border-gray-300 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 transition cursor-pointer">
-                    <input type="radio" name="payment_gateway" value="stripe" class="w-4 h-4 text-indigo-600" {{ old('payment_gateway') === 'stripe' || (!old('payment_gateway') && !$errors->any()) ? 'checked' : '' }}>
+                    <input type="radio" name="payment_gateway" value="sonicpesa" class="w-4 h-4 text-indigo-600" {{ old('payment_gateway') === 'sonicpesa' || (!old('payment_gateway') && !$errors->any()) ? 'checked' : '' }}>
                     <span class="ml-3 flex items-center space-x-3 flex-1">
-                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor" class="text-indigo-600">
-                            <path d="M16.465 9.07H9.5v2.5h5.45c-.275 1.6-.925 2.85-2.825 3.6V19h2.875c2.65-2.45 4.125-6.05 4.125-9.93z"/>
+                        <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
                         </svg>
                         <div>
-                            <p class="font-medium text-gray-900">Stripe</p>
-                            <p class="text-xs text-gray-600">Fast, secure payments</p>
+                            <p class="font-medium text-gray-900">SonicPesa</p>
+                            <p class="text-xs text-gray-600">Mobile money USSD payment</p>
                         </div>
                     </span>
                 </label>
 
-                <!-- PayPal -->
+                <!-- Snippe -->
                 <label class="flex items-center p-4 border border-gray-300 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 transition cursor-pointer">
-                    <input type="radio" name="payment_gateway" value="paypal" class="w-4 h-4 text-indigo-600" {{ old('payment_gateway') === 'paypal' ? 'checked' : '' }}>
+                    <input type="radio" name="payment_gateway" value="snippe" class="w-4 h-4 text-indigo-600" {{ old('payment_gateway') === 'snippe' ? 'checked' : '' }}>
                     <span class="ml-3 flex items-center space-x-3 flex-1">
-                        <svg class="w-6 h-6 text-blue-600" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M9 12c0 1.657 1.343 3 3 3s3-1.343 3-3-1.343-3-3-3-3 1.343-3 3z"/>
+                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                         </svg>
                         <div>
-                            <p class="font-medium text-gray-900">PayPal</p>
-                            <p class="text-xs text-gray-600">Popular & trusted</p>
+                            <p class="font-medium text-gray-900">Snippe</p>
+                            <p class="text-xs text-gray-600">Alternative payment gateway</p>
                         </div>
                     </span>
                 </label>

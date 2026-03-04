@@ -134,9 +134,9 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <!-- Price Input -->
             <div>
-                <label for="price" class="block text-sm font-medium text-gray-900 mb-2">Price</label>
+                <label for="price" class="block text-sm font-medium text-gray-900 mb-2">Price (TZS)</label>
                 <div class="relative">
-                    <span class="absolute left-4 top-3 text-gray-600">$</span>
+                    <span class="absolute left-4 top-3 text-gray-600">TZS</span>
                     <input
                         type="number"
                         id="price"
@@ -145,10 +145,10 @@
                         step="0.01"
                         min="0"
                         value="{{ old('price', $page->price ?? '') }}"
-                        class="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                        class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
                     >
                 </div>
-                <p class="text-xs text-gray-600 mt-1">Set the price for accessing this page</p>
+                <p class="text-xs text-gray-600 mt-1">Set the price in Tanzanian Shilling (TZS) for accessing this page</p>
             </div>
 
             <!-- Payment Gateway Selection -->
@@ -160,8 +160,8 @@
                     class="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
                 >
                     <option value="">None</option>
-                    <option value="stripe" {{ old('payment_gateway', $page->payment_gateway) === 'stripe' ? 'selected' : '' }}>Stripe</option>
-                    <option value="paypal" {{ old('payment_gateway', $page->payment_gateway) === 'paypal' ? 'selected' : '' }}>PayPal</option>
+                    <option value="sonicpesa" {{ old('payment_gateway', $page->payment_gateway) === 'sonicpesa' ? 'selected' : '' }}>SonicPesa</option>
+                    <option value="snippe" {{ old('payment_gateway', $page->payment_gateway) === 'snippe' ? 'selected' : '' }}>Snippe</option>
                 </select>
             </div>
         </div>

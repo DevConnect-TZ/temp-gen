@@ -35,4 +35,14 @@ return [
         ],
     ],
 
+    'sonicpesa' => [
+        'api_key' => env('SONICPESA_API_KEY'),
+    ],
+
+    'snippe' => [
+        'api_key' => env('SNIPPE_API_KEY'),
+        'base_url' => 'https://api.snippe.sh/v1',
+        'webhook_url' => env('SNIPPE_WEBHOOK_URL', 'https://example.com/webhook'),
+    ],
+
 ];

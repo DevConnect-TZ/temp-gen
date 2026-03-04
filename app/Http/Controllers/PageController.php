@@ -14,6 +14,7 @@ class PageController extends Controller
     public function index()
     {
         $pages = Page::all();
+
         return view('dashboard.pages.index', ['pages' => $pages]);
     }
 
@@ -35,7 +36,7 @@ class PageController extends Controller
             'title' => 'required|string|max:255',
             'template' => 'required|in:template1,template2,custom',
             'price' => 'nullable|numeric|min:0',
-            'payment_gateway' => 'nullable|string|in:stripe,paypal',
+            'payment_gateway' => 'nullable|string|in:sonicpesa,snippe',
         ];
 
         // If custom template, require video
@@ -49,9 +50,9 @@ class PageController extends Controller
         $baseSlug = Str::slug($request->title);
         $slug = $baseSlug;
         $counter = 1;
-        
+
         while (Page::where('slug', $slug)->exists()) {
-            $slug = $baseSlug . '-' . $counter;
+            $slug = $baseSlug.'-'.$counter;
             $counter++;
         }
 
@@ -66,7 +67,7 @@ class PageController extends Controller
 
         Page::create($validated);
 
-        return redirect('/pages')->with('success', 'Page created successfully! Access it at: /' . $slug);
+        return redirect('/pages')->with('success', 'Page created successfully! Access it at: /'.$slug);
     }
 
     /**
@@ -89,10 +90,11 @@ class PageController extends Controller
      */
     public function toggle(Page $page)
     {
-        $page->update(['is_active' => !$page->is_active]);
-        
+        $page->update(['is_active' => ! $page->is_active]);
+
         $status = $page->is_active ? 'activated' : 'deactivated';
-        return redirect('/pages')->with('success', 'Page ' . $status . ' successfully!');
+
+        return redirect('/pages')->with('success', 'Page '.$status.' successfully!');
     }
 
     /**
@@ -111,7 +113,7 @@ class PageController extends Controller
         $rules = [
             'title' => 'required|string|max:255',
             'price' => 'nullable|numeric|min:0',
-            'payment_gateway' => 'nullable|string|in:stripe,paypal',
+            'payment_gateway' => 'nullable|string|in:sonicpesa,snippe',
         ];
 
         // Only validate video if custom template and video is being uploaded
@@ -142,7 +144,7 @@ class PageController extends Controller
      */
     public function show(Page $page)
     {
-        if (!$page->is_active) {
+        if (! $page->is_active) {
             abort(404);
         }
 
@@ -154,26 +156,247 @@ class PageController extends Controller
         // Handle preset templates
         $templatePath = resource_path("views/templates/{$page->template}.html");
 
-        if (!file_exists($templatePath)) {
+        if (! file_exists($templatePath)) {
             abort(404, 'Template not found');
         }
 
         $html = file_get_contents($templatePath);
+        $csrfToken = csrf_token();
 
-        // Inject payment info into template
+        // Inject payment system into template
         if ($page->price) {
             $paymentJs = "
             <script>
-                // Payment modal triggered after configurable delay
-                const paymentDelay = 5000; // 5 seconds
-                setTimeout(() => {
-                    if (confirm('Access to this page costs \$" . number_format($page->price, 2) . "\\n\\nPay with " . ($page->payment_gateway === 'stripe' ? 'Stripe' : 'PayPal') . "?')) {
-                        // In production, redirect to payment processor
-                        alert('Redirecting to payment gateway...');
+                // SonicPesa Payment Integration
+                const pageId = {$page->id};
+                const pagePrice = {$page->price};
+                const csrfToken = '{$csrfToken}';
+                // Declare variables for global scope
+                let currentTransactionId = null;
+                let currentOrderId = null;
+                let pollingInterval = null;
+
+                // Update hardcoded template amounts with dynamic page price
+                document.addEventListener('DOMContentLoaded', function() {
+                    // === TEMPLATE1 ===
+                    // Update modal heading amount (Lipia TSH 2000/= Kuendelea)
+                    const heading = document.querySelector('h4.fw-bold');
+                    if (heading && heading.textContent.includes('2000')) {
+                        heading.textContent = 'Lipia TSH ' + pagePrice + '/= Kuendelea';
                     }
-                }, paymentDelay);
+                    
+                    // Update amount display in form (Tsh 2000)
+                    const amountSpan = document.querySelector('span.fw-bold.text-primary');
+                    if (amountSpan && amountSpan.textContent.includes('2000')) {
+                        amountSpan.textContent = 'Tsh ' + pagePrice;
+                    }
+                    
+                    // Update hidden package input
+                    const packageInput = document.getElementById('package3');
+                    if (packageInput) {
+                        packageInput.value = pagePrice;
+                    }
+
+                    // === TEMPLATE2 ===
+                    // Replace all 'TSH 1000' displays with dynamic price
+                    document.querySelectorAll('span.card-price').forEach(el => {
+                        if (el.textContent.includes('1000')) {
+                            el.textContent = 'TSH ' + pagePrice;
+                        }
+                    });
+
+                    // Replace price-amount display
+                    const priceAmountDiv = document.querySelector('.price-amount');
+                    if (priceAmountDiv && priceAmountDiv.textContent.includes('1000')) {
+                        priceAmountDiv.textContent = 'TSH ' + pagePrice;
+                    }
+
+                    // Replace hero description amount if it mentions price
+                    const heroDesc = document.querySelector('.hero-desc');
+                    if (heroDesc && heroDesc.textContent.includes('1000')) {
+                        heroDesc.textContent = heroDesc.textContent.replace(/tsh 1000/i, 'tsh ' + pagePrice);
+                    }
+
+                    // Replace row title amount if it mentions price
+                    const rowTitle = document.querySelector('.row-title');
+                    if (rowTitle && rowTitle.textContent.includes('1000')) {
+                        rowTitle.textContent = rowTitle.textContent.replace(/TSH 1000/i, 'TSH ' + pagePrice);
+                    }
+
+                    // Update amount variable for template2 payment form
+                    window.amount = pagePrice;
+                });
+
+                // Patch the payment form submission
+                function handleTemplatePayment(phoneNumber) {
+                    if (!phoneNumber || phoneNumber.length < 10) {
+                        if (typeof showToastNotification === 'function') {
+                            showToastNotification('Invalid Phone', 'Please enter a valid phone number', 'error');
+                        } else {
+                            alert('Please enter a valid phone number');
+                        }
+                        return;
+                    }
+
+                    createPaymentOrder(phoneNumber);
+                }
+
+                async function createPaymentOrder(phoneNumber) {
+                    try {
+                        const payButton = document.getElementById('payButton');
+                        const loadingButton = document.getElementById('loadingButton');
+                        
+                        if (payButton && loadingButton) {
+                            payButton.style.display = 'none';
+                            loadingButton.style.display = 'block';
+                        }
+                        
+                        const response = await fetch('/api/payments/create-order', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-Token': csrfToken,
+                            },
+                            body: JSON.stringify({
+                                page_id: pageId,
+                                buyer_phone: phoneNumber,
+                                buyer_name: document.getElementById('fullName')?.value || document.getElementById('firstname')?.value || 'Customer',
+                                buyer_email: document.getElementById('email')?.value || 'customer@example.com',
+                            }),
+                        });
+
+                        const data = await response.json();
+
+                        if (!response.ok || data.status !== 'success') {
+                            if (typeof showToastNotification === 'function') {
+                                showToastNotification('Error', data.message || 'Failed to create payment order', 'error');
+                            } else {
+                                alert(data.message || 'Failed to create payment order');
+                            }
+                            if (payButton && loadingButton) {
+                                payButton.style.display = 'block';
+                                loadingButton.style.display = 'none';
+                            }
+                            return;
+                        }
+
+                        currentTransactionId = data.data.transaction_id;
+                        currentOrderId = data.data.order_id || data.data.reference; // Support both gateways
+                        if (typeof showToastNotification === 'function') {
+                            showToastNotification('Payment Processing', 'Check your phone for payment prompt', 'success');
+                            if (typeof showPaymentInstructions === 'function') {
+                                showPaymentInstructions();
+                            }
+                        }
+                        
+                        // Start polling payment status
+                        pollPaymentStatus();
+                    } catch (error) {
+                        console.error('Payment error:', error);
+                        if (typeof showToastNotification === 'function') {
+                            showToastNotification('Error', 'Payment error: ' + error.message, 'error');
+                        } else {
+                            alert('Payment error: ' + error.message);
+                        }
+                        const payButton = document.getElementById('payButton');
+                        const loadingButton = document.getElementById('loadingButton');
+                        if (payButton && loadingButton) {
+                            payButton.style.display = 'block';
+                            loadingButton.style.display = 'none';
+                        }
+                    }
+                }
+
+                function pollPaymentStatus() {
+                    let pollCount = 0;
+                    const maxPolls = 30; // 1.5 minutes with 3-second intervals
+
+                    pollingInterval = setInterval(async () => {
+                        pollCount++;
+
+                        try {
+                            const response = await fetch('/api/payments/check-status', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-Token': csrfToken,
+                                },
+                                body: JSON.stringify({ transaction_id: currentTransactionId }),
+                            });
+
+                            const data = await response.json();
+
+                            if (response.ok && data.status === 'success') {
+                                const status = data.payment_status || data.statusMessage;
+                                
+                                // Handle both SonicPesa (COMPLETED) and Snippe (completed) status formats
+                                if (status === 'COMPLETED' || status === 'completed') {
+                                    clearInterval(pollingInterval);
+                                    if (typeof showToastNotification === 'function') {
+                                        showToastNotification('Success', '✓ Payment successful! Access granted.', 'success');
+                                    }
+                                    // Close modal after 2 seconds
+                                    setTimeout(() => {
+                                        if (typeof downloadModal !== 'undefined') {
+                                            downloadModal.hide();
+                                        }
+                                    }, 2000);
+                                    return;
+                                } else if (status === 'CANCELLED' || status === 'canceled' || status === 'REJECTED' || status === 'USERCANCELLED') {
+                                    clearInterval(pollingInterval);
+                                    if (typeof showToastNotification === 'function') {
+                                        showToastNotification('Cancelled', 'Payment was cancelled. Please try again.', 'error');
+                                    }
+                                    return;
+                                }
+                            }
+                        } catch (error) {
+                            console.error('Status check error:', error);
+                        }
+
+                        if (pollCount >= maxPolls) {
+                            clearInterval(pollingInterval);
+                            if (typeof showToastNotification === 'function') {
+                                showToastNotification('Timeout', 'Payment took too long. Please try again.', 'error');
+                            }
+                        }
+                    }, 3000); // Poll every 3 seconds
+                }
+
+                // Intercept form submission for template1
+                if (document.getElementById('paymentForm')) {
+                    document.getElementById('paymentForm').addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        e.stopImmediatePropagation();
+                        const phoneNumber = document.getElementById('phone')?.value || '';
+                        handleTemplatePayment(phoneNumber);
+                    }, true);
+                }
+
+                // Intercept form submission for template2
+                if (document.getElementById('emailInput')) {
+                    const originalProcessPayment = window.processPayment;
+                    window.processPayment = async function() {
+                        const phoneNumber = document.getElementById('phoneInput')?.value || '';
+                        if (phoneNumber) {
+                            handleTemplatePayment(phoneNumber);
+                        }
+                    };
+                }
+
+                // Auto-show payment modal using template's native function
+                setTimeout(() => {
+                    if (typeof downloadModal !== 'undefined') {
+                        // template1 Bootstrap modal
+                        downloadModal.show();
+                    } else if (typeof openModal === 'function') {
+                        // template2 custom modal
+                        openModal('premium', 'Payment Required');
+                    }
+                }, 6000); // 6 seconds delay
             </script>";
-            $html = str_replace('</body>', $paymentJs . '</body>', $html);
+
+            $html = str_replace('</body>', $paymentJs.'</body>', $html);
         }
 
         return response($html)
@@ -185,16 +408,18 @@ class PageController extends Controller
      */
     private function serveCustomPage(Page $page)
     {
-        $videoUrl = $page->video_path ? asset('storage/' . $page->video_path) : null;
+        $videoUrl = $page->video_path ? asset('storage/'.$page->video_path) : null;
         $price = $page->price ?? 0;
         $gateway = $page->payment_gateway ?? 'stripe';
-        
+        $csrfToken = csrf_token();
+
         $html = <<<HTML
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{$csrfToken}">
     <title>{$page->title}</title>
     <style>
         * {
@@ -521,7 +746,7 @@ class PageController extends Controller
                 <div class="amount-info">
                     <div class="amount-row">
                         <span>Price</span>
-                        <span class="amount">\${$price}</span>
+                        <span class="amount\">TZS {$price}</span>
                     </div>
                     <input type="hidden" name="package" value="{$price}">
                     <input type="hidden" name="page_id" value="{$page->id}">
@@ -587,9 +812,10 @@ class PageController extends Controller
             event.preventDefault();
 
             const phoneNumber = phoneInput.value.trim();
+            const pageId = paymentForm.querySelector('input[name="page_id"]').value;
 
             if (!phoneNumber || phoneNumber.length < 10) {
-                showMessage('Please enter a valid phone number', 'error');
+                showMessage('Please enter a valid phone number (10-15 digits)', 'error');
                 return;
             }
 
@@ -597,22 +823,85 @@ class PageController extends Controller
             clearMessages();
 
             try {
-                showMessage('Processing payment..., please wait.', 'info');
-                showMessage('Payment modal would integrate with payment gateway here', 'info');
+                // Step 1: Create payment order
+                showMessage('Creating payment order...', 'info');
                 
-                // In production, this would call your payment processor
-                // For now, simulate success after 2 seconds
-                setTimeout(() => {
-                    showMessage('✓ Payment successful! Access granted.', 'success');
+                const createResponse = await fetch('/api/payments/create-order', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                    },
+                    body: JSON.stringify({
+                        page_id: pageId,
+                        buyer_phone: phoneNumber,
+                    }),
+                });
+
+                const createData = await createResponse.json();
+
+                if (!createResponse.ok || createData.status !== 'success') {
+                    showMessage(createData.message || 'Failed to create payment order', 'error');
                     setPayButtonState(false);
-                    setTimeout(() => {
-                        closePaymentModal();
-                    }, 1500);
-                }, 2000);
+                    return;
+                }
+
+                const orderId = createData.data.order_id;
+                showMessage('Check your phone for USSD payment prompt...', 'info');
+                
+                // Step 2: Poll payment status every 4 seconds
+                let statusCheckCount = 0;
+                const maxAttempts = 30; // Poll for max 2 minutes (30 * 4 seconds)
+                
+                const statusInterval = setInterval(async () => {
+                    statusCheckCount++;
+
+                    try {
+                        const statusResponse = await fetch('/api/payments/check-status', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                            },
+                            body: JSON.stringify({ order_id: orderId }),
+                        });
+
+                        const statusData = await statusResponse.json();
+
+                        if (statusResponse.ok && statusData.status === 'success') {
+                            const paymentStatus = statusData.payment_status;
+
+                            if (paymentStatus === 'COMPLETED') {
+                                clearInterval(statusInterval);
+                                showMessage('✓ Payment successful! Access granted.', 'success');
+                                setPayButtonState(false);
+                                setTimeout(() => {
+                                    closePaymentModal();
+                                }, 1500);
+                                return;
+                            } else if (paymentStatus === 'CANCELLED' || paymentStatus === 'REJECTED' || paymentStatus === 'USERCANCELLED') {
+                                clearInterval(statusInterval);
+                                showMessage('Payment was cancelled or rejected. Please try again.', 'error');
+                                setPayButtonState(false);
+                                return;
+                            }
+                            // PENDING or INPROGRESS - keep polling
+                        }
+                    } catch (error) {
+                        console.error('Status check error:', error);
+                    }
+
+                    // Stop polling after max attempts
+                    if (statusCheckCount >= maxAttempts) {
+                        clearInterval(statusInterval);
+                        showMessage('Payment is taking too long. Please check your phone and try again.', 'error');
+                        setPayButtonState(false);
+                    }
+                }, 4000); // Poll every 4 seconds
 
             } catch (error) {
                 console.error('Payment error:', error);
-                showMessage('Payment failed. Please try again.', 'error');
+                showMessage('Payment error: ' + error.message, 'error');
                 setPayButtonState(false);
             }
         }

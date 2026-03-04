@@ -79,7 +79,7 @@
                         </a>
                     </td>
                     <td class="px-6 py-4 text-sm text-gray-600">{{ ucfirst(str_replace('template', 'Template ', $page->template)) }}</td>
-                    <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ $page->price ? '$' . number_format($page->price, 2) : 'Free' }}</td>
+                    <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ $page->price ? 'TZS' . number_format($page->price, 2) : 'Free' }}</td>
                     <td class="px-6 py-4 text-sm">
                         @if($page->is_active)
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Active</span>

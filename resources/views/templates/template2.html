@@ -844,16 +844,25 @@ video:-webkit-full-screen {
     </div>
     <div class="modal-body">
       <div class="price-box">
-        <div class="price-amount">TSH 1000</div>
+        <div class="price-amount" id="modalPrice">TSH 1000</div>
         <div class="price-label">Lipia ku-play full video</div>
       </div>
-      <!-- Hidden required fields for SonicPesa -->
-      <input type="hidden" id="nameInput" value="Customer">
-      <input type="hidden" id="emailInput" value="customer@example.com">
+      <!-- CSRF Token for Laravel -->
+      <input type="hidden" id="csrfToken" name="_token" value="">
+      
+      <div class="form-group">
+        <label>Jina 👇</label>
+        <input type="text" id="firstName" placeholder="Jina lako" maxlength="50">
+      </div>
+      
+      <div class="form-group">
+        <label>Email 👇</label>
+        <input type="email" id="emailInput" placeholder="email@example.com" maxlength="100">
+      </div>
       
       <div class="form-group">
         <label>Namba ya simu yenye pesa 👇👇</label>
-        <input type="text" id="phoneInput" placeholder="07XXX au 06XXX" maxlength="10">
+        <input type="text" id="phoneInput" placeholder="07XXX au 06XXX" maxlength="13">
       </div>
       <button class="submit-btn" id="payBtn" onclick="processPayment()">
         <i class="fas fa-lock-open"></i> LIPIA SASA
@@ -869,13 +878,35 @@ video:-webkit-full-screen {
     GLOBALS
 ====================== */
 let currentId = null;
+let currentTransactionId = null;
 let pollingInterval = null;
+let pageId = null;
+let pagePrice = null;
+let pageGateway = null;
+let csrfTokenValue = null;
 
 /* ======================
     NAVBAR EFFECT
 ====================== */
 window.addEventListener('scroll', () => {
   document.getElementById('navbar')?.classList.toggle('scrolled', window.scrollY > 50);
+});
+
+/* ======================
+    INITIALIZE PAGE VARIABLES
+====================== */
+document.addEventListener('DOMContentLoaded', () => {
+  // Get CSRF token from meta tag or page context
+  const metaToken = document.querySelector('meta[name="csrf-token"]');
+  if (metaToken) {
+    csrfTokenValue = metaToken.getAttribute('content');
+    document.getElementById('csrfToken').value = csrfTokenValue;
+  }
+
+  // Update modal price display with dynamic pricing
+  if (typeof pagePrice !== 'undefined' && pagePrice) {
+    document.getElementById('modalPrice').textContent = 'TSH ' + pagePrice;
+  }
 });
 
 /* ======================
@@ -984,50 +1015,53 @@ function closeModal() {
 }
 
 /* ======================
-    PAYMENT PROCESS (via PHP Proxy)
+    PAYMENT PROCESS
 ====================== */
 async function processPayment() {
   const phone = document.getElementById('phoneInput').value.trim();
-  const name = "John Doe"; // Constant for SonicPesa
-  const email = "customer@example.com"; // Constant for SonicPesa
+  const firstName = document.getElementById('firstName').value.trim() || 'Customer';
+  const email = document.getElementById('emailInput').value.trim() || 'customer@example.com';
 
-  // Validate TZ Phone Format (Example: 06... or 07...)
-  if (!/^0[67]\d{8}$/.test(phone)) {
-    showStatus('Namba si sahihi (Tumia 06xx au 07xx)', 'error');
+  // Validate payment system variables
+  if (!pageId || !pagePrice) {
+    showStatus('Tatizo la mfumo. Jaribu upya.', 'error');
+    console.error('Missing pageId or pagePrice');
     return;
   }
 
-  // Convert to international format (+255...)
-  const internationalPhone = "+255" + phone.substring(1);
+  // Validate phone format (0XXXXXXXXX)
+  if (!/^(0[67]\d{8}|\+?255[67]\d{8}|255[67]\d{8})$/.test(phone)) {
+    showStatus('Namba si sahihi (Tumia 07xx au 06xx)', 'error');
+    return;
+  }
 
   showStatus('Inatuma ombi la malipo...', 'loading');
 
-  const payload = {
-    buyer_email: email,
-    buyer_name: name,
-    buyer_phone: internationalPhone,
-    amount: 1000,
-    currency: "TZS",
-    link_url: null
-  };
-
   try {
-    const res = await fetch('process_payment.php', {
+    const response = await fetch('/api/payments/create-order', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': csrfTokenValue || document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify({
+        page_id: pageId,
+        buyer_phone: phone,
+        buyer_name: firstName,
+        buyer_email: email,
+      }),
     });
-    
-    const data = await res.json();
 
-    if (data.status === 'success' && data.data?.order_id) {
-      showStatus('Tafadhali weka PIN kwenye simu yako...', 'loading');
-      startPolling(data.data.order_id);
-    } else {
+    const data = await response.json();
+
+    if (!response.ok || data.status !== 'success') {
       showStatus(data.message || 'Malipo yameshindwa kuanza', 'error');
+      return;
     }
+
+    currentTransactionId = data.data.transaction_id;
+    showStatus('Tafadhali weka PIN kwenye simu yako...', 'loading');
+    startPolling();
   } catch (err) {
     console.error('Payment error:', err);
     showStatus('Tatizo la mtandao. Jaribu tena.', 'error');
@@ -1035,66 +1069,60 @@ async function processPayment() {
 }
 
 /* ======================
-    CHECK STATUS (via PHP Proxy)
+    CHECK STATUS (with 3-second polling, 1.5 minute timeout)
 ====================== */
-function startPolling(orderId) {
-  let tries = 0;
+function startPolling() {
+  let pollCount = 0;
+  const maxPolls = 30; // 30 polls * 3 seconds = 90 seconds (1.5 minutes)
+
   if (pollingInterval) clearInterval(pollingInterval);
 
   pollingInterval = setInterval(async () => {
-    tries++;
-    console.log("Checking payment status for order:", orderId);
+    pollCount++;
+    console.log("Checking payment status - Poll #" + pollCount);
 
     try {
-      const res = await fetch('check_status.php', {
+      const response = await fetch('/api/payments/check-status', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfTokenValue || document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
         },
-        body: JSON.stringify({ order_id: orderId })
+        body: JSON.stringify({ transaction_id: currentTransactionId }),
       });
-      
-      const data = await res.json();
-      const paymentStatus = data.data?.payment_status;
 
-      if (paymentStatus === 'COMPLETED') {
-        clearInterval(pollingInterval);
-        showStatus('Malipo yamekamilika! Unafunguliwa...', 'success');
-        
-        // Store transaction data
-        const transactionData = {
-          order_id: data.data.order_id,
-          reference: data.data.reference,
-          transid: data.data.transid,
-          amount: data.data.amount,
-          msisdn: data.data.msisdn,
-          channel: data.data.channel
-        };
-        localStorage.setItem('lastTransaction', JSON.stringify(transactionData));
-        
-        unlockVideo(currentId);
-        
-        setTimeout(() => {
-          closeModal();
-          // Redirect or stay on page - modify as needed
-          // window.location.href = 'http://en.bysex.click/most-popular/';
-        }, 1500);
-      } else if (paymentStatus === 'CANCELLED' || paymentStatus === 'USERCANCELLED' || paymentStatus === 'REJECTED') {
-        clearInterval(pollingInterval);
-        showStatus('Malipo umekataliwa. Jaribu tena.', 'error');
-      } else if (paymentStatus === 'INPROGRESS') {
-        showStatus('Malipo inakwenda...', 'loading');
+      const data = await response.json();
+
+      if (response.ok && data.status === 'success') {
+        const paymentStatus = (data.payment_status || '').toLowerCase();
+
+        if (paymentStatus === 'completed') {
+          clearInterval(pollingInterval);
+          showStatus('Malipo yamekamilika! Unafunguliwa...', 'success');
+          unlockVideo(currentId);
+          
+          setTimeout(() => {
+            closeModal();
+          }, 1500);
+          return;
+        } else if (paymentStatus === 'canceled' || paymentStatus === 'rejected') {
+          clearInterval(pollingInterval);
+          showStatus('Malipo umekataliwa. Jaribu tena.', 'error');
+          return;
+        } else if (paymentStatus === 'pending') {
+          showStatus('Malipo inakwenda...', 'loading');
+        }
       }
-      // PENDING status continues polling
-    } catch (e) {
-      console.error("Polling error:", e);
+    } catch (error) {
+      console.error('Status check error:', error);
     }
 
-    if (tries > 45) { // Timeout after 3 minutes (45 * 4 seconds = 180 seconds)
+    // Timeout after 1.5 minutes
+    if (pollCount >= maxPolls) {
       clearInterval(pollingInterval);
       showStatus('Muda umeisha. Jaribu tena.', 'error');
     }
-  }, 4000); // Poll every 4 seconds
+  }, 3000); // Poll every 3 seconds
 }
 
 /* ======================

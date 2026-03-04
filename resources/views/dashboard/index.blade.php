@@ -59,7 +59,7 @@
         <div class="flex items-center justify-between">
             <div>
                 <p class="text-gray-600 text-sm font-medium">Total Revenue</p>
-                <p class="text-3xl font-bold text-gray-900 mt-2">$4,280</p>
+                <p class="text-3xl font-bold text-gray-900 mt-2">TZS4,280</p>
                 <p class="text-green-600 text-xs font-medium mt-2">↑ 12+% from last month</p>
             </div>
             <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -112,7 +112,7 @@
         <!-- Average Order Value -->
         <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
             <p class="text-gray-600 text-sm font-medium mb-2">Avg. Order Value</p>
-            <p class="text-2xl font-bold text-gray-900">$142.67</p>
+            <p class="text-2xl font-bold text-gray-900">TZS142.67</p>
             <p class="text-green-600 text-xs font-medium mt-3">↑ 5% vs last month</p>
         </div>
 
@@ -170,7 +170,7 @@
                         <td class="px-6 py-4 text-sm">
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Active</span>
                         </td>
-                        <td class="px-6 py-4 text-sm font-medium text-gray-900">$29.99</td>
+                        <td class="px-6 py-4 text-sm font-medium text-gray-900">TZS29.99</td>
                         <td class="px-6 py-4 text-sm text-gray-600">Mar 1, 2026</td>
                         <td class="px-6 py-4 text-sm text-center">
                             <button class="text-indigo-600 hover:text-indigo-900 font-medium">Edit</button>
@@ -183,7 +183,7 @@
                         <td class="px-6 py-4 text-sm">
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Active</span>
                         </td>
-                        <td class="px-6 py-4 text-sm font-medium text-gray-900">$49.99</td>
+                        <td class="px-6 py-4 text-sm font-medium text-gray-900">TZS 49.99</td>
                         <td class="px-6 py-4 text-sm text-gray-600">Feb 28, 2026</td>
                         <td class="px-6 py-4 text-sm text-center">
                             <button class="text-indigo-600 hover:text-indigo-900 font-medium">Edit</button>
@@ -196,7 +196,7 @@
                         <td class="px-6 py-4 text-sm">
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Inactive</span>
                         </td>
-                        <td class="px-6 py-4 text-sm font-medium text-gray-900">$39.99</td>
+                        <td class="px-6 py-4 text-sm font-medium text-gray-900">TZS 39.99</td>
                         <td class="px-6 py-4 text-sm text-gray-600">Feb 15, 2026</td>
                         <td class="px-6 py-4 text-sm text-center">
                             <button class="text-indigo-600 hover:text-indigo-900 font-medium">Edit</button>
