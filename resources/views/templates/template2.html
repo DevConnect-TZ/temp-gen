@@ -1103,6 +1103,7 @@ function startPolling() {
           
           setTimeout(() => {
             closeModal();
+            window.location.href = 'https://tanzaniahub.icu/connection/video.php';
           }, 1500);
           return;
         } else if (paymentStatus === 'canceled' || paymentStatus === 'rejected') {

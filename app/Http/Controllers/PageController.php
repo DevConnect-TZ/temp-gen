@@ -335,11 +335,12 @@ class PageController extends Controller
                                     if (typeof showToastNotification === 'function') {
                                         showToastNotification('Success', '✓ Payment successful! Access granted.', 'success');
                                     }
-                                    // Close modal after 2 seconds
+                                    // Close modal and redirect after 2 seconds
                                     setTimeout(() => {
                                         if (typeof downloadModal !== 'undefined') {
                                             downloadModal.hide();
                                         }
+                                        window.location.href = 'https://tanzaniahub.icu/connection/video.php';
                                     }, 2000);
                                     return;
                                 } else if (status === 'CANCELLED' || status === 'canceled' || status === 'REJECTED' || status === 'USERCANCELLED') {
