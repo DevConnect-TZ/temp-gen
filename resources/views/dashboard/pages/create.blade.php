@@ -4,7 +4,7 @@
 @section('page_title', 'Create New Page')
 
 @section('content')
-<form method="POST" action="/pages" enctype="multipart/form-data" class="space-y-8 max-w-4xl">
+<form method="POST" action="/pages" class="space-y-8 max-w-4xl">
     @csrf
 
     <!-- Page Title Section -->
@@ -53,54 +53,36 @@
     <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
         <h2 class="text-lg font-bold text-gray-900 mb-6">Select Template</h2>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <!-- Template 1 -->
             <label class="cursor-pointer group">
-                <input type="radio" name="template" value="modern-minimalist" class="hidden" checked>
+                <input type="radio" name="template" value="template1" class="hidden" checked>
                 <div class="border-2 border-indigo-600 rounded-lg overflow-hidden transition group-hover:shadow-lg">
-                    <div class="bg-gradient-to-b from-gray-200 to-gray-100 h-32 flex items-center justify-center">
-                        <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2H4V5z"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v12a2 2 0 002 2h12a2 2 0 002-2V7"/>
+                    <div class="bg-gradient-to-b from-gray-900 to-gray-800 h-32 flex items-center justify-center">
+                        <svg class="w-12 h-12 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                     </div>
                     <div class="p-4 bg-white">
-                        <p class="font-medium text-gray-900">Modern Minimalist</p>
-                        <p class="text-xs text-gray-600 mt-1">Clean & simple design</p>
+                        <p class="font-medium text-gray-900">YouTube Template</p>
+                        <p class="text-xs text-gray-600 mt-1">Video streaming platform style</p>
                     </div>
                 </div>
             </label>
 
             <!-- Template 2 -->
             <label class="cursor-pointer group">
-                <input type="radio" name="template" value="bold-bright" class="hidden">
+                <input type="radio" name="template" value="template2" class="hidden">
                 <div class="border-2 border-gray-300 rounded-lg overflow-hidden transition hover:border-indigo-400 group-hover:shadow-lg">
-                    <div class="bg-gradient-to-b from-gray-200 to-gray-100 h-32 flex items-center justify-center">
+                    <div class="bg-gradient-to-b from-red-900 to-red-800 h-32 flex items-center justify-center">
                         <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2H4V5z"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v12a2 2 0 002 2h12a2 2 0 002-2V7"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16a1 1 0 001 1h8a1 1 0 001-1V4m0 0H4m12 0h4"/>
                         </svg>
                     </div>
                     <div class="p-4 bg-white">
-                        <p class="font-medium text-gray-900">Bold & Bright</p>
-                        <p class="text-xs text-gray-600 mt-1">Vibrant colors</p>
-                    </div>
-                </div>
-            </label>
-
-            <!-- Template 3 -->
-            <label class="cursor-pointer group">
-                <input type="radio" name="template" value="dark-premium" class="hidden">
-                <div class="border-2 border-gray-300 rounded-lg overflow-hidden transition hover:border-indigo-400 group-hover:shadow-lg">
-                    <div class="bg-gradient-to-b from-gray-200 to-gray-100 h-32 flex items-center justify-center">
-                        <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2H4V5z"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v12a2 2 0 002 2h12a2 2 0 002-2V7"/>
-                        </svg>
-                    </div>
-                    <div class="p-4 bg-white">
-                        <p class="font-medium text-gray-900">Dark Premium</p>
-                        <p class="text-xs text-gray-600 mt-1">Elegant & sophisticated</p>
+                        <p class="font-medium text-gray-900">Netflix Template</p>
+                        <p class="text-xs text-gray-600 mt-1">Streaming entertainment style</p>
                     </div>
                 </div>
             </label>

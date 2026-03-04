@@ -13,7 +13,7 @@
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
         </svg>
-        <span>Create New Page</span>
+        <a href="/pages/create" class="text-white">Create New Page</a>
     </button>
 </div>
 
@@ -67,178 +67,51 @@
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-200">
-                <!-- Page Row 1 -->
+                @forelse($pages as $page)
                 <tr class="hover:bg-gray-50 transition">
-                    <td class="px-6 py-4 text-sm font-medium text-gray-900">Summer Promo Campaign</td>
+                    <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ $page->title }}</td>
                     <td class="px-6 py-4 text-sm">
-                        <a href="https://landinghub.test/summer-promo-2026" target="_blank" class="text-indigo-600 hover:underline cursor-pointer font-medium">
-                            summer-promo-2026
+                        <a href="/" target="_blank" class="text-indigo-600 hover:underline cursor-pointer font-medium">
+                            {{ $page->slug }}
                             <svg class="w-4 h-4 inline ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
                             </svg>
                         </a>
                     </td>
-                    <td class="px-6 py-4 text-sm text-gray-600">Modern Minimalist</td>
-                    <td class="px-6 py-4 text-sm font-medium text-gray-900">$29.99</td>
+                    <td class="px-6 py-4 text-sm text-gray-600">{{ ucfirst(str_replace('template', 'Template ', $page->template)) }}</td>
+                    <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ $page->price ? '$' . number_format($page->price, 2) : 'Free' }}</td>
                     <td class="px-6 py-4 text-sm">
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Active</span>
+                        @if($page->is_active)
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Active</span>
+                        @else
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Inactive</span>
+                        @endif
                     </td>
-                    <td class="px-6 py-4 text-sm text-gray-600">Mar 1, 2026</td>
+                    <td class="px-6 py-4 text-sm text-gray-600">{{ $page->created_at->format('M d, Y') }}</td>
                     <td class="px-6 py-4 text-sm text-center">
                         <div class="flex justify-center items-center space-x-2">
                             <button class="text-indigo-600 hover:text-indigo-900 font-medium hover:underline" title="Edit">Edit</button>
                             <button class="text-red-600 hover:text-red-900 font-medium hover:underline" title="Delete">Delete</button>
-                            <div class="relative group">
-                                <button class="text-gray-500 hover:text-gray-900">
-                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"></path>
-                                    </svg>
-                                </button>
-                                <div class="absolute right-0 mt-0 w-48 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
-                                    <button class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">View Stats</button>
-                                    <button class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Disable</button>
-                                    <button class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Duplicate</button>
-                                </div>
-                            </div>
                         </div>
                     </td>
                 </tr>
-
-                <!-- Page Row 2 -->
-                <tr class="hover:bg-gray-50 transition">
-                    <td class="px-6 py-4 text-sm font-medium text-gray-900">Q1 Product Launch</td>
-                    <td class="px-6 py-4 text-sm">
-                        <a href="https://landinghub.test/q1-product-launch" target="_blank" class="text-indigo-600 hover:underline cursor-pointer font-medium">
-                            q1-product-launch
-                            <svg class="w-4 h-4 inline ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                            </svg>
-                        </a>
-                    </td>
-                    <td class="px-6 py-4 text-sm text-gray-600">Bold & Bright</td>
-                    <td class="px-6 py-4 text-sm font-medium text-gray-900">$49.99</td>
-                    <td class="px-6 py-4 text-sm">
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Active</span>
-                    </td>
-                    <td class="px-6 py-4 text-sm text-gray-600">Feb 28, 2026</td>
-                    <td class="px-6 py-4 text-sm text-center">
-                        <div class="flex justify-center items-center space-x-2">
-                            <button class="text-indigo-600 hover:text-indigo-900 font-medium hover:underline" title="Edit">Edit</button>
-                            <button class="text-red-600 hover:text-red-900 font-medium hover:underline" title="Delete">Delete</button>
-                            <div class="relative group">
-                                <button class="text-gray-500 hover:text-gray-900">
-                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"></path>
-                                    </svg>
-                                </button>
-                                <div class="absolute right-0 mt-0 w-48 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
-                                    <button class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">View Stats</button>
-                                    <button class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Disable</button>
-                                    <button class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Duplicate</button>
-                                </div>
-                            </div>
-                        </div>
+                @empty
+                <tr>
+                    <td colspan="7" class="px-6 py-12 text-center text-gray-600">
+                        <p class="text-base font-medium">No pages created yet.</p>
+                        <p class="text-sm mt-1"><a href="/pages/create" class="text-indigo-600 hover:underline">Create your first page</a></p>
                     </td>
                 </tr>
-
-                <!-- Page Row 3 -->
-                <tr class="hover:bg-gray-50 transition">
-                    <td class="px-6 py-4 text-sm font-medium text-gray-900">Black Friday Deals</td>
-                    <td class="px-6 py-4 text-sm">
-                        <a href="https://landinghub.test/black-friday-deals" target="_blank" class="text-indigo-600 hover:underline cursor-pointer font-medium">
-                            black-friday-deals
-                            <svg class="w-4 h-4 inline ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                            </svg>
-                        </a>
-                    </td>
-                    <td class="px-6 py-4 text-sm text-gray-600">Dark Premium</td>
-                    <td class="px-6 py-4 text-sm font-medium text-gray-900">$39.99</td>
-                    <td class="px-6 py-4 text-sm">
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Inactive</span>
-                    </td>
-                    <td class="px-6 py-4 text-sm text-gray-600">Feb 15, 2026</td>
-                    <td class="px-6 py-4 text-sm text-center">
-                        <div class="flex justify-center items-center space-x-2">
-                            <button class="text-indigo-600 hover:text-indigo-900 font-medium hover:underline" title="Edit">Edit</button>
-                            <button class="text-red-600 hover:text-red-900 font-medium hover:underline" title="Delete">Delete</button>
-                            <div class="relative group">
-                                <button class="text-gray-500 hover:text-gray-900">
-                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"></path>
-                                    </svg>
-                                </button>
-                                <div class="absolute right-0 mt-0 w-48 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
-                                    <button class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">View Stats</button>
-                                    <button class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Enable</button>
-                                    <button class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Duplicate</button>
-                                </div>
-                            </div>
-                        </div>
-                    </td>
-                </tr>
-
-                <!-- Page Row 4 -->
-                <tr class="hover:bg-gray-50 transition">
-                    <td class="px-6 py-4 text-sm font-medium text-gray-900">Newsletter Signup</td>
-                    <td class="px-6 py-4 text-sm">
-                        <a href="https://landinghub.test/newsletter-signup" target="_blank" class="text-indigo-600 hover:underline cursor-pointer font-medium">
-                            newsletter-signup
-                            <svg class="w-4 h-4 inline ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                            </svg>
-                        </a>
-                    </td>
-                    <td class="px-6 py-4 text-sm text-gray-600">Clean & Simple</td>
-                    <td class="px-6 py-4 text-sm font-medium text-gray-900">$19.99</td>
-                    <td class="px-6 py-4 text-sm">
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Active</span>
-                    </td>
-                    <td class="px-6 py-4 text-sm text-gray-600">Feb 10, 2026</td>
-                    <td class="px-6 py-4 text-sm text-center">
-                        <div class="flex justify-center items-center space-x-2">
-                            <button class="text-indigo-600 hover:text-indigo-900 font-medium hover:underline" title="Edit">Edit</button>
-                            <button class="text-red-600 hover:text-red-900 font-medium hover:underline" title="Delete">Delete</button>
-                            <div class="relative group">
-                                <button class="text-gray-500 hover:text-gray-900">
-                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"></path>
-                                    </svg>
-                                </button>
-                                <div class="absolute right-0 mt-0 w-48 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
-                                    <button class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">View Stats</button>
-                                    <button class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Disable</button>
-                                    <button class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Duplicate</button>
-                                </div>
-                            </div>
-                        </div>
-                    </td>
-                </tr>
+                @endforelse
             </tbody>
         </table>
     </div>
 
-    <!-- Pagination -->
-    <div class="px-6 py-4 border-t border-gray-200 flex items-center justify-between bg-gray-50">
-        <p class="text-sm text-gray-600">Showing <span class="font-medium">1</span> to <span class="font-medium">4</span> of <span class="font-medium">24</span> pages</p>
-
-        <div class="flex gap-2">
-            <button class="px-3 py-2 border border-gray-300 text-gray-700 hover:bg-gray-100 rounded-lg text-sm font-medium transition" disabled>
-                ← Previous
-            </button>
-
-            <div class="flex gap-1">
-                <button class="px-3 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium">1</button>
-                <button class="px-3 py-2 border border-gray-300 text-gray-700 hover:bg-gray-100 rounded-lg text-sm font-medium transition">2</button>
-                <button class="px-3 py-2 border border-gray-300 text-gray-700 hover:bg-gray-100 rounded-lg text-sm font-medium transition">3</button>
-                <span class="px-3 py-2 text-gray-600 text-sm">...</span>
-                <button class="px-3 py-2 border border-gray-300 text-gray-700 hover:bg-gray-100 rounded-lg text-sm font-medium transition">6</button>
-            </div>
-
-            <button class="px-3 py-2 border border-gray-300 text-gray-700 hover:bg-gray-100 rounded-lg text-sm font-medium transition">
-                Next →
-            </button>
-        </div>
+    @if($pages->count() > 0)
+    <!-- Summary -->
+    <div class="px-6 py-4 border-t border-gray-200 bg-gray-50">
+        <p class="text-sm text-gray-600">Total pages: <span class="font-medium">{{ $pages->count() }}</span></p>
     </div>
+    @endif
 </div>
 @endsection

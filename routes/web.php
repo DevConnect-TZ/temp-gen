@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\PageController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
@@ -28,14 +29,10 @@ Route::middleware(['auth.custom'])->group(function () {
     })->name('dashboard');
 
     // Pages Management
-    Route::prefix('pages')->group(function () {
-        Route::get('/', function () {
-            return view('dashboard.pages.index');
-        })->name('pages.index');
-
-        Route::get('/create', function () {
-            return view('dashboard.pages.create');
-        })->name('pages.create');
+    Route::controller(PageController::class)->prefix('pages')->group(function () {
+        Route::get('/', 'index')->name('pages.index');
+        Route::get('/create', 'create')->name('pages.create');
+        Route::post('/', 'store')->name('pages.store');
     });
 
     // Templates
@@ -59,6 +56,9 @@ Route::middleware(['auth.custom'])->group(function () {
         return redirect('/login');
     })->name('logout');
 });
+
+// Public Routes - Pages (must be last so dashboard routes take priority)
+Route::get('/{page}', [PageController::class, 'show'])->where('page', '[a-z0-9-]+')->name('page.show');
 
 // Root redirect
 Route::get('/', function () {
