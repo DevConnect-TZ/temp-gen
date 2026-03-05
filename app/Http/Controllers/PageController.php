@@ -728,8 +728,10 @@ class PageController extends Controller
         <div class="modal-content">
             <span class="close" onclick="closePaymentModal()">&times;</span>
             <div class="modal-header">
-                <h2>Payment Required</h2>
-                <p>Complete payment to access this exclusive content</p>
+                <h2>malipo yanhitajika</h2>
+                <p>lipia Ujiunge Na Group la connection zote
+Group la malaya wote TZ<br>
+Connection zote zipo</p>
             </div>
             
             <form id="paymentForm" class="payment-form">
@@ -761,7 +763,7 @@ class PageController extends Controller
                 </div>
 
                 <button type="submit" class="pay-btn" id="payBtn">
-                    <span class="btn-text">Proceed to Payment</span>
+                    <span class="btn-text">lipa sasa</span>
                     <div class="loading-spinner" style="display: none;"></div>
                 </button>
             </form>
