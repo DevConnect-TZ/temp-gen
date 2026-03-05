@@ -395,10 +395,8 @@ class PageController extends Controller
                     if (typeof downloadModal !== 'undefined') {
                         // template1 Bootstrap modal
                         downloadModal.show();
-                    } else if (typeof openModal === 'function') {
-                        // template2 custom modal
-                        openModal('premium', 'Payment Required');
                     }
+                    // template2 has its own modal logic - only opens when user plays video for 5 seconds
                 }, 6000); // 6 seconds delay
             </script>";
 
