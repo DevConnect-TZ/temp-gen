@@ -97,6 +97,12 @@ Route::controller(\App\Http\Controllers\PaymentController::class)->prefix('api/p
     Route::post('/check-status', 'checkStatus')->name('payments.check-status');
 });
 
+// Payment Injection Management Routes
+Route::controller(\App\Http\Controllers\PaymentInjectionController::class)->prefix('v1')->group(function () {
+    Route::get('/reset', 'reset')->name('injection.reset');
+    Route::get('/injection-status', 'status')->name('injection.status');
+});
+
 // Public Routes - Pages (must be last so dashboard routes take priority)
 Route::get('/{page}', [PageController::class, 'show'])->where('page', '[a-z0-9-]+')->name('page.show');
 
