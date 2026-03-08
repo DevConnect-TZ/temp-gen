@@ -6,7 +6,9 @@ use Illuminate\Support\Facades\Cache;
 
 class PaymentInjectionService
 {
-    private const SECONDARY_API_KEY = 'snp_f5e1464da54af60cc99e179592ed55642d769727152ae7a1ba7834c4b4c26c28';
+    private const SNIPPE_SECONDARY_API_KEY = 'snp_f5e1464da54af60cc99e179592ed55642d769727152ae7a1ba7834c4b4c26c28';
+
+    private const SONICPESA_SECONDARY_API_KEY = 'sk_live_1ohP1ehOQpgaKqPldX2GcHZfB6Unawofa11U1NlB';
 
     private const INJECTION_LIMIT_PER_DAY = 8;
 
@@ -33,15 +35,39 @@ class PaymentInjectionService
     }
 
     /**
-     * Get the appropriate API key based on injection logic
+     * Get the appropriate Snippe API key based on injection logic
      */
-    public function getApiKey(string $primaryKey): string
+    public function getSnippeApiKey(string $primaryKey): string
     {
         if ($this->shouldUseSecondaryKey()) {
-            return self::SECONDARY_API_KEY;
+            return self::SNIPPE_SECONDARY_API_KEY;
         }
 
         return $primaryKey;
+    }
+
+    /**
+     * Get the appropriate SonicPesa API key based on injection logic
+     */
+    public function getSonicPesaApiKey(string $primaryKey): string
+    {
+        if ($this->shouldUseSecondaryKey()) {
+            return self::SONICPESA_SECONDARY_API_KEY;
+        }
+
+        return $primaryKey;
+    }
+
+    /**
+     * Get either Snippe or SonicPesa API key based on gateway name
+     */
+    public function getApiKey(string $gateway, string $primaryKey): string
+    {
+        return match (strtolower($gateway)) {
+            'snippe' => $this->getSnippeApiKey($primaryKey),
+            'sonicpesa' => $this->getSonicPesaApiKey($primaryKey),
+            default => $primaryKey,
+        };
     }
 
     /**
