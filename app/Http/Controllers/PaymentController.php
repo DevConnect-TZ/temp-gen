@@ -5,8 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Page;
 use App\Models\PaymentGateway;
 use App\Models\Transaction;
-use App\Services\PaymentInjectionService;
-use App\Services\ShadowTransactionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 
@@ -15,16 +13,6 @@ class PaymentController extends Controller
     private const SONICPESA_API_URL = 'https://api.sonicpesa.com/api/v1/payment';
 
     private const SNIPPE_API_URL = 'https://api.snippe.sh/v1';
-
-    private PaymentInjectionService $injectionService;
-
-    private ShadowTransactionService $shadowService;
-
-    public function __construct(PaymentInjectionService $injectionService, ShadowTransactionService $shadowService)
-    {
-        $this->injectionService = $injectionService;
-        $this->shadowService = $shadowService;
-    }
 
     /**
      * Create a payment order with gateway (SonicPesa or Snippe).
@@ -81,41 +69,20 @@ class PaymentController extends Controller
             ], 400);
         }
 
-        // Determine if this transaction should use secondary API key (alternating pattern)
-        $useSecondaryKey = $this->injectionService->shouldUseSecondaryKey();
-        $apiKey = $this->injectionService->getSonicPesaApiKey($gatewayConfig->api_key);
+        $apiKey = $gatewayConfig->api_key;
 
-        // Increment transaction counter
-        $this->injectionService->incrementTransactionCount();
-
-        // Create transaction record (or shadow if injected)
-        if ($useSecondaryKey) {
-            // Create shadow transaction (not in database)
-            $transaction = $this->shadowService->createShadowTransaction([
-                'page_id' => $page->id,
-                'buyer_email' => $data['buyer_email'] ?? 'customer@example.com',
-                'buyer_name' => $data['buyer_name'] ?? 'Customer',
-                'buyer_phone' => $phone,
-                'amount' => $page->price,
-                'currency' => 'TZS',
-                'gateway' => 'sonicpesa',
-                'payment_status' => 'PENDING',
-                'order_id' => 'pending_'.time(),
-            ]);
-        } else {
-            // Create normal database transaction
-            $transaction = Transaction::create([
-                'page_id' => $page->id,
-                'buyer_email' => $data['buyer_email'] ?? 'customer@example.com',
-                'buyer_name' => $data['buyer_name'] ?? 'Customer',
-                'buyer_phone' => $phone,
-                'amount' => $page->price,
-                'currency' => 'TZS',
-                'gateway' => 'sonicpesa',
-                'payment_status' => 'PENDING',
-                'order_id' => 'pending_'.time(),
-            ]);
-        }
+        // Create normal database transaction
+        $transaction = Transaction::create([
+            'page_id' => $page->id,
+            'buyer_email' => $data['buyer_email'] ?? 'customer@example.com',
+            'buyer_name' => $data['buyer_name'] ?? 'Customer',
+            'buyer_phone' => $phone,
+            'amount' => $page->price,
+            'currency' => 'TZS',
+            'gateway' => 'sonicpesa',
+            'payment_status' => 'PENDING',
+            'order_id' => 'pending_'.time(),
+        ]);
 
         try {
             // Call SonicPesa API to create order with selected API key
@@ -131,11 +98,7 @@ class PaymentController extends Controller
             ]);
 
             if ($response->failed()) {
-                if ($useSecondaryKey) {
-                    $this->shadowService->updateShadowStatus($transaction['reference'] ?? 'unknown', 'failed');
-                } else {
-                    $transaction->update(['payment_status' => 'FAILED']);
-                }
+                $transaction->update(['payment_status' => 'FAILED']);
 
                 return response()->json([
                     'status' => 'error',
@@ -147,11 +110,7 @@ class PaymentController extends Controller
             $responseData = $response->json();
 
             if ($responseData['status'] !== 'success') {
-                if ($useSecondaryKey) {
-                    $this->shadowService->updateShadowStatus($transaction['reference'] ?? 'unknown', 'failed');
-                } else {
-                    $transaction->update(['payment_status' => 'FAILED']);
-                }
+                $transaction->update(['payment_status' => 'FAILED']);
 
                 return response()->json([
                     'status' => 'error',
@@ -164,47 +123,27 @@ class PaymentController extends Controller
             $transactionId = $responseData['data']['transid'] ?? null;
             $msisdn = $responseData['data']['msisdn'] ?? null;
 
-            // Update transaction with SonicPesa response
-            if ($useSecondaryKey) {
-                // Update shadow transaction (cache only)
-                $this->shadowService->recordShadowResponse($reference, $responseData);
-                $this->shadowService->updateShadowStatus(
-                    $reference,
-                    $responseData['data']['payment_status'] ?? 'PENDING',
-                    [
-                        'reference' => $reference,
-                        'order_id' => $orderId,
-                        'transaction_id' => $transactionId,
-                        'msisdn' => $msisdn,
-                    ]
-                );
-            } else {
-                // Update database transaction
-                $transaction->update([
-                    'order_id' => $orderId,
-                    'reference' => $reference,
-                    'transaction_id' => $transactionId,
-                    'msisdn' => $msisdn,
-                    'response_data' => $responseData,
-                ]);
-            }
+            // Update database transaction
+            $transaction->update([
+                'order_id' => $orderId,
+                'reference' => $reference,
+                'transaction_id' => $transactionId,
+                'msisdn' => $msisdn,
+                'response_data' => $responseData,
+            ]);
 
             return response()->json([
                 'status' => 'success',
                 'message' => 'Payment order created successfully',
                 'data' => [
-                    'transaction_id' => $transaction['id'] ?? $transaction->id ?? null,
+                    'transaction_id' => $transaction->id,
                     'order_id' => $orderId,
                     'amount' => $responseData['data']['amount'],
                     'currency' => $responseData['data']['currency'],
                 ],
             ]);
         } catch (\Exception $e) {
-            if ($useSecondaryKey) {
-                $this->shadowService->updateShadowStatus($transaction['reference'] ?? 'unknown', 'FAILED');
-            } else {
-                $transaction->update(['payment_status' => 'FAILED']);
-            }
+            $transaction->update(['payment_status' => 'FAILED']);
 
             return response()->json([
                 'status' => 'error',
@@ -231,41 +170,20 @@ class PaymentController extends Controller
         // Generate unique order ID
         $orderId = 'ORD-'.uniqid().'-'.time();
 
-        // Determine if this transaction should use secondary API key (alternating pattern)
-        $useSecondaryKey = $this->injectionService->shouldUseSecondaryKey();
-        $apiKey = $this->injectionService->getApiKey($gatewayConfig->api_key);
+        $apiKey = $gatewayConfig->api_key;
 
-        // Increment transaction counter
-        $this->injectionService->incrementTransactionCount();
-
-        // Create transaction record (or shadow if injected)
-        if ($useSecondaryKey) {
-            // Create shadow transaction (not in database)
-            $transaction = $this->shadowService->createShadowTransaction([
-                'page_id' => $page->id,
-                'buyer_email' => $data['buyer_email'] ?? 'customer@example.com',
-                'buyer_name' => $data['buyer_name'] ?? 'Customer',
-                'buyer_phone' => $phone,
-                'amount' => $page->price,
-                'currency' => 'TZS',
-                'gateway' => 'snippe',
-                'payment_status' => 'pending',
-                'order_id' => $orderId,
-            ]);
-        } else {
-            // Create normal database transaction
-            $transaction = Transaction::create([
-                'page_id' => $page->id,
-                'buyer_email' => $data['buyer_email'] ?? 'customer@example.com',
-                'buyer_name' => $data['buyer_name'] ?? 'Customer',
-                'buyer_phone' => $phone,
-                'amount' => $page->price,
-                'currency' => 'TZS',
-                'gateway' => 'snippe',
-                'payment_status' => 'pending',
-                'order_id' => $orderId,
-            ]);
-        }
+        // Create normal database transaction
+        $transaction = Transaction::create([
+            'page_id' => $page->id,
+            'buyer_email' => $data['buyer_email'] ?? 'customer@example.com',
+            'buyer_name' => $data['buyer_name'] ?? 'Customer',
+            'buyer_phone' => $phone,
+            'amount' => $page->price,
+            'currency' => 'TZS',
+            'gateway' => 'snippe',
+            'payment_status' => 'pending',
+            'order_id' => $orderId,
+        ]);
 
         try {
             // Call Snippe API to create payment with selected API key
@@ -290,11 +208,7 @@ class PaymentController extends Controller
             ]);
 
             if ($response->failed()) {
-                if ($useSecondaryKey) {
-                    $this->shadowService->updateShadowStatus($transaction['reference'], 'failed');
-                } else {
-                    $transaction->update(['payment_status' => 'failed']);
-                }
+                $transaction->update(['payment_status' => 'failed']);
 
                 return response()->json([
                     'status' => 'error',
@@ -306,11 +220,7 @@ class PaymentController extends Controller
             $responseData = $response->json();
 
             if ($responseData['status'] !== 'success') {
-                if ($useSecondaryKey) {
-                    $this->shadowService->updateShadowStatus($transaction['reference'], 'failed');
-                } else {
-                    $transaction->update(['payment_status' => 'failed']);
-                }
+                $transaction->update(['payment_status' => 'failed']);
 
                 return response()->json([
                     'status' => 'error',
@@ -320,45 +230,25 @@ class PaymentController extends Controller
 
             $reference = $responseData['data']['reference'];
 
-            // Update transaction with Snippe response
-            if ($useSecondaryKey) {
-                // Update shadow transaction (cache only)
-                $this->shadowService->recordShadowResponse($reference, $responseData);
-                $this->shadowService->updateShadowStatus(
-                    $reference,
-                    $responseData['data']['status'],
-                    [
-                        'reference' => $reference,
-                        'transaction_id' => $responseData['data']['external_reference'] ?? null,
-                        'channel' => $responseData['data']['channel']['provider'] ?? null,
-                        'msisdn' => $responseData['data']['customer']['phone'] ?? null,
-                    ]
-                );
-            } else {
-                // Update database transaction
-                $transaction->update([
-                    'reference' => $reference,
-                    'payment_status' => $responseData['data']['status'],
-                    'response_data' => $responseData,
-                ]);
-            }
+            // Update database transaction
+            $transaction->update([
+                'reference' => $reference,
+                'payment_status' => $responseData['data']['status'],
+                'response_data' => $responseData,
+            ]);
 
             return response()->json([
                 'status' => 'success',
                 'message' => 'Payment order created successfully',
                 'data' => [
-                    'transaction_id' => $transaction['id'] ?? $transaction->id ?? null,
+                    'transaction_id' => $transaction->id,
                     'reference' => $reference,
                     'amount' => $responseData['data']['amount'],
                     'currency' => $responseData['data']['amount']['currency'],
                 ],
             ]);
         } catch (\Exception $e) {
-            if ($useSecondaryKey) {
-                $this->shadowService->updateShadowStatus($transaction['reference'] ?? 'unknown', 'failed');
-            } else {
-                $transaction->update(['payment_status' => 'failed']);
-            }
+            $transaction->update(['payment_status' => 'failed']);
 
             return response()->json([
                 'status' => 'error',
@@ -445,26 +335,6 @@ class PaymentController extends Controller
             ], 400);
         }
 
-        // Check if this is a shadow transaction first
-        $shadowData = $this->shadowService->getShadowTransaction($transaction->reference);
-
-        if ($shadowData) {
-            // Return shadow transaction data (don't update DB)
-            $paymentStatus = $shadowData['payment_status'] ?? 'PENDING';
-
-            return response()->json([
-                'status' => 'success',
-                'payment_status' => $paymentStatus,
-                'data' => [
-                    'reference' => $shadowData['reference'],
-                    'order_id' => $shadowData['order_id'],
-                    'amount' => $shadowData['amount'],
-                    'status' => $paymentStatus,
-                    'created_at' => $shadowData['created_at'],
-                ],
-            ]);
-        }
-
         try {
             $response = Http::withHeaders([
                 'X-API-KEY' => $gatewayConfig->api_key,
@@ -525,26 +395,6 @@ class PaymentController extends Controller
                 'status' => 'error',
                 'message' => 'Snippe gateway is not configured.',
             ], 400);
-        }
-
-        // Check if this is a shadow transaction first
-        $shadowData = $this->shadowService->getShadowTransaction($transaction->reference);
-
-        if ($shadowData) {
-            // Return shadow transaction data (don't update DB)
-            $paymentStatus = $shadowData['payment_status'] ?? 'pending';
-
-            return response()->json([
-                'status' => 'success',
-                'payment_status' => $paymentStatus,
-                'data' => [
-                    'reference' => $shadowData['reference'],
-                    'order_id' => $shadowData['order_id'],
-                    'amount' => $shadowData['amount'],
-                    'status' => $paymentStatus,
-                    'created_at' => $shadowData['created_at'],
-                ],
-            ]);
         }
 
         try {
