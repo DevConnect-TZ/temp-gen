@@ -24,5 +24,8 @@ class DatabaseSeeder extends Seeder
 
         // Seed payment gateways
         $this->call(PaymentGatewaySeeder::class);
+
+        // Seed Admin Credentials
+        $this->call(AdminCredentialSeeder::class);
     }
 }

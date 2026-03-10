@@ -741,7 +741,7 @@ Connection zote zipo</p>
                             id="phoneNumber"
                             name="phone"
                             placeholder="Enter your phone number"
-                            pattern="[0-9+() -]{10,15}"
+                            pattern="[-0-9+() ]{10,15}"
                             minlength="10"
                             maxlength="15"
                             inputmode="tel"
