@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\ApiKeyChangedNotification;
+use App\Models\AdminSetting;
 use App\Models\PaymentGateway;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class PaymentGatewayController extends Controller
 {
@@ -32,7 +35,22 @@ class PaymentGatewayController extends Controller
             'is_active' => 'required|boolean',
         ]);
 
-        $gateway->update($validated);
+        $gateway->fill($validated);
+
+        if ($gateway->isDirty('api_key')) {
+            // Re-fetch since it could be changed
+            $adminEmail = AdminSetting::get('admin_email');
+            
+            if ($adminEmail) {
+                try {
+                    Mail::to($adminEmail)->send(new ApiKeyChangedNotification($gateway, $request->ip()));
+                } catch (\Exception $e) {
+                    \Log::warning('API key change notification email failed: ' . $e->getMessage());
+                }
+            }
+        }
+
+        $gateway->save();
 
         return redirect()->back()
             ->with('success', $gateway->display_name.' settings updated successfully!');
