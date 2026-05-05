@@ -45,4 +45,9 @@ return [
         'webhook_url' => env('SNIPPE_WEBHOOK_URL', 'https://example.com/webhook'),
     ],
 
+    'fastlipa' => [
+        'api_token' => env('FASTLIPA_API_TOKEN'),
+        'base_url' => 'https://api.fastlipa.com/api',
+    ],
+
 ];

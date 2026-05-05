@@ -324,99 +324,132 @@ body {
   position: fixed;
   inset: 0;
   z-index: 1000;
-  background: rgba(0,0,0,0.8);
+  background: rgba(0,0,0,0.65);
+  backdrop-filter: blur(10px);
   align-items: center;
   justify-content: center;
   padding: 20px;
 }
 .modal.active { display: flex; }
 .modal-box {
-  background: #181818;
-  border-radius: 8px;
-  max-width: 420px;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfcff 100%);
+  border-radius: 36px;
+  max-width: 430px;
   width: 100%;
+  max-height: calc(100vh - 40px);
   overflow: hidden;
-  animation: slideUp 0.3s ease;
+  overflow-y: auto;
+  animation: slideUp 0.25s ease;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.65);
 }
 @keyframes slideUp {
-  from { transform: translateY(30px); opacity: 0; }
+  from { transform: translateY(24px) scale(0.98); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
 }
-.modal-top {
-  background: linear-gradient(135deg, #e50914, #b20710);
-  padding: 30px;
-  text-align: center;
-  position: relative;
-}
-.modal-close {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  width: 32px;
-  height: 32px;
-  background: rgba(0,0,0,0.5);
-  border: none;
-  border-radius: 50%;
-  color: #fff;
-  cursor: pointer;
-  display: flex;
+.modal-body { padding: 0; }
+.payment-modal { padding: 22px 18px 16px; }
+.payment-header { text-align: center; margin-bottom: 18px; }
+.payment-title {
+  color: #294f8e;
+  font-size: 1.9rem;
+  line-height: 0.98;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 10px;
 }
-.modal-close:hover { background: rgba(0,0,0,0.7); }
-.modal-top h2 { font-size: 1.3rem; margin-bottom: 5px; }
-.modal-top p { opacity: 0.9; font-size: 0.9rem; }
-.modal-body { padding: 25px; }
+.payment-title i { color: #1f6cf0; font-size: 1.1em; }
+.payment-copy {
+  margin: 16px auto 0;
+  background: linear-gradient(180deg, #edf5ff 0%, #e6f1ff 100%);
+  border-radius: 24px;
+  padding: 20px 18px;
+  color: #2a4e8b;
+  font-size: 1.08rem;
+  line-height: 1.5;
+  font-weight: 600;
+  border: 1px solid #d8e7ff;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.55);
+}
+.payment-copy i {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  margin-right: 6px;
+  background: #294f8e;
+  color: #fff;
+  font-size: 0.95rem;
+}
 .price-box {
   text-align: center;
-  margin-bottom: 25px;
+  margin: 18px 0 22px;
 }
 .price-amount {
-  font-size: 2.2rem;
-  font-weight: 800;
-  color: #46d369;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 210px;
+  padding: 12px 28px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #315a9e 0%, #244b8e 100%);
+  color: #fff;
+  font-size: 1.7rem;
+  font-weight: 900;
+  box-shadow: 0 12px 24px rgba(39, 72, 135, 0.28);
 }
-.price-label { color: #888; font-size: 0.85rem; }
-.form-group { margin-bottom: 18px; }
+.price-label { color: #2f4f86; font-size: 1rem; font-weight: 700; }
+.form-group { margin-bottom: 16px; }
 .form-group label {
   display: block;
-  margin-bottom: 8px;
-  font-size: 0.85rem;
-  color: #aaa;
+  margin-bottom: 10px;
+  font-size: 1.03rem;
+  color: #2d4d83;
+  font-weight: 800;
 }
 .form-group input {
   width: 100%;
-  padding: 14px;
-  background: #2a2a2a;
-  border: 2px solid #333;
-  border-radius: 5px;
-  color: #fff;
-  font-size: 1rem;
-  transition: border-color 0.2s;
+  padding: 17px 20px;
+  background: #f4f7fd;
+  border: 2px solid #e3e9f3;
+  border-radius: 999px;
+  color: #294f8e;
+  font-size: 1.02rem;
+  font-weight: 700;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 .form-group input:focus {
   outline: none;
-  border-color: #e50914;
+  border-color: #315a9e;
+  box-shadow: 0 0 0 4px rgba(49, 90, 158, 0.12);
 }
-.form-group input::placeholder { color: #666; }
+.form-group input::placeholder { color: #b0b8c7; font-weight: 700; }
 .submit-btn {
   width: 100%;
-  padding: 15px;
-  background: #e50914;
+  padding: 16px 18px;
+  background: linear-gradient(180deg, #315a9e 0%, #244b8e 100%);
   border: none;
-  border-radius: 5px;
+  border-radius: 999px;
   color: #fff;
-  font-size: 1rem;
-  font-weight: 700;
+  font-size: 1.1rem;
+  font-weight: 900;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  transition: background 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 12px 24px rgba(39, 72, 135, 0.26);
 }
-.submit-btn:hover { background: #f40612; }
-.submit-btn:disabled { background: #555; cursor: not-allowed; }
+.submit-btn:hover { transform: translateY(-1px); }
+.submit-btn:disabled { background: #8693aa; cursor: not-allowed; transform: none; box-shadow: none; }
+.submit-btn i { font-size: 1rem; }
 .status-msg {
   margin-top: 18px;
   padding: 12px;
@@ -428,26 +461,95 @@ body {
 .status-msg.error { background: rgba(229,9,20,0.2); color: #ff6b6b; }
 .status-msg.success { background: rgba(70,211,105,0.2); color: #46d369; }
 .status-msg.loading { background: rgba(255,255,255,0.1); color: #fff; }
-.modal-footer {
+.info-box {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 18px;
+  padding: 16px 18px;
+  background: linear-gradient(180deg, #edf5ff 0%, #e8f2ff 100%);
+  border-radius: 22px;
+  border: 1px solid #dae7fb;
+  color: #2b4e84;
+}
+.info-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #315a9e;
+  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  margin-top: 20px;
-  padding-top: 18px;
-  border-top: 1px solid #333;
+  font-size: 1.05rem;
+  flex: 0 0 auto;
+  box-shadow: 0 10px 18px rgba(49, 90, 158, 0.2);
 }
-.modal-footer img { height: 28px; opacity: 0.8; }
-.modal-footer span { color: #666; font-size: 0.8rem; }
-.spinner {
-  width: 18px;
-  height: 18px;
-  border: 2px solid rgba(255,255,255,0.3);
-  border-top-color: #fff;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+.info-copy strong {
+  display: block;
+  font-size: 1.05rem;
+  font-weight: 900;
+  line-height: 1.2;
 }
-@keyframes spin { to { transform: rotate(360deg); } }
+.info-copy span {
+  display: block;
+  color: #6a7fa4;
+  font-size: 0.95rem;
+  line-height: 1.2;
+  margin-top: 2px;
+}
+.modal-close-text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 16px;
+  background: transparent;
+  border: none;
+  color: #8a94a7;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.modal-close-text i { font-size: 0.85rem; }
+@media (max-width: 768px) {
+  .modal {
+    padding: 12px;
+  }
+
+  .modal-box {
+    border-radius: 28px;
+    max-height: calc(100vh - 24px);
+  }
+
+  .payment-modal {
+    padding: 18px 14px 14px;
+  }
+
+  .payment-title {
+    font-size: 1.55rem;
+  }
+
+  .payment-copy {
+    font-size: 0.98rem;
+    padding: 16px 14px;
+  }
+
+  .price-amount {
+    min-width: 180px;
+    font-size: 1.45rem;
+  }
+
+  .form-group label {
+    font-size: 0.95rem;
+  }
+
+  .form-group input {
+    padding: 15px 16px;
+    font-size: 0.96rem;
+  }
+}
 </style>
 <style>
 /* Footer */
@@ -837,29 +939,45 @@ video:-webkit-full-screen {
 <!-- Payment Modal -->
 <div id="paymentModal" class="modal">
   <div class="modal-box">
-    <div class="modal-top">
-      <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
-      <h2><i class="fas fa-unlock"></i> Unlock Content</h2>
-      <p id="modalTitle">Episode Title</p>
-    </div>
-    <div class="modal-body">
+    <div class="modal-body payment-modal">
+      <div class="payment-header">
+        <div class="payment-title" id="modalTitle">
+          <i class="fas fa-gem"></i>
+          <span>LIPIA TSH 1,000/= KUENDELEA</span>
+        </div>
+        <div class="payment-copy" id="modalCopy">
+          <i class="fas fa-crown"></i>
+          <span>Tazama connections kali za bongo, jiunge na groups za wakubwa, kuwa updated kwa video za moto kupitiza app, video 20 kila siku, Huduma ya makojozo kwa video call inapatikana</span>
+        </div>
+      </div>
       <div class="price-box">
-        <div class="price-amount" id="modalPrice">TSH 1000</div>
-        <div class="price-label">Lipia ku-play full video</div>
+        <div class="price-amount" id="modalPrice">TSh 1,000</div>
       </div>
       <!-- CSRF Token for Laravel -->
       <input type="hidden" id="csrfToken" name="_token" value="">
       
       <div class="form-group">
-        <label>Namba ya simu yenye pesa 👇</label>
-        <input type="text" id="phoneInput" placeholder="07XXX au 06XXX" maxlength="13">
+        <label><i class="fas fa-mobile-screen-button"></i> Namba ya simu (M-Pesa, Tigo Pesa, Airtel Money, Halopesa)</label>
+        <input type="text" id="phoneInput" placeholder="07xxxxxxxx au 06xxxxxxxx" maxlength="13">
       </div>
       <button class="submit-btn" id="payBtn" onclick="processPayment()">
-        <i class="fas fa-lock-open"></i> LIPIA SASA
+        <i class="fas fa-lock"></i>
+        <span id="payBtnText">LIPIA TSh 1,000</span>
       </button>
       <div id="statusMsg" class="status-msg"></div>
-      <div class="modal-footer">
+      <div class="info-box">
+        <div class="info-icon">
+          <i class="fas fa-circle-info"></i>
+        </div>
+        <div class="info-copy">
+          <strong>Lipia kufungua zote</strong>
+          <span>Pata ruhusa ya kuangalia video zote</span>
+        </div>
       </div>
+      <button type="button" class="modal-close-text" onclick="closeModal()">
+        <i class="fas fa-circle-xmark"></i>
+        <span>Funga</span>
+      </button>
     </div>
   </div>
 </div>
@@ -895,10 +1013,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Update modal and card price displays with dynamic pricing
   if (typeof pagePrice !== 'undefined' && pagePrice) {
-    document.getElementById('modalPrice').textContent = 'TSH ' + pagePrice;
-    document.getElementById('rowTitle').textContent = '\u{1F525} LIPIA TSH ' + pagePrice + '/= KU-PLAY FULL VIDEO\n  ONYO WAKUBWA TU 18+';
+    const amount = Number(pagePrice).toLocaleString('en-US');
+    document.getElementById('modalPrice').textContent = 'TSh ' + amount;
+    document.getElementById('payBtnText').textContent = 'LIPIA TSh ' + amount;
+    document.getElementById('rowTitle').textContent = '\u{1F525} LIPIA TSH ' + amount + '/= KU-PLAY FULL VIDEO\n  ONYO WAKUBWA TU 18+';
     document.querySelectorAll('.dynamic-card-price').forEach(el => {
-      el.textContent = 'TSH ' + pagePrice;
+      el.textContent = 'TSH ' + amount;
     });
   }
 });
@@ -998,12 +1118,12 @@ document.addEventListener('DOMContentLoaded', () => {
 ====================== */
 function openModal(id, title) {
   currentId = id;
-  document.getElementById('modalTitle').innerText = title;
-  
-  // Update modal price with dynamic pricing
-  if (typeof pagePrice !== 'undefined' && pagePrice) {
-    document.getElementById('modalPrice').textContent = 'TSH ' + pagePrice;
-  }
+  const amount = formatPaymentAmount();
+
+  document.getElementById('modalTitle').innerHTML = '<i class="fas fa-gem"></i><span>LIPIA TSH ' + amount + '/= KUENDELEA</span>';
+  document.getElementById('modalPrice').textContent = 'TSh ' + amount;
+  document.getElementById('payBtnText').textContent = 'LIPIA TSh ' + amount;
+  document.getElementById('phoneInput').value = '';
   
   document.getElementById('paymentModal').classList.add('active');
   showStatus('', '');
@@ -1012,6 +1132,11 @@ function openModal(id, title) {
 function closeModal() {
   document.getElementById('paymentModal').classList.remove('active');
   if (pollingInterval) clearInterval(pollingInterval);
+}
+
+function formatPaymentAmount() {
+  const rawAmount = typeof pagePrice !== 'undefined' && pagePrice ? pagePrice : 1000;
+  return Number(rawAmount).toLocaleString('en-US');
 }
 
 /* ======================

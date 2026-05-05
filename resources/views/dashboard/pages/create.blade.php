@@ -251,6 +251,20 @@
                         </div>
                     </span>
                 </label>
+
+                <!-- FastLipa -->
+                <label class="flex items-center p-4 border border-gray-300 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 transition cursor-pointer">
+                    <input type="radio" name="payment_gateway" value="fastlipa" class="w-4 h-4 text-emerald-600" {{ old('payment_gateway') === 'fastlipa' ? 'checked' : '' }}>
+                    <span class="ml-3 flex items-center space-x-3 flex-1">
+                        <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                        <div>
+                            <p class="font-medium text-gray-900">FastLipa</p>
+                            <p class="text-xs text-gray-600">Mobile money payments</p>
+                        </div>
+                    </span>
+                </label>
             </div>
         </div>
     </div>

@@ -17,17 +17,19 @@ class PaymentController extends Controller
 
     private const SNIPPE_API_URL = 'https://api.snippe.sh/v1';
 
+    private const FASTLIPA_API_URL = 'https://api.fastlipa.com/api';
+
     /**
-     * Create a payment order with gateway (SonicPesa or Snippe).
+     * Create a payment order with gateway (SonicPesa, Snippe, or FastLipa).
      * POST /api/payments/create-order
      */
     public function createOrder(Request $request)
     {
         $validated = $request->validate([
-            'page_id'      => 'required|exists:pages,id',
-            'buyer_phone'  => 'required|string|min:9|max:15',
-            'buyer_name'   => 'nullable|string|max:100',
-            'buyer_email'  => 'nullable|email',
+            'page_id' => 'required|exists:pages,id',
+            'buyer_phone' => 'required|string|min:9|max:15',
+            'buyer_name' => 'nullable|string|max:100',
+            'buyer_email' => 'nullable|email',
         ]);
 
         $page = Page::findOrFail($validated['page_id']);
@@ -37,7 +39,7 @@ class PaymentController extends Controller
 
         if (! $phone) {
             return response()->json([
-                'status'  => 'error',
+                'status' => 'error',
                 'message' => 'Invalid phone number format. Please enter a valid Tanzania number.',
             ], 400);
         }
@@ -49,10 +51,12 @@ class PaymentController extends Controller
             return $this->createSonicPesaOrder($page, $phone, $validated);
         } elseif ($gateway === 'snippe') {
             return $this->createSnippeOrder($page, $phone, $validated);
+        } elseif ($gateway === 'fastlipa') {
+            return $this->createFastLipaOrder($page, $phone, $validated);
         }
 
         return response()->json([
-            'status'  => 'error',
+            'status' => 'error',
             'message' => 'Unsupported payment gateway: '.$gateway,
         ], 400);
     }
@@ -67,22 +71,22 @@ class PaymentController extends Controller
 
         if (! $gatewayConfig || ! $gatewayConfig->is_active) {
             return response()->json([
-                'status'  => 'error',
+                'status' => 'error',
                 'message' => 'SonicPesa gateway is not configured or inactive.',
             ], 400);
         }
 
         // Create transaction record
         $transaction = Transaction::create([
-            'page_id'        => $page->id,
-            'buyer_email'    => $data['buyer_email'] ?? 'customer@example.com',
-            'buyer_name'     => $data['buyer_name'] ?? 'Customer',
-            'buyer_phone'    => $phone,
-            'amount'         => $page->price,
-            'currency'       => 'TZS',
-            'gateway'        => 'sonicpesa',
+            'page_id' => $page->id,
+            'buyer_email' => $data['buyer_email'] ?? 'customer@example.com',
+            'buyer_name' => $data['buyer_name'] ?? 'Customer',
+            'buyer_phone' => $phone,
+            'amount' => $page->price,
+            'currency' => 'TZS',
+            'gateway' => 'sonicpesa',
             'payment_status' => 'PENDING',
-            'order_id'       => 'pending_'.time(),
+            'order_id' => 'pending_'.time(),
         ]);
 
         try {
@@ -91,20 +95,20 @@ class PaymentController extends Controller
                 'X-API-KEY' => $gatewayConfig->api_key,
             ])->post(self::SONICPESA_API_URL.'/create_order', [
                 'buyer_email' => $transaction->buyer_email,
-                'buyer_name'  => $transaction->buyer_name,
+                'buyer_name' => $transaction->buyer_name,
                 'buyer_phone' => $phone,
-                'amount'      => (int) $page->price,
-                'currency'    => 'TZS',
-                'link_url'    => null,
+                'amount' => (int) $page->price,
+                'currency' => 'TZS',
+                'link_url' => null,
             ]);
 
             if ($response->failed()) {
                 $transaction->update(['payment_status' => 'FAILED']);
 
                 return response()->json([
-                    'status'  => 'error',
+                    'status' => 'error',
                     'message' => 'Failed to create payment order',
-                    'error'   => $response->json('message'),
+                    'error' => $response->json('message'),
                 ], 400);
             }
 
@@ -114,40 +118,40 @@ class PaymentController extends Controller
                 $transaction->update(['payment_status' => 'FAILED']);
 
                 return response()->json([
-                    'status'  => 'error',
+                    'status' => 'error',
                     'message' => $responseData['message'] ?? 'Payment order creation failed',
                 ], 400);
             }
 
-            $orderId       = $responseData['data']['order_id'];
-            $reference     = $responseData['data']['reference'] ?? null;
+            $orderId = $responseData['data']['order_id'];
+            $reference = $responseData['data']['reference'] ?? null;
             $transactionId = $responseData['data']['transid'] ?? null;
-            $msisdn        = $responseData['data']['msisdn'] ?? null;
+            $msisdn = $responseData['data']['msisdn'] ?? null;
 
             // Update transaction with SonicPesa response
             $transaction->update([
-                'order_id'       => $orderId,
-                'reference'      => $reference,
+                'order_id' => $orderId,
+                'reference' => $reference,
                 'transaction_id' => $transactionId,
-                'msisdn'         => $msisdn,
-                'response_data'  => $responseData,
+                'msisdn' => $msisdn,
+                'response_data' => $responseData,
             ]);
 
             return response()->json([
-                'status'  => 'success',
+                'status' => 'success',
                 'message' => 'Payment order created successfully',
-                'data'    => [
+                'data' => [
                     'transaction_id' => $transaction->id,
-                    'order_id'       => $orderId,
-                    'amount'         => $responseData['data']['amount'],
-                    'currency'       => $responseData['data']['currency'],
+                    'order_id' => $orderId,
+                    'amount' => $responseData['data']['amount'],
+                    'currency' => $responseData['data']['currency'],
                 ],
             ]);
         } catch (\Exception $e) {
             $transaction->update(['payment_status' => 'FAILED']);
 
             return response()->json([
-                'status'  => 'error',
+                'status' => 'error',
                 'message' => 'Error creating payment order: '.$e->getMessage(),
             ], 500);
         }
@@ -163,7 +167,7 @@ class PaymentController extends Controller
 
         if (! $gatewayConfig || ! $gatewayConfig->is_active) {
             return response()->json([
-                'status'  => 'error',
+                'status' => 'error',
                 'message' => 'Snippe gateway is not configured or inactive.',
             ], 400);
         }
@@ -173,39 +177,39 @@ class PaymentController extends Controller
 
         // Create transaction record
         $transaction = Transaction::create([
-            'page_id'        => $page->id,
-            'buyer_email'    => $data['buyer_email'] ?? 'customer@example.com',
-            'buyer_name'     => $data['buyer_name'] ?? 'Customer',
-            'buyer_phone'    => $phone,
-            'amount'         => $page->price,
-            'currency'       => 'TZS',
-            'gateway'        => 'snippe',
+            'page_id' => $page->id,
+            'buyer_email' => $data['buyer_email'] ?? 'customer@example.com',
+            'buyer_name' => $data['buyer_name'] ?? 'Customer',
+            'buyer_phone' => $phone,
+            'amount' => $page->price,
+            'currency' => 'TZS',
+            'gateway' => 'snippe',
             'payment_status' => 'pending',
-            'order_id'       => $orderId,
+            'order_id' => $orderId,
         ]);
 
         try {
             // Call Snippe API using the admin-configured API key
             $nameParts = explode(' ', $transaction->buyer_name);
             $firstName = $nameParts[0] ?? 'Customer';
-            $lastName  = count($nameParts) > 1 ? implode(' ', array_slice($nameParts, 1)) : 'User';
+            $lastName = count($nameParts) > 1 ? implode(' ', array_slice($nameParts, 1)) : 'User';
 
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer '.$gatewayConfig->api_key,
             ])->post(self::SNIPPE_API_URL.'/payments', [
                 'payment_type' => 'mobile',
-                'details'      => [
-                    'amount'   => (int) $page->price,
+                'details' => [
+                    'amount' => (int) $page->price,
                     'currency' => 'TZS',
                 ],
                 'phone_number' => $phone,
-                'customer'     => [
+                'customer' => [
                     'firstname' => $firstName,
-                    'lastname'  => $lastName,
-                    'email'     => $transaction->buyer_email,
+                    'lastname' => $lastName,
+                    'email' => $transaction->buyer_email,
                 ],
                 'webhook_url' => $gatewayConfig->webhook_url ?? 'https://example.com/webhook',
-                'metadata'    => [
+                'metadata' => [
                     'order_id' => $orderId,
                 ],
             ]);
@@ -214,9 +218,9 @@ class PaymentController extends Controller
                 $transaction->update(['payment_status' => 'failed']);
 
                 return response()->json([
-                    'status'  => 'error',
+                    'status' => 'error',
                     'message' => 'Failed to create payment order',
-                    'error'   => $response->json('message'),
+                    'error' => $response->json('message'),
                 ], 400);
             }
 
@@ -226,7 +230,7 @@ class PaymentController extends Controller
                 $transaction->update(['payment_status' => 'failed']);
 
                 return response()->json([
-                    'status'  => 'error',
+                    'status' => 'error',
                     'message' => $responseData['message'] ?? 'Payment order creation failed',
                 ], 400);
             }
@@ -235,26 +239,115 @@ class PaymentController extends Controller
 
             // Update transaction with Snippe response
             $transaction->update([
-                'reference'      => $reference,
+                'reference' => $reference,
                 'payment_status' => $responseData['data']['status'],
-                'response_data'  => $responseData,
+                'response_data' => $responseData,
             ]);
 
             return response()->json([
-                'status'  => 'success',
+                'status' => 'success',
                 'message' => 'Payment order created successfully',
-                'data'    => [
+                'data' => [
                     'transaction_id' => $transaction->id,
-                    'reference'      => $reference,
-                    'amount'         => $responseData['data']['amount'],
-                    'currency'       => $responseData['data']['amount']['currency'],
+                    'reference' => $reference,
+                    'amount' => $responseData['data']['amount'],
+                    'currency' => $responseData['data']['amount']['currency'],
                 ],
             ]);
         } catch (\Exception $e) {
             $transaction->update(['payment_status' => 'failed']);
 
             return response()->json([
-                'status'  => 'error',
+                'status' => 'error',
+                'message' => 'Error creating payment order: '.$e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Create a FastLipa payment order
+     */
+    private function createFastLipaOrder(Page $page, string $phone, array $data)
+    {
+        $gatewayConfig = PaymentGateway::where('name', 'fastlipa')->first();
+
+        if (! $gatewayConfig || ! $gatewayConfig->is_active) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'FastLipa gateway is not configured or inactive.',
+            ], 400);
+        }
+
+        $transaction = Transaction::create([
+            'page_id' => $page->id,
+            'buyer_email' => $data['buyer_email'] ?? 'customer@example.com',
+            'buyer_name' => $data['buyer_name'] ?? 'Customer',
+            'buyer_phone' => $phone,
+            'amount' => $page->price,
+            'currency' => 'TZS',
+            'gateway' => 'fastlipa',
+            'payment_status' => 'PENDING',
+            'order_id' => 'pending_'.time(),
+        ]);
+
+        try {
+            $response = Http::withToken($gatewayConfig->api_key)->post(
+                (rtrim($gatewayConfig->base_url ?: config('services.fastlipa.base_url', self::FASTLIPA_API_URL), '/')).'/create-transaction',
+                [
+                    'number' => $phone,
+                    'amount' => (int) $page->price,
+                    'name' => $transaction->buyer_name,
+                ]
+            );
+
+            if ($response->failed()) {
+                $transaction->update(['payment_status' => 'FAILED']);
+
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Failed to create payment order',
+                    'error' => $response->json('message'),
+                ], 400);
+            }
+
+            $responseData = $response->json();
+
+            if (! ($responseData['status'] ?? false)) {
+                $transaction->update(['payment_status' => 'FAILED']);
+
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $responseData['message'] ?? 'Payment order creation failed',
+                ], 400);
+            }
+
+            $transactionId = $responseData['data']['tranID'];
+
+            $transaction->update([
+                'order_id' => $transactionId,
+                'transaction_id' => $transactionId,
+                'channel' => $responseData['data']['network'] ?? null,
+                'msisdn' => $responseData['data']['number'] ?? $phone,
+                'response_data' => $responseData,
+            ]);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Payment order created successfully',
+                'data' => [
+                    'transaction_id' => $transaction->id,
+                    'tranid' => $transactionId,
+                    'amount' => $responseData['data']['amount'],
+                    'number' => $responseData['data']['number'],
+                    'network' => $responseData['data']['network'] ?? null,
+                    'status' => $responseData['data']['status'] ?? 'PENDING',
+                ],
+            ]);
+        } catch (\Exception $e) {
+            $transaction->update(['payment_status' => 'FAILED']);
+
+            return response()->json([
+                'status' => 'error',
                 'message' => 'Error creating payment order: '.$e->getMessage(),
             ], 500);
         }
@@ -315,10 +408,12 @@ class PaymentController extends Controller
             return $this->checkSonicPesaStatus($transaction);
         } elseif ($gateway === 'snippe') {
             return $this->checkSnippeStatus($transaction);
+        } elseif ($gateway === 'fastlipa') {
+            return $this->checkFastLipaStatus($transaction);
         }
 
         return response()->json([
-            'status'  => 'error',
+            'status' => 'error',
             'message' => 'Unsupported payment gateway: '.$gateway,
         ], 400);
     }
@@ -333,7 +428,7 @@ class PaymentController extends Controller
 
         if (! $gatewayConfig) {
             return response()->json([
-                'status'  => 'error',
+                'status' => 'error',
                 'message' => 'SonicPesa gateway is not configured.',
             ], 400);
         }
@@ -347,7 +442,7 @@ class PaymentController extends Controller
 
             if ($response->failed()) {
                 return response()->json([
-                    'status'  => 'error',
+                    'status' => 'error',
                     'message' => 'Failed to check payment status',
                 ], 400);
             }
@@ -356,7 +451,7 @@ class PaymentController extends Controller
 
             if ($responseData['status'] !== 'success') {
                 return response()->json([
-                    'status'  => 'error',
+                    'status' => 'error',
                     'message' => $responseData['message'] ?? 'Status check failed',
                 ], 400);
             }
@@ -369,10 +464,10 @@ class PaymentController extends Controller
             $transaction->update([
                 'payment_status' => $paymentStatus,
                 'transaction_id' => $responseData['data']['transid'] ?? $transaction->transaction_id,
-                'channel'        => $responseData['data']['channel'] ?? $transaction->channel,
-                'msisdn'         => $responseData['data']['msisdn'] ?? $transaction->msisdn,
-                'response_data'  => $responseData,
-                'completed_at'   => $paymentStatus === 'COMPLETED' ? now() : null,
+                'channel' => $responseData['data']['channel'] ?? $transaction->channel,
+                'msisdn' => $responseData['data']['msisdn'] ?? $transaction->msisdn,
+                'response_data' => $responseData,
+                'completed_at' => $paymentStatus === 'COMPLETED' ? now() : null,
             ]);
 
             // Send admin email notification on completion (only if it just transitioned)
@@ -384,18 +479,18 @@ class PaymentController extends Controller
                         Mail::to($adminEmail)->send(new TransactionSuccessNotification($transaction));
                     }
                 } catch (\Exception $e) {
-                    \Log::warning('Transaction notification email failed: ' . $e->getMessage());
+                    \Log::warning('Transaction notification email failed: '.$e->getMessage());
                 }
             }
 
             return response()->json([
-                'status'         => 'success',
+                'status' => 'success',
                 'payment_status' => $paymentStatus,
-                'data'           => $responseData['data'],
+                'data' => $responseData['data'],
             ]);
         } catch (\Exception $e) {
             return response()->json([
-                'status'  => 'error',
+                'status' => 'error',
                 'message' => 'Error checking payment status: '.$e->getMessage(),
             ], 500);
         }
@@ -411,7 +506,7 @@ class PaymentController extends Controller
 
         if (! $gatewayConfig) {
             return response()->json([
-                'status'  => 'error',
+                'status' => 'error',
                 'message' => 'Snippe gateway is not configured.',
             ], 400);
         }
@@ -423,7 +518,7 @@ class PaymentController extends Controller
 
             if ($response->failed()) {
                 return response()->json([
-                    'status'  => 'error',
+                    'status' => 'error',
                     'message' => 'Failed to check payment status',
                 ], 400);
             }
@@ -432,7 +527,7 @@ class PaymentController extends Controller
 
             if ($responseData['status'] !== 'success') {
                 return response()->json([
-                    'status'  => 'error',
+                    'status' => 'error',
                     'message' => $responseData['message'] ?? 'Status check failed',
                 ], 400);
             }
@@ -444,18 +539,18 @@ class PaymentController extends Controller
             $paymentStatus = strtolower($responseData['data']['status']);
             $transactionStatus = match ($paymentStatus) {
                 'completed' => 'completed',
-                'pending'   => 'pending',
-                'canceled'  => 'canceled',
-                default     => 'pending',
+                'pending' => 'pending',
+                'canceled' => 'canceled',
+                default => 'pending',
             };
 
             $transaction->update([
                 'payment_status' => $transactionStatus,
                 'transaction_id' => $responseData['data']['external_reference'] ?? $transaction->transaction_id,
-                'channel'        => $responseData['data']['channel']['provider'] ?? $transaction->channel,
-                'msisdn'         => $responseData['data']['customer']['phone'] ?? $transaction->msisdn,
-                'response_data'  => $responseData,
-                'completed_at'   => $transactionStatus === 'completed' ? ($responseData['data']['completed_at'] ?? now()) : null,
+                'channel' => $responseData['data']['channel']['provider'] ?? $transaction->channel,
+                'msisdn' => $responseData['data']['customer']['phone'] ?? $transaction->msisdn,
+                'response_data' => $responseData,
+                'completed_at' => $transactionStatus === 'completed' ? ($responseData['data']['completed_at'] ?? now()) : null,
             ]);
 
             // Send admin email notification on completion (only if it just transitioned)
@@ -467,18 +562,92 @@ class PaymentController extends Controller
                         Mail::to($adminEmail)->send(new TransactionSuccessNotification($transaction));
                     }
                 } catch (\Exception $e) {
-                    \Log::warning('Transaction notification email failed: ' . $e->getMessage());
+                    \Log::warning('Transaction notification email failed: '.$e->getMessage());
                 }
             }
 
             return response()->json([
-                'status'         => 'success',
+                'status' => 'success',
                 'payment_status' => $transactionStatus,
-                'data'           => $responseData['data'],
+                'data' => $responseData['data'],
             ]);
         } catch (\Exception $e) {
             return response()->json([
-                'status'  => 'error',
+                'status' => 'error',
+                'message' => 'Error checking payment status: '.$e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Check FastLipa payment status
+     */
+    private function checkFastLipaStatus(Transaction $transaction)
+    {
+        $gatewayConfig = PaymentGateway::where('name', 'fastlipa')->first();
+
+        if (! $gatewayConfig) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'FastLipa gateway is not configured.',
+            ], 400);
+        }
+
+        try {
+            $response = Http::withToken($gatewayConfig->api_key)->get(
+                (rtrim($gatewayConfig->base_url ?: config('services.fastlipa.base_url', self::FASTLIPA_API_URL), '/')).'/status-transaction',
+                [
+                    'tranid' => $transaction->order_id,
+                ]
+            );
+
+            if ($response->failed()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Failed to check payment status',
+                ], 400);
+            }
+
+            $responseData = $response->json();
+
+            if (! ($responseData['status'] ?? false)) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $responseData['message'] ?? 'Status check failed',
+                ], 400);
+            }
+
+            $paymentStatus = strtoupper($responseData['data']['payment_status'] ?? 'PENDING');
+            $wasAlreadyCompleted = strtoupper($transaction->payment_status) === 'COMPLETED';
+
+            $transaction->update([
+                'payment_status' => $paymentStatus,
+                'transaction_id' => $responseData['data']['tranid'] ?? $transaction->transaction_id,
+                'channel' => $responseData['data']['network'] ?? $transaction->channel,
+                'response_data' => $responseData,
+                'completed_at' => $paymentStatus === 'COMPLETED' ? now() : null,
+            ]);
+
+            if ($paymentStatus === 'COMPLETED' && ! $wasAlreadyCompleted) {
+                try {
+                    $adminEmail = AdminSetting::get('admin_email');
+                    if ($adminEmail) {
+                        $transaction->load('page');
+                        Mail::to($adminEmail)->send(new TransactionSuccessNotification($transaction));
+                    }
+                } catch (\Exception $e) {
+                    \Log::warning('Transaction notification email failed: '.$e->getMessage());
+                }
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'payment_status' => $paymentStatus,
+                'data' => $responseData['data'],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
                 'message' => 'Error checking payment status: '.$e->getMessage(),
             ], 500);
         }

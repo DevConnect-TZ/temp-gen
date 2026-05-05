@@ -36,7 +36,7 @@ class PageController extends Controller
             'title' => 'required|string|max:255',
             'template' => 'required|in:template1,template2,custom',
             'price' => 'nullable|numeric|min:0',
-            'payment_gateway' => 'nullable|string|in:sonicpesa,snippe',
+            'payment_gateway' => 'nullable|string|in:sonicpesa,snippe,fastlipa',
         ];
 
         // If custom template, require video
@@ -113,7 +113,7 @@ class PageController extends Controller
         $rules = [
             'title' => 'required|string|max:255',
             'price' => 'nullable|numeric|min:0',
-            'payment_gateway' => 'nullable|string|in:sonicpesa,snippe',
+            'payment_gateway' => 'nullable|string|in:sonicpesa,snippe,fastlipa',
         ];
 
         // Only validate video if custom template and video is being uploaded
@@ -374,7 +374,7 @@ class PageController extends Controller
                     document.getElementById('paymentForm').addEventListener('submit', function(e) {
                         e.preventDefault();
                         e.stopImmediatePropagation();
-                        const phoneNumber = document.getElementById('phone')?.value || '';
+                        const phoneNumber = document.getElementById('phoneInput')?.value || '';
                         handleTemplatePayment(phoneNumber);
                     }, true);
                 }
@@ -654,6 +654,247 @@ class PageController extends Controller
             100% { transform: rotate(360deg); }
         }
 
+        .modal .modal-content {
+            background: linear-gradient(180deg, #ffffff 0%, #fbfcff 100%);
+            border-radius: 36px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.65);
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+        }
+
+        .payment-modal {
+            padding: 22px 18px 16px;
+        }
+
+        .payment-header {
+            text-align: center;
+            margin-bottom: 18px;
+        }
+
+        .payment-title {
+            color: #294f8e;
+            font-size: 1.9rem;
+            line-height: 0.98;
+            font-weight: 900;
+            letter-spacing: -0.03em;
+            text-transform: uppercase;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .payment-title i {
+            color: #1f6cf0;
+            font-size: 1.1em;
+        }
+
+        .payment-copy {
+            margin: 16px auto 0;
+            background: linear-gradient(180deg, #edf5ff 0%, #e6f1ff 100%);
+            border-radius: 24px;
+            padding: 20px 18px;
+            color: #2a4e8b;
+            font-size: 1.08rem;
+            line-height: 1.5;
+            font-weight: 600;
+            border: 1px solid #d8e7ff;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.55);
+        }
+
+        .payment-copy i {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            margin-right: 6px;
+            background: #294f8e;
+            color: #fff;
+            font-size: 0.95rem;
+        }
+
+        .price-box {
+            text-align: center;
+            margin: 18px 0 22px;
+        }
+
+        .price-amount {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 210px;
+            padding: 12px 28px;
+            border-radius: 999px;
+            background: linear-gradient(180deg, #315a9e 0%, #244b8e 100%);
+            color: #fff;
+            font-size: 1.7rem;
+            font-weight: 900;
+            box-shadow: 0 12px 24px rgba(39, 72, 135, 0.28);
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 1.03rem;
+            color: #2d4d83;
+            font-weight: 800;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 17px 20px;
+            background: #f4f7fd;
+            border: 2px solid #e3e9f3;
+            border-radius: 999px;
+            color: #294f8e;
+            font-size: 1.02rem;
+            font-weight: 700;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #315a9e;
+            box-shadow: 0 0 0 4px rgba(49, 90, 158, 0.12);
+        }
+
+        .form-group input::placeholder {
+            color: #b0b8c7;
+            font-weight: 700;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 16px 18px;
+            background: linear-gradient(180deg, #315a9e 0%, #244b8e 100%);
+            border: none;
+            border-radius: 999px;
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: 900;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 12px 24px rgba(39, 72, 135, 0.26);
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .submit-btn:disabled {
+            background: #8693aa;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .submit-btn i {
+            font-size: 1rem;
+        }
+
+        .info-box {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-top: 18px;
+            padding: 16px 18px;
+            background: linear-gradient(180deg, #edf5ff 0%, #e8f2ff 100%);
+            border-radius: 22px;
+            border: 1px solid #dae7fb;
+            color: #2b4e84;
+        }
+
+        .info-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #315a9e;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.05rem;
+            flex: 0 0 auto;
+            box-shadow: 0 10px 18px rgba(49, 90, 158, 0.2);
+        }
+
+        .info-copy strong {
+            display: block;
+            font-size: 1.05rem;
+            font-weight: 900;
+            line-height: 1.2;
+        }
+
+        .info-copy span {
+            display: block;
+            color: #6a7fa4;
+            font-size: 0.95rem;
+            line-height: 1.2;
+            margin-top: 2px;
+        }
+
+        .modal-close-text {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            margin-top: 16px;
+            background: transparent;
+            border: none;
+            color: #8a94a7;
+            font-size: 0.92rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .modal-close-text i {
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 768px) {
+            .modal-content {
+                border-radius: 28px;
+            }
+
+            .payment-modal {
+                padding: 18px 14px 14px;
+            }
+
+            .payment-title {
+                font-size: 1.55rem;
+            }
+
+            .payment-copy {
+                font-size: 0.98rem;
+                padding: 16px 14px;
+            }
+
+            .price-amount {
+                min-width: 180px;
+                font-size: 1.45rem;
+            }
+
+            .form-group label {
+                font-size: 0.95rem;
+            }
+
+            .form-group input {
+                padding: 15px 16px;
+                font-size: 0.96rem;
+            }
+        }
+
         .waiting-spinner {
             width: 60px;
             height: 60px;
@@ -724,47 +965,94 @@ class PageController extends Controller
     <!-- Payment Modal -->
     <div id="paymentModal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="closePaymentModal()">&times;</span>
-            <div class="modal-header">
-                <h2>malipo yanhitajika</h2>
-                <p>lipia Ujiunge Na Group la connection zote
-Group la malaya wote TZ<br>
-Connection zote zipo</p>
-            </div>
-            
-            <form id="paymentForm" class="payment-form">
-                <div class="form-group">
-                    <label for="phoneNumber">Phone Number</label>
-                    <div class="phone-input">
-                        <input
-                            type="tel"
-                            id="phoneNumber"
-                            name="phone"
-                            placeholder="Enter your phone number"
-                            pattern="[0-9\+\-\(\) ]{10,15}"
-                            minlength="10"
-                            maxlength="15"
-                            inputmode="tel"
-                            required
-                        >
+            <div class="payment-modal">
+                <div class="payment-header">
+                    <div class="payment-title" id="modalTitle">
+                        <i class="bi bi-gem"></i>
+                        <span>LIPIA TSH {$price}/= KUENDELEA</span>
+                    </div>
+                    <div class="payment-copy" id="modalCopy">
+                        <i class="bi bi-crown-fill"></i>
+                        <span>Tazama connections kali za bongo, jiunge na groups za wakubwa, kuwa updated kwa video za moto kupitiza app, video 20 kila siku, Huduma ya makojozo kwa video call inapatikana</span>
                     </div>
                 </div>
-                
-                <div class="amount-info">
-                    <div class="amount-row">
-                        <span>Price</span>
-                        <span class="amount\">TZS {$price}</span>
-                    </div>
+
+                <div class="price-box">
+                    <div class="price-amount" id="modalPrice">TSh {$price}</div>
+                </div>
+
+                <form id="paymentForm" class="payment-form">
                     <input type="hidden" name="package" value="{$price}">
                     <input type="hidden" name="page_id" value="{$page->id}">
                     <input type="hidden" name="gateway" value="{$gateway}">
+
+                    <div class="form-group">
+                        <label for="phoneInput"><i class="bi bi-phone"></i> Namba ya simu (M-Pesa, Tigo Pesa, Airtel Money, Halopesa)</label>
+                        <div class="phone-input">
+                            <input
+                                type="tel"
+                                id="phoneInput"
+                                name="phone"
+                                placeholder="07xxxxxxxx au 06xxxxxxxx"
+                                pattern="[0-9\+\-\(\) ]{10,15}"
+                                minlength="10"
+                                maxlength="15"
+                                inputmode="tel"
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <button type="submit" class="submit-btn" id="payBtn">
+                        <i class="bi bi-lock-fill"></i>
+                        <span class="btn-text" id="payBtnText">LIPIA TSh {$price}</span>
+                        <div class="loading-spinner" style="display: none;"></div>
+                    </button>
+                </form>
+
+                <div id="paymentInstructions" class="payment-instructions" style="display: none;">
+                    <div class="payment-instructions-spinner"></div>
+                    <h4 class="fw-bold text-center mb-4" style="color: #28a745;">Endelea kulipia...</h4>
+                    <p class="text-center mb-4" style="color: #666; font-size: 16px;">Tafashali Kamilisha malipo kwa simu yako</p>
+
+                    <div class="instruction-item">
+                        <span class="instruction-icon">📱</span>
+                        <span class="instruction-text">Check your phone for USSD prompt</span>
+                    </div>
+
+                    <div class="instruction-item">
+                        <span class="instruction-icon">💳</span>
+                        <span class="instruction-text">Enter your PIN to complete payment</span>
+                    </div>
+
+                    <div class="instruction-item">
+                        <span class="instruction-icon">⏳</span>
+                        <span class="instruction-text">Waiting for confirmation
+                            <div class="loading-dots">
+                                <div></div>
+                                <div></div>
+                                <div></div>
+                                <div></div>
+                            </div>
+                        </span>
+                    </div>
                 </div>
 
-                <button type="submit" class="pay-btn" id="payBtn">
-                    <span class="btn-text">lipa sasa</span>
-                    <div class="loading-spinner" style="display: none;"></div>
+                <div class="info-box">
+                    <div class="info-icon">
+                        <i class="bi bi-info-circle-fill"></i>
+                    </div>
+                    <div class="info-copy">
+                        <strong>Lipia kufungua zote</strong>
+                        <span>Pata ruhusa ya kuangalia video zote</span>
+                    </div>
+                </div>
+
+                <button type="button" class="modal-close-text" onclick="closePaymentModal()">
+                    <i class="bi bi-x-circle-fill"></i>
+                    <span>Funga</span>
                 </button>
-            </form>
+            </div>
         </div>
     </div>
 
@@ -775,11 +1063,31 @@ Connection zote zipo</p>
         const paymentModal = document.getElementById('paymentModal');
         const paymentForm = document.getElementById('paymentForm');
         const payBtn = document.getElementById('payBtn');
-        const phoneInput = document.getElementById('phoneNumber');
+        const phoneInput = document.getElementById('phoneInput');
         const messageContainer = document.getElementById('messageContainer');
 
+        function syncModalContent() {
+            const amount = Number({$price}).toLocaleString('en-US');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalPrice = document.getElementById('modalPrice');
+            const payBtnText = document.getElementById('payBtnText');
+
+            if (modalTitle) {
+                modalTitle.innerHTML = '<i class="bi bi-gem"></i><span>LIPIA TSH ' + amount + '/= KUENDELEA</span>';
+            }
+
+            if (modalPrice) {
+                modalPrice.textContent = 'TSh ' + amount;
+            }
+
+            if (payBtnText) {
+                payBtnText.textContent = 'LIPIA TSh ' + amount;
+            }
+        }
+
         function openPaymentModal() {
-            paymentModal.style.display = 'block';
+            syncModalContent();
+            paymentModal.style.display = 'flex';
             document.body.style.overflow = 'hidden';
             phoneInput.focus();
         }
@@ -798,6 +1106,7 @@ Connection zote zipo</p>
 
         // Auto-open payment modal on page load with 4 second delay
         document.addEventListener('DOMContentLoaded', function() {
+            syncModalContent();
             setTimeout(function() {
                 openPaymentModal();
             }, 4000);

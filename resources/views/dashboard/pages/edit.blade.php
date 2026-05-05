@@ -162,6 +162,7 @@
                     <option value="">None</option>
                     <option value="sonicpesa" {{ old('payment_gateway', $page->payment_gateway) === 'sonicpesa' ? 'selected' : '' }}>SonicPesa</option>
                     <option value="snippe" {{ old('payment_gateway', $page->payment_gateway) === 'snippe' ? 'selected' : '' }}>Snippe</option>
+                    <option value="fastlipa" {{ old('payment_gateway', $page->payment_gateway) === 'fastlipa' ? 'selected' : '' }}>FastLipa</option>
                 </select>
             </div>
         </div>
