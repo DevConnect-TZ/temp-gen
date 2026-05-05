@@ -75,34 +75,18 @@
     <!-- Chart Section -->
     <div class="lg:col-span-2">
         <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-            <h2 class="text-lg font-bold text-gray-900 mb-6">Revenue Trend</h2>
-            <div class="h-80 flex items-end justify-between">
-                <div class="w-full h-full flex items-end justify-between space-x-2">
-                    <div class="flex-1 flex flex-col items-center">
-                        <div class="w-full h-24 bg-indigo-100 rounded-t-lg"></div>
-                        <p class="text-xs text-gray-600 mt-2">Jan</p>
-                    </div>
-                    <div class="flex-1 flex flex-col items-center">
-                        <div class="w-full h-32 bg-indigo-200 rounded-t-lg"></div>
-                        <p class="text-xs text-gray-600 mt-2">Feb</p>
-                    </div>
-                    <div class="flex-1 flex flex-col items-center">
-                        <div class="w-full h-40 bg-indigo-300 rounded-t-lg"></div>
-                        <p class="text-xs text-gray-600 mt-2">Mar</p>
-                    </div>
-                    <div class="flex-1 flex flex-col items-center">
-                        <div class="w-full h-36 bg-indigo-200 rounded-t-lg"></div>
-                        <p class="text-xs text-gray-600 mt-2">Apr</p>
-                    </div>
-                    <div class="flex-1 flex flex-col items-center">
-                        <div class="w-full h-48 bg-indigo-400 rounded-t-lg"></div>
-                        <p class="text-xs text-gray-600 mt-2">May</p>
-                    </div>
-                    <div class="flex-1 flex flex-col items-center">
-                        <div class="w-full h-44 bg-indigo-300 rounded-t-lg"></div>
-                        <p class="text-xs text-gray-600 mt-2">Jun</p>
-                    </div>
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h2 class="text-lg font-bold text-gray-900">Revenue Trend</h2>
+                    <p class="text-sm text-gray-500 mt-1">Completed revenue over the last 14 days</p>
                 </div>
+                <div class="text-right">
+                    <p class="text-xs uppercase tracking-wide text-gray-500">Current Revenue</p>
+                    <p class="text-sm font-semibold text-gray-900">TZS {{ number_format($totalRevenue, 0) }}</p>
+                </div>
+            </div>
+            <div class="h-80">
+                <canvas id="revenueTrendChart"></canvas>
             </div>
         </div>
     </div>
@@ -191,4 +175,83 @@
         </div>
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+    (() => {
+        const canvas = document.getElementById('revenueTrendChart');
+
+        if (!canvas || typeof Chart === 'undefined') {
+            return;
+        }
+
+        const labels = @json($revenueTrendLabels);
+        const revenueData = @json($revenueTrendValues);
+
+        new Chart(canvas, {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [{
+                    label: 'Revenue',
+                    data: revenueData,
+                    borderColor: '#4f46e5',
+                    backgroundColor: 'rgba(79, 70, 229, 0.12)',
+                    fill: true,
+                    tension: 0.35,
+                    borderWidth: 3,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    pointBackgroundColor: '#4f46e5',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                }],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                plugins: {
+                    legend: {
+                        display: false,
+                    },
+                    tooltip: {
+                        backgroundColor: '#111827',
+                        padding: 12,
+                        callbacks: {
+                            label(context) {
+                                return 'TZS ' + Number(context.parsed.y || 0).toLocaleString('en-US');
+                            },
+                        },
+                    },
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: false,
+                        },
+                        ticks: {
+                            color: '#6b7280',
+                        },
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(148, 163, 184, 0.18)',
+                        },
+                        ticks: {
+                            color: '#6b7280',
+                            callback(value) {
+                                return 'TZS ' + Number(value).toLocaleString('en-US');
+                            },
+                        },
+                    },
+                },
+            },
+        });
+    })();
+</script>
 @endsection

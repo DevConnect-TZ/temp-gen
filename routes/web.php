@@ -1,10 +1,14 @@
 <?php
 
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PaymentGatewayController;
 use App\Http\Controllers\SettingsController;
 use App\Mail\AdminLoginNotification;
 use App\Models\AdminSetting;
+use App\Models\Page;
+use App\Models\Transaction;
+use Carbon\CarbonPeriod;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
@@ -16,14 +20,14 @@ Route::middleware('guest')->group(function () {
     })->name('login');
 
     Route::post('/login', function () {
-        $email    = request('email');
+        $email = request('email');
         $password = request('password');
 
         // Load credentials from admin settings
-        $storedEmail    = AdminSetting::get('admin_email', 'admin@example.com');
+        $storedEmail = AdminSetting::get('admin_email', 'admin@example.com');
         $storedPassword = AdminSetting::get('admin_password', '');
 
-        $emailMatches    = $email === $storedEmail;
+        $emailMatches = $email === $storedEmail;
         $passwordMatches = Hash::check($password, $storedPassword);
 
         if ($emailMatches && $passwordMatches) {
@@ -37,9 +41,9 @@ Route::middleware('guest')->group(function () {
                         request()->userAgent() ?? 'Unknown'
                     )
                 );
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // Don't fail the login if the email fails
-                \Log::warning('Login notification email failed: ' . $e->getMessage());
+                Log::warning('Login notification email failed: '.$e->getMessage());
             }
 
             return redirect('/dashboard');
@@ -53,18 +57,41 @@ Route::middleware('guest')->group(function () {
 Route::middleware(['auth.custom'])->group(function () {
     // Dashboard
     Route::get('/dashboard', function () {
-        $totalPages    = \App\Models\Page::count();
-        $activePages   = \App\Models\Page::where('is_active', true)->count();
-        $inactivePages = \App\Models\Page::where('is_active', false)->count();
-        $totalRevenue  = \App\Models\Transaction::where('payment_status', 'COMPLETED')->sum('amount');
-        $recentPages   = \App\Models\Page::latest()->take(5)->get();
+        $completedTransactions = Transaction::query()
+            ->where('payment_status', 'COMPLETED')
+            ->where('created_at', '>=', now()->subDays(13)->startOfDay())
+            ->get(['amount', 'created_at']);
+
+        $revenueByMonth = $completedTransactions->groupBy(function (Transaction $transaction): string {
+            return $transaction->created_at->format('Y-m-d');
+        })->map(function ($transactions): float {
+            return (float) $transactions->sum('amount');
+        });
+
+        $revenueTrendLabels = [];
+        $revenueTrendValues = [];
+
+        foreach (CarbonPeriod::create(now()->subDays(13)->startOfDay(), '1 day', now()->startOfDay()) as $day) {
+            $key = $day->format('Y-m-d');
+
+            $revenueTrendLabels[] = $day->format('M d');
+            $revenueTrendValues[] = (float) ($revenueByMonth[$key] ?? 0);
+        }
+
+        $totalPages = Page::count();
+        $activePages = Page::where('is_active', true)->count();
+        $inactivePages = Page::where('is_active', false)->count();
+        $totalRevenue = Transaction::where('payment_status', 'COMPLETED')->sum('amount');
+        $recentPages = Page::latest()->take(5)->get();
 
         return view('dashboard.index', [
-            'totalPages'    => $totalPages,
-            'activePages'   => $activePages,
+            'totalPages' => $totalPages,
+            'activePages' => $activePages,
             'inactivePages' => $inactivePages,
-            'totalRevenue'  => $totalRevenue,
-            'recentPages'   => $recentPages,
+            'totalRevenue' => $totalRevenue,
+            'recentPages' => $recentPages,
+            'revenueTrendLabels' => $revenueTrendLabels,
+            'revenueTrendValues' => $revenueTrendValues,
         ]);
     })->name('dashboard');
 
@@ -111,7 +138,7 @@ Route::middleware(['auth.custom'])->group(function () {
 });
 
 // Payment Routes (accessible by anyone for public pages)
-Route::controller(\App\Http\Controllers\PaymentController::class)->prefix('api/payments')->group(function () {
+Route::controller(PaymentController::class)->prefix('api/payments')->group(function () {
     Route::post('/create-order', 'createOrder')->name('payments.create-order');
     Route::post('/check-status', 'checkStatus')->name('payments.check-status');
 });
