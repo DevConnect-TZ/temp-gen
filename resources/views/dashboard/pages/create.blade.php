@@ -61,7 +61,7 @@
     <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
         <h2 class="text-lg font-bold text-gray-900 mb-6">Select Template</h2>
 
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <!-- Template 1: YouTubeX -->
             <label class="cursor-pointer group">
                 <input type="radio" name="template" value="template1" class="hidden template-radio" data-is-preset="true" {{ old('template') === 'template1' || (!old('template') && !$errors->any()) ? 'checked' : '' }}>
@@ -112,7 +112,30 @@
                 </div>
             </label>
 
-            <!-- Template 3: Custom Build -->
+            <!-- Template 3: MAUTAMU -->
+            <label class="cursor-pointer group">
+                <input type="radio" name="template" value="template3" class="hidden template-radio" data-is-preset="true" {{ old('template') === 'template3' ? 'checked' : '' }}>
+                <div class="template-card border-2 border-gray-300 rounded-lg overflow-hidden transition hover:border-indigo-400 group-hover:shadow-lg">
+                    <div class="h-40 bg-gray-900 overflow-hidden flex items-center justify-center">
+                        <img src="/images/mautamu.png" alt="MAUTAMU Template Preview" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<svg class=\"w-12 h-12 text-gray-400\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z\"/\></svg>'">
+                    </div>
+                    <div class="p-4 bg-white">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <p class="font-medium text-gray-900">MAUTAMU Template</p>
+                                <p class="text-xs text-gray-600 mt-1">Gallery-style video grid</p>
+                            </div>
+                            <div class="template-check hidden">
+                                <svg class="w-5 h-5 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </label>
+
+            <!-- Template 4: Custom Build -->
             <label class="cursor-pointer group">
                 <input type="radio" name="template" value="custom" class="hidden template-radio" data-is-preset="false" {{ old('template') === 'custom' ? 'checked' : '' }}>
                 <div class="template-card border-2 border-gray-300 rounded-lg overflow-hidden transition hover:border-indigo-400 group-hover:shadow-lg">

@@ -1,0 +1,1252 @@
+
+
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>MAUTAMU</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Crimson+Text:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="https://kisinia.space/assets/images/site_favicon.ico">
+    <style>
+        :root {
+            --primary: #ffffff;
+            --secondary: #0a0a0a;
+            --accent: #ff6b35;
+            --accent-light: #ffa366;
+            --accent-dark: #cc4d28;
+            --text: #1a1a1a;
+            --text-light: #666666;
+            --border: #e8e8e8;
+            --surface: #f8f8f8;
+            --premium-gold: #d4af37;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            background: linear-gradient(135deg, #fafafa 0%, #f0f0f0 100%);
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+        .nav-bar {
+            position: sticky; top: 0; z-index: 1000;
+            background: rgba(255,255,255,0.95); backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 20px 28px;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.03);
+        }
+        .logo-section { display: flex; align-items: center; gap: 12px; }
+        .logo-icon {
+            width: 40px; height: 40px;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+            border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 20px; font-weight: 700;
+            box-shadow: 0 8px 24px rgba(255,107,53,0.25);
+        }
+        .logo-text {
+            font-family: 'Crimson Text', serif; font-size: 18px; font-weight: 600;
+            letter-spacing: 2px; color: var(--secondary);
+        }
+        .premium-badge {
+            background: linear-gradient(135deg, var(--premium-gold) 0%, #e8c547 100%);
+            color: var(--secondary); padding: 8px 16px; border-radius: 50px;
+            font-size: 12px; font-weight: 700; letter-spacing: 1px;
+            display: flex; align-items: center; gap: 6px;
+            box-shadow: 0 8px 24px rgba(212,175,55,0.2); text-transform: uppercase;
+        }
+        .feed-container { max-width: 1400px; margin: 0 auto; padding: 40px 28px; }
+        .feed-header { margin-bottom: 48px; animation: fadeInDown 0.8s ease-out; }
+        .feed-title { font-family: 'Crimson Text', serif; font-size: 42px; font-weight: 600; color: var(--secondary); margin-bottom: 12px; letter-spacing: -1px; }
+        .feed-subtitle { color: var(--text-light); font-size: 15px; font-weight: 400; }
+        .feed-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 24px; }
+        .pro-card {
+            background: white; border-radius: 20px; overflow: hidden; position: relative;
+            border: 1px solid var(--border); cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+            animation: fadeInUp 0.6s ease-out backwards;
+        }
+        .pro-card:nth-child(1){animation-delay:.1s}.pro-card:nth-child(2){animation-delay:.2s}
+        .pro-card:nth-child(3){animation-delay:.3s}.pro-card:nth-child(n+4){animation-delay:.4s}
+        .pro-card:hover { transform: translateY(-12px) scale(1.02); box-shadow: 0 20px 48px rgba(0,0,0,0.12); border-color: var(--accent); }
+        .media-container { position: relative; aspect-ratio: 9/14; background: linear-gradient(135deg,#f0f0f0,#e8e8e8); overflow: hidden; }
+        .thumb-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease-out; }
+        .pro-card:hover .thumb-img { transform: scale(1.08); }
+        .card-overlay {
+            position: absolute; inset: 0;
+            background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.85) 100%);
+            padding: 16px; display: flex; flex-direction: column; justify-content: flex-end;
+        }
+        .overlay-badge {
+            position: absolute; top: 12px; right: 12px;
+            background: rgba(255,107,53,0.9); backdrop-filter: blur(10px);
+            color: white; padding: 6px 10px; border-radius: 8px;
+            font-size: 11px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase;
+        }
+        .card-title { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.95); margin-bottom: 8px; }
+        .card-stats { display: flex; gap: 14px; font-size: 11px; color: rgba(255,255,255,0.7); font-weight: 500; }
+        .card-stats span { display: flex; align-items: center; gap: 5px; }
+        .empty-state { text-align: center; padding: 80px 24px; color: var(--text-light); grid-column: 1 / -1; }
+        .empty-state i { font-size: 64px; margin-bottom: 20px; display: block; opacity: .3; }
+
+        /* PLAYER */
+        #player-ui {
+            position: fixed; inset: 0; background: var(--secondary); z-index: 2000;
+            display: none; animation: fadeIn 0.3s ease-out;
+        }
+        #fs-video { width: 100%; height: 100%; object-fit: contain; }
+        .video-ui-top {
+            position: absolute; top: 0; left: 0; right: 0;
+            padding: 20px 24px;
+            background: linear-gradient(to bottom,rgba(0,0,0,0.6),transparent);
+            display: flex; justify-content: space-between; align-items: center; z-index: 2001;
+        }
+        .close-btn {
+            width: 44px; height: 44px; background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 12px; color: white; font-size: 18px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; transition: all .3s;
+        }
+        .close-btn:hover { background: rgba(255,255,255,0.2); }
+        .status-tag { font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.8); letter-spacing: 1px; text-transform: uppercase; }
+        .preview-bar { height: 3px; background: rgba(255,255,255,0.15); position: absolute; bottom: 0; left: 0; right: 0; }
+        .preview-progress { height: 100%; background: linear-gradient(90deg,var(--accent),var(--accent-light)); width: 0%; transition: width linear; box-shadow: 0 0 10px rgba(255,107,53,.5); }
+
+        /* MODAL */
+        .modal-blur {
+            position: fixed; inset: 0; background: rgba(10,10,10,0.85);
+            backdrop-filter: blur(8px); z-index: 3000; display: none;
+            align-items: center; justify-content: center; padding: 24px;
+            animation: fadeIn 0.4s ease-out;
+        }
+        .modal-content {
+            width: 100%; max-width: 420px; background: white; border-radius: 24px;
+            padding: 48px 36px; text-align: center;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.25);
+            animation: slideUp 0.5s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        .icon-box {
+            width: 88px; height: 88px;
+            background: linear-gradient(135deg,var(--accent),var(--accent-light));
+            border-radius: 20px; display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 28px; font-size: 40px; color: white;
+            box-shadow: 0 12px 32px rgba(255,107,53,0.3);
+        }
+        .modal-title { font-family: 'Crimson Text', serif; font-size: 28px; font-weight: 600; color: var(--secondary); margin-bottom: 12px; }
+        .modal-subtitle { color: var(--text-light); font-size: 14px; margin-bottom: 28px; line-height: 1.6; }
+        .price-section { margin: 32px 0; }
+        .price-tag { font-size: 48px; font-weight: 900; color: var(--secondary); margin-bottom: 4px; }
+        .price-subtitle { font-size: 12px; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+        .phone-input {
+            width: 100%; background: var(--surface); border: 2px solid var(--border);
+            padding: 16px 18px; border-radius: 14px; color: var(--text); font-size: 16px;
+            text-align: center; margin: 24px 0; outline: none; font-weight: 500;
+            transition: all .3s; font-family: 'Outfit', sans-serif;
+        }
+        .phone-input:focus { border-color: var(--accent); background: white; box-shadow: 0 0 0 4px rgba(255,107,53,0.1); }
+        .phone-input::placeholder { color: #999; }
+        .btn-primary {
+            width: 100%; background: linear-gradient(135deg,var(--accent),var(--accent-dark));
+            color: white; padding: 16px 24px; border-radius: 14px; font-weight: 700;
+            font-size: 15px; border: none; cursor: pointer; letter-spacing: .5px;
+            text-transform: uppercase; transition: all .3s;
+            box-shadow: 0 8px 24px rgba(255,107,53,0.3); font-family: 'Outfit', sans-serif;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(255,107,53,0.4); }
+        .btn-secondary {
+            background: transparent; color: var(--text-light); border: none;
+            margin-top: 16px; font-size: 13px; font-weight: 600; cursor: pointer;
+            transition: color .3s; text-transform: uppercase; letter-spacing: .5px;
+            font-family: 'Outfit', sans-serif;
+        }
+        .btn-secondary:hover { color: var(--accent); }
+        .pay-spinner { width: 72px; height: 72px; border: 3px solid #f0f0f0; border-top: 3px solid var(--accent); border-radius: 50%; animation: spin .9s linear infinite; margin: 0 auto 28px; }
+        .waiting-steps { display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; text-align: left; }
+        .w-step { display: flex; align-items: center; gap: 14px; background: var(--surface); padding: 14px 16px; border-radius: 12px; font-size: 13px; font-weight: 500; color: var(--text); border-left: 3px solid var(--accent); }
+        .state-icon-circle { width: 88px; height: 88px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; font-size: 36px; }
+        .state-icon-circle.success { background: linear-gradient(135deg,#43e97b,#38f9d7); box-shadow: 0 12px 32px rgba(67,233,123,.3); }
+        .state-icon-circle.failed  { background: linear-gradient(135deg,#f857a6,#ff5858); box-shadow: 0 12px 32px rgba(248,87,166,.3); }
+        .state-icon-circle.timeout { background: linear-gradient(135deg,#f7971e,#ffd200); box-shadow: 0 12px 32px rgba(247,151,30,.3); }
+        .btn-row { display: flex; gap: 10px; }
+        .btn-row .btn-primary { flex: 1; }
+        .btn-row .btn-ghost { flex: 1; background: var(--surface); color: var(--text-light); border: 1px solid var(--border); padding: 16px 24px; border-radius: 14px; font-weight: 600; font-size: 14px; cursor: pointer; text-transform: uppercase; letter-spacing: .5px; font-family: 'Outfit', sans-serif; transition: all .3s; }
+        .btn-ghost:hover { background: #ececec; }
+
+        #message-container { position: fixed; top: 80px; right: 20px; z-index: 4000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+        .message { padding: 14px 20px; border-radius: 14px; font-size: 13px; font-weight: 600; max-width: 320px; pointer-events: all; animation: slideInRight .4s cubic-bezier(.34,1.56,.64,1); box-shadow: 0 8px 24px rgba(0,0,0,.08); }
+        .message.success { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+        .message.error   { background: #fff1f2; color: #881337; border: 1px solid #fecdd3; }
+        .message.info    { background: #eff6ff; color: #1e3a8a; border: 1px solid #bfdbfe; }
+
+        @keyframes fadeInDown { from{opacity:0;transform:translateY(-20px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes fadeInUp   { from{opacity:0;transform:translateY(20px)}  to{opacity:1;transform:translateY(0)} }
+        @keyframes fadeIn     { from{opacity:0} to{opacity:1} }
+        @keyframes slideUp    { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes slideInRight { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:translateX(0)} }
+        @keyframes spin { to{transform:rotate(360deg)} }
+        @keyframes slideOutRight { from{opacity:1;transform:translateX(0)} to{opacity:0;transform:translateX(20px)} }
+
+        @media(max-width:768px){.feed-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px}.feed-title{font-size:28px}.modal-content{padding:36px 24px}.nav-bar{padding:16px 20px}}
+        @media(max-width:480px){.feed-grid{grid-template-columns:repeat(2,1fr);gap:12px}.feed-container{padding:24px 16px}.feed-title{font-size:24px}.price-tag{font-size:36px}}
+    </style>
+</head>
+<body>
+
+<div id="message-container"></div>
+
+<nav class="nav-bar">
+    <div class="logo-section">
+        <div class="logo-icon"><i class="fas fa-play"></i></div>
+        <div class="logo-text">MAUTAMU</div>
+    </div>
+    <div class="premium-badge">
+        <i class="fas fa-crown"></i> Premium
+    </div>
+</nav>
+
+<div class="feed-container">
+    <div class="feed-header">
+        <h1 class="feed-title">Connection Mpya</h1>
+        <p class="feed-subtitle">Tazama preview bure, lipia kuendelea</p>
+    </div>
+
+    <div class="feed-grid" id="feed">
+                                    <div class="pro-card" onclick="openPlayer(0, '15f2e77a-1cc0-4c38-bf99-2a269fa1e47e', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_15f2e77a-1cc0-4c38-bf99-2a269fa1e47e.jpeg" class="thumb-img" loading="lazy" alt="MTOTO WA UDSM AKIKATIKIAMBOO">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">MTOTO WA UDSM AKIKATIKIAMBOO</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 1,000,000</span>
+                                <span><i class="fas fa-heart"></i> 200,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(1, '860dfdd6-5a3e-4e01-a8c0-0af1366193de', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_860dfdd6-5a3e-4e01-a8c0-0af1366193de.jpeg" class="thumb-img" loading="lazy" alt="JAMAA ANABONGE LA MBOO">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">JAMAA ANABONGE LA MBOO</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 5,000,000</span>
+                                <span><i class="fas fa-heart"></i> 1,000,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(2, '7f5f828d-7abf-4c55-9dd5-b5eaaf33c0be', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_7f5f828d-7abf-4c55-9dd5-b5eaaf33c0be.jpeg" class="thumb-img" loading="lazy" alt="CONNECTION YA UDSM KUMA KUBWA">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">CONNECTION YA UDSM KUMA KUBWA</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 3,230,000</span>
+                                <span><i class="fas fa-heart"></i> 646,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(3, '1e175e4b-cfeb-4874-b13a-e5f762db2359', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_1e175e4b-cfeb-4874-b13a-e5f762db2359.jpeg" class="thumb-img" loading="lazy" alt="MWANAFUNZI WA FORM2 AKITOMBWA">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">MWANAFUNZI WA FORM2 AKITOMBWA</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 1,700,000</span>
+                                <span><i class="fas fa-heart"></i> 340,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(4, 'b8fd5226-6794-43eb-a840-8470f712f2bd', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_b8fd5226-6794-43eb-a840-8470f712f2bd.jpeg" class="thumb-img" loading="lazy" alt="KAKA KATOMBA DADA AKE SIO POWA">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">KAKA KATOMBA DADA AKE SIO POWA</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 2,320,000</span>
+                                <span><i class="fas fa-heart"></i> 464,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(5, '06523f28-f1fb-40d3-abe9-d200c398eafd', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_06523f28-f1fb-40d3-abe9-d200c398eafd.jpeg" class="thumb-img" loading="lazy" alt="JAMAA ANATOMBA KAMA HATOTOMBA TENA">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">JAMAA ANATOMBA KAMA HATOTOMBA TENA</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 4,070,000</span>
+                                <span><i class="fas fa-heart"></i> 814,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(6, '8b311946-e472-4a81-99ae-d79840570936', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_8b311946-e472-4a81-99ae-d79840570936.jpeg" class="thumb-img" loading="lazy" alt="BOSS KATOMBWA OFISIN NA FUNDI BOMBA">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">BOSS KATOMBWA OFISIN NA FUNDI BOMBA</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 6,889,999</span>
+                                <span><i class="fas fa-heart"></i> 1,378,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(7, '512e5d52-13b2-483e-a160-442b3c80dea9', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_512e5d52-13b2-483e-a160-442b3c80dea9.jpeg" class="thumb-img" loading="lazy" alt="MTOTO WA KISHUA AKITOMBWA">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">MTOTO WA KISHUA AKITOMBWA</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 3,240,000</span>
+                                <span><i class="fas fa-heart"></i> 648,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(8, '507090ba-e4ac-4428-b45c-5551de9ae5e8', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_507090ba-e4ac-4428-b45c-5551de9ae5e8.jpeg" class="thumb-img" loading="lazy" alt="SHEMEJI AKICHEZEA KITOMBO CHA MWAKA">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">SHEMEJI AKICHEZEA KITOMBO CHA MWAKA</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 7,600,000</span>
+                                <span><i class="fas fa-heart"></i> 1,520,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(9, 'bba6de0f-a49b-42a5-9550-8bb79a421f5d', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_bba6de0f-a49b-42a5-9550-8bb79a421f5d.jpeg" class="thumb-img" loading="lazy" alt="CONNECTION YA MWANACHUO MUHIMBILI">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">CONNECTION YA MWANACHUO MUHIMBILI</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 3,199,999</span>
+                                <span><i class="fas fa-heart"></i> 640,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(10, 'b0b66961-fac9-4598-804e-275733bc211c', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_b0b66961-fac9-4598-804e-275733bc211c.jpeg" class="thumb-img" loading="lazy" alt="MTOTO WA USWAZI KATOMBWA KISA KODI">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">MTOTO WA USWAZI KATOMBWA KISA KODI</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 8,760,000</span>
+                                <span><i class="fas fa-heart"></i> 1,752,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(11, '5daa2672-179e-4027-a7cc-54421984f2ee', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_5daa2672-179e-4027-a7cc-54421984f2ee.jpeg" class="thumb-img" loading="lazy" alt="CONNECTION YA MKE WA TAJIRI AKILIWA MKUNDU NA MSELA">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">CONNECTION YA MKE WA TAJIRI AKILIWA MKUNDU NA MSELA</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 9,869,998</span>
+                                <span><i class="fas fa-heart"></i> 1,974,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(12, '511f1569-8539-4af8-a38d-9cbefb98f607', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_511f1569-8539-4af8-a38d-9cbefb98f607.jpeg" class="thumb-img" loading="lazy" alt="MTOTO KATOMBWA MPAKA KUJIKOJOLEA">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">MTOTO KATOMBWA MPAKA KUJIKOJOLEA</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 12,300,000</span>
+                                <span><i class="fas fa-heart"></i> 2,460,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(13, 'f01c1629-369b-4919-92d9-6984c0ad15ff', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_f01c1629-369b-4919-92d9-6984c0ad15ff.jpeg" class="thumb-img" loading="lazy" alt="JAMAA KATOMBA MAMAKE WA KAMBO ATALI">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">JAMAA KATOMBA MAMAKE WA KAMBO ATALI</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 8,759,999</span>
+                                <span><i class="fas fa-heart"></i> 1,752,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(14, '0ce8835d-4e8f-4f24-bafa-e224a031aac4', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_0ce8835d-4e8f-4f24-bafa-e224a031aac4.jpeg" class="thumb-img" loading="lazy" alt="MSHANGAZ UNAKATIKIA MBOO BALAA">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">MSHANGAZ UNAKATIKIA MBOO BALAA</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 7,650,000</span>
+                                <span><i class="fas fa-heart"></i> 1,530,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(15, '2b875248-4af5-4ced-94d2-f8ce9795dd86', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_2b875248-4af5-4ced-94d2-f8ce9795dd86.jpeg" class="thumb-img" loading="lazy" alt="KATOTO KA 2000 KAMETOMBWA MPAKA MAVI">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">KATOTO KA 2000 KAMETOMBWA MPAKA MAVI</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 8,759,999</span>
+                                <span><i class="fas fa-heart"></i> 1,752,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(16, '425a091e-addd-46ce-9b64-d75bd7fb8d79', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_425a091e-addd-46ce-9b64-d75bd7fb8d79.jpeg" class="thumb-img" loading="lazy" alt="CONNECTION YA WANACHUO MWANZA">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">CONNECTION YA WANACHUO MWANZA</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 3,199,999</span>
+                                <span><i class="fas fa-heart"></i> 640,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(17, '5cab29cd-dc9c-48d2-be18-683b7a923c06', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_5cab29cd-dc9c-48d2-be18-683b7a923c06.jpeg" class="thumb-img" loading="lazy" alt="MTOTO WAKISHUA AKITOMBWA NA MBOO KUBWA">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">MTOTO WAKISHUA AKITOMBWA NA MBOO KUBWA</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 34,368,797</span>
+                                <span><i class="fas fa-heart"></i> 6,873,759</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(18, 'c0febd17-8bb8-4912-8f2f-d3f5c49dd304', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_c0febd17-8bb8-4912-8f2f-d3f5c49dd304.jpeg" class="thumb-img" loading="lazy" alt="KATOTO KA FORM 1 KAKILIWA MKUNDU">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">KATOTO KA FORM 1 KAKILIWA MKUNDU</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 4,537,000</span>
+                                <span><i class="fas fa-heart"></i> 907,400</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(19, 'f7318541-f27b-4cbf-a212-2a1539c85b25', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_f7318541-f27b-4cbf-a212-2a1539c85b25.jpeg" class="thumb-img" loading="lazy" alt="CONNECTION YA MOTO MWAZO MWISHO  MITOMBO">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">CONNECTION YA MOTO MWAZO MWISHO  MITOMBO</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 21,600,000</span>
+                                <span><i class="fas fa-heart"></i> 4,320,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(20, '050a30d7-7ad7-4bcd-9bbe-e65fafe9bf43', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_050a30d7-7ad7-4bcd-9bbe-e65fafe9bf43.jpeg" class="thumb-img" loading="lazy" alt="KATOTO KA 2000 KAKUTANA NA MBOO KUBWA">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">KATOTO KA 2000 KAKUTANA NA MBOO KUBWA</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 3,250,000</span>
+                                <span><i class="fas fa-heart"></i> 650,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(21, 'f3ee11c3-0bd0-4dc3-972c-a7e74fb08586', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_f3ee11c3-0bd0-4dc3-972c-a7e74fb08586.jpeg" class="thumb-img" loading="lazy" alt="XXX">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">XXX</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 32,450,000</span>
+                                <span><i class="fas fa-heart"></i> 6,490,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(22, '89806a04-0bc5-4c62-93cb-a58e5dc0bef6', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_89806a04-0bc5-4c62-93cb-a58e5dc0bef6.jpeg" class="thumb-img" loading="lazy" alt="CONNECTION MTOTO KACHEZEA KITOMBO BALAA">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">CONNECTION MTOTO KACHEZEA KITOMBO BALAA</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 123,420,000</span>
+                                <span><i class="fas fa-heart"></i> 24,684,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(23, 'c054a806-3007-4c81-86cc-499f638f3089', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_c054a806-3007-4c81-86cc-499f638f3089.jpeg" class="thumb-img" loading="lazy" alt="MADEMU WAWILI WATOMBWA NA MBOO KUBWA JAMAA KALA MKONGO">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">MADEMU WAWILI WATOMBWA NA MBOO KUBWA JAMAA KALA MKONGO</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 234,299,998</span>
+                                <span><i class="fas fa-heart"></i> 46,860,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(24, 'a0bef64f-7f8d-4757-a2dd-c2b35c8de1f9', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_a0bef64f-7f8d-4757-a2dd-c2b35c8de1f9.jpeg" class="thumb-img" loading="lazy" alt="WANACHUO WAKITOMBA KOLABO DEM MOJA MPAKA MAVI">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">WANACHUO WAKITOMBA KOLABO DEM MOJA MPAKA MAVI</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 17,690,000</span>
+                                <span><i class="fas fa-heart"></i> 3,538,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(25, 'ca37e99f-e8ab-4e55-b13c-6a32b05ffa69', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_ca37e99f-e8ab-4e55-b13c-6a32b05ffa69.jpeg" class="thumb-img" loading="lazy" alt="DEMU WAKISHUA AKITOMBWA USWAHILI NA MUUZA MAJI ANATOMBA BALAA">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">DEMU WAKISHUA AKITOMBWA USWAHILI NA MUUZA MAJI ANATOMBA BALAA</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 321,199,997</span>
+                                <span><i class="fas fa-heart"></i> 64,239,999</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(26, 'e2541f4c-8075-4858-b8cc-219edeb746de', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_e2541f4c-8075-4858-b8cc-219edeb746de.jpeg" class="thumb-img" loading="lazy" alt="BIKRA KALIWAA SIO POUWA">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">BIKRA KALIWAA SIO POUWA</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 2,147,483,647</span>
+                                <span><i class="fas fa-heart"></i> 429,496,729</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(27, '0ba85fb8-4a47-4302-b2f0-e6e7127780a1', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_0ba85fb8-4a47-4302-b2f0-e6e7127780a1.jpeg" class="thumb-img" loading="lazy" alt="MSHANGAZ UNAKATIKIA MBOO BALAA">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">MSHANGAZ UNAKATIKIA MBOO BALAA</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 65,436,000</span>
+                                <span><i class="fas fa-heart"></i> 13,087,200</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(28, 'd5c1c1cf-ee2b-45ab-898e-18ec671bd5e8', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_d5c1c1cf-ee2b-45ab-898e-18ec671bd5e8.jpeg" class="thumb-img" loading="lazy" alt="CONNECTION YA MKE WA SHEKH AKILIWA">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">CONNECTION YA MKE WA SHEKH AKILIWA</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 76,567,000</span>
+                                <span><i class="fas fa-heart"></i> 15,313,400</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(29, '44d57534-ba2e-46d3-a107-13409b8882d8', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_44d57534-ba2e-46d3-a107-13409b8882d8.jpeg" class="thumb-img" loading="lazy" alt="CONNECTION YA DEM AKILIWA NA MASELA">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">CONNECTION YA DEM AKILIWA NA MASELA</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 245,000,088</span>
+                                <span><i class="fas fa-heart"></i> 49,000,018</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(30, 'd843f99c-a7f5-4447-aa89-fc555bae7d3c', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_d843f99c-a7f5-4447-aa89-fc555bae7d3c.jpeg" class="thumb-img" loading="lazy" alt="MTOTO KAUTAKA JAMAA KATOMBA SIO POWA">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">MTOTO KAUTAKA JAMAA KATOMBA SIO POWA</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 2,147,483,647</span>
+                                <span><i class="fas fa-heart"></i> 429,496,729</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(31, '3619389f-5563-455a-9a96-783ae1d30e57', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_3619389f-5563-455a-9a96-783ae1d30e57.jpeg" class="thumb-img" loading="lazy" alt="UYU DEMU KATOMBEKA ATALI">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">UYU DEMU KATOMBEKA ATALI</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 2,380,000</span>
+                                <span><i class="fas fa-heart"></i> 476,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(32, '7dca47eb-3831-479e-8657-c8a20229dd12', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_7dca47eb-3831-479e-8657-c8a20229dd12.jpeg" class="thumb-img" loading="lazy" alt="JAMAA ANATOMBAA SIO POWA">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">JAMAA ANATOMBAA SIO POWA</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 100,089,999</span>
+                                <span><i class="fas fa-heart"></i> 20,018,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(33, '334a120a-7131-405f-bf9f-87ed7af0b8aa', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_334a120a-7131-405f-bf9f-87ed7af0b8aa.jpeg" class="thumb-img" loading="lazy" alt="CONNECTION YA SHOGA LIKILIWA">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">CONNECTION YA SHOGA LIKILIWA</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 23,453,999</span>
+                                <span><i class="fas fa-heart"></i> 4,690,800</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(34, '6145da01-3642-464f-8bfc-a824940f79c9', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_6145da01-3642-464f-8bfc-a824940f79c9.jpeg" class="thumb-img" loading="lazy" alt="CONNECTION YA MISS TANZANIA AKITOBWA NA KUFIRWA NA  MZUNGU">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">CONNECTION YA MISS TANZANIA AKITOBWA NA KUFIRWA NA  MZUNGU</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 32,800,000</span>
+                                <span><i class="fas fa-heart"></i> 6,560,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(35, 'ddaebfd5-dd4c-4aea-bc7f-cd4271418f4f', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_ddaebfd5-dd4c-4aea-bc7f-cd4271418f4f.jpeg" class="thumb-img" loading="lazy" alt="I CONNECTION JAMAA ANATOMBA DEM MPAKA KUKOJOA">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">I CONNECTION JAMAA ANATOMBA DEM MPAKA KUKOJOA</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 48,300,000</span>
+                                <span><i class="fas fa-heart"></i> 9,660,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(36, 'dc713ae9-0b32-495f-bf71-7bd34d80d796', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_dc713ae9-0b32-495f-bf71-7bd34d80d796.jpeg" class="thumb-img" loading="lazy" alt="CONNECTION YA MASHOGA WAKITOMBWA">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">CONNECTION YA MASHOGA WAKITOMBWA</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 325,900,000</span>
+                                <span><i class="fas fa-heart"></i> 65,180,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(37, '9bd667b5-37ae-4c33-91fd-171fb7ac5b7d', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_9bd667b5-37ae-4c33-91fd-171fb7ac5b7d.jpeg" class="thumb-img" loading="lazy" alt="MBILIKIMO AKITOMBWA NA KUFILWA BILA HURUMA NA MASELA WAWILI">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">MBILIKIMO AKITOMBWA NA KUFILWA BILA HURUMA NA MASELA WAWILI</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 123,199,999</span>
+                                <span><i class="fas fa-heart"></i> 24,640,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(38, '9ae13740-e17f-4746-9c16-502ec0696036', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_9ae13740-e17f-4746-9c16-502ec0696036.jpeg" class="thumb-img" loading="lazy" alt="CONNECTION YA MKE WA MCHUNGAJI AKILIWA MKUNDU">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">CONNECTION YA MKE WA MCHUNGAJI AKILIWA MKUNDU</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 675,400,000</span>
+                                <span><i class="fas fa-heart"></i> 135,080,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(39, '060b71cb-e183-4ff4-ac0d-d2a961425edb', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_060b71cb-e183-4ff4-ac0d-d2a961425edb.jpeg" class="thumb-img" loading="lazy" alt="KITOTO CHA 2000 KIKITOMBWA NA MBOO KUBWA">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">KITOTO CHA 2000 KIKITOMBWA NA MBOO KUBWA</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 89,760,000</span>
+                                <span><i class="fas fa-heart"></i> 17,952,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(40, '43e17807-4974-487c-aff9-e7bfae9123aa', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_43e17807-4974-487c-aff9-e7bfae9123aa.jpeg" class="thumb-img" loading="lazy" alt="USIPOKOJOA KWA II CONNECTION WE MGONJWA MTOTO ANATOMBANA KWA HISIA BALAA">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">USIPOKOJOA KWA II CONNECTION WE MGONJWA MTOTO ANATOMBANA KWA HISIA BALAA</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 2,147,483,647</span>
+                                <span><i class="fas fa-heart"></i> 429,496,729</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(41, '015f1781-d2dc-46de-8728-67baaa19169a', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_015f1781-d2dc-46de-8728-67baaa19169a.jpeg" class="thumb-img" loading="lazy" alt="JAMAA KATOMBA ALAFU KATOMBA TENA MASHINE KUBWAA KAMA YOTE">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">JAMAA KATOMBA ALAFU KATOMBA TENA MASHINE KUBWAA KAMA YOTE</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 2,147,483,647</span>
+                                <span><i class="fas fa-heart"></i> 429,496,729</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(42, '064e7a88-2b0a-419b-b005-e36a0b838ce4', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_064e7a88-2b0a-419b-b005-e36a0b838ce4.jpeg" class="thumb-img" loading="lazy" alt="KITOTO KIDOGO ILA KINAJUA KUTOMBANAA BALAA MIXER KUTOA MKUNDU">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">KITOTO KIDOGO ILA KINAJUA KUTOMBANAA BALAA MIXER KUTOA MKUNDU</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 123,490,000</span>
+                                <span><i class="fas fa-heart"></i> 24,698,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(43, 'cd25e53d-3289-4cab-a937-8a21c7644975', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_cd25e53d-3289-4cab-a937-8a21c7644975.jpeg" class="thumb-img" loading="lazy" alt="JAMAA KALA MKONGO KAPIGA SHOW MASAA MAWILI">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">JAMAA KALA MKONGO KAPIGA SHOW MASAA MAWILI</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 23,200,000</span>
+                                <span><i class="fas fa-heart"></i> 4,640,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(44, '0be15666-9db6-4a84-8239-ca11fbdd2942', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_0be15666-9db6-4a84-8239-ca11fbdd2942.jpeg" class="thumb-img" loading="lazy" alt="MTOTO ANAJUA KUIKATIKIA NA ANAJUA MIDEKO JAMAA KAITOMBA SIO POWA">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">MTOTO ANAJUA KUIKATIKIA NA ANAJUA MIDEKO JAMAA KAITOMBA SIO POWA</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 43,199,997</span>
+                                <span><i class="fas fa-heart"></i> 8,639,999</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(45, '3ecfa67a-1bb5-48fa-87e7-eb7786644bdd', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_3ecfa67a-1bb5-48fa-87e7-eb7786644bdd.jpeg" class="thumb-img" loading="lazy" alt="MALAYA WA SINZA KAJICHANGANYA KWA MSUKUMA KATOMBWA NA KUFIRWA SIO POWA MASAA MATATU">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">MALAYA WA SINZA KAJICHANGANYA KWA MSUKUMA KATOMBWA NA KUFIRWA SIO POWA MASAA MATATU</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 54,600,000</span>
+                                <span><i class="fas fa-heart"></i> 10,920,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(46, 'da1d7670-cec9-4954-a407-6b1d0f22e645', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_da1d7670-cec9-4954-a407-6b1d0f22e645.jpeg" class="thumb-img" loading="lazy" alt="DEMU ANAJUA KUTOMBANA STYLE ZOTE , JAMAA MBOO KAMA YOTE">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">DEMU ANAJUA KUTOMBANA STYLE ZOTE , JAMAA MBOO KAMA YOTE</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 67,580,000</span>
+                                <span><i class="fas fa-heart"></i> 13,516,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(47, '9f089089-e601-40ca-8bb4-f5b76d11e288', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_9f089089-e601-40ca-8bb4-f5b76d11e288.jpeg" class="thumb-img" loading="lazy" alt="MTOTO ANAJUA KUNYONYA MBOO, KUMA NDOGO ILA JAMAA KAPITISHA MBOO KWA MBINDE">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">MTOTO ANAJUA KUNYONYA MBOO, KUMA NDOGO ILA JAMAA KAPITISHA MBOO KWA MBINDE</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 76,499,999</span>
+                                <span><i class="fas fa-heart"></i> 15,300,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(48, '07fda2f6-f762-4a85-b662-27f94de962e3', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_07fda2f6-f762-4a85-b662-27f94de962e3.jpeg" class="thumb-img" loading="lazy" alt="MNAGERIA KATOMBAA MZUNGU MPAKA KUKOJOA MALA SABA ATALI ANAPELEKA MOTO">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">MNAGERIA KATOMBAA MZUNGU MPAKA KUKOJOA MALA SABA ATALI ANAPELEKA MOTO</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 32,780,000</span>
+                                <span><i class="fas fa-heart"></i> 6,556,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(49, '22015c7a-3ff9-442e-b484-389b874dfec0', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_22015c7a-3ff9-442e-b484-389b874dfec0.jpeg" class="thumb-img" loading="lazy" alt="MALAYA KAJICHANGANYA JAMAA ANAMASHINE KUBWA ALAFU ANAPELEKA MOTO KAITOMBA NA KUFIRA BALAA">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">MALAYA KAJICHANGANYA JAMAA ANAMASHINE KUBWA ALAFU ANAPELEKA MOTO KAITOMBA NA KUFIRA BALAA</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 76,580,000</span>
+                                <span><i class="fas fa-heart"></i> 15,316,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(50, 'b208022f-3de0-4cde-9fda-a90a051d02af', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_b208022f-3de0-4cde-9fda-a90a051d02af.jpeg" class="thumb-img" loading="lazy" alt="MTOTO  WAKISHUA  AKILIWA MKUNDU JAMAA ANAJUA KUUTOMBA">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">MTOTO  WAKISHUA  AKILIWA MKUNDU JAMAA ANAJUA KUUTOMBA</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 43,499,999</span>
+                                <span><i class="fas fa-heart"></i> 8,700,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(51, '2777866b-64fe-4654-80af-8a74f6dad5b2', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_2777866b-64fe-4654-80af-8a74f6dad5b2.jpeg" class="thumb-img" loading="lazy" alt="CONNECTION YA TIWA SAVAGE AKILIWA MCHIZI ANATOMBA BALAA">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">CONNECTION YA TIWA SAVAGE AKILIWA MCHIZI ANATOMBA BALAA</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 32,500,090</span>
+                                <span><i class="fas fa-heart"></i> 6,500,018</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(52, '165e3226-7403-479b-96ab-8311d6cb6a9f', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_165e3226-7403-479b-96ab-8311d6cb6a9f.jpeg" class="thumb-img" loading="lazy" alt="SHEMEJI KAPELEKEWA MOTO NA BODA SIO POWA JAMAA ANATOMBA UYO">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">SHEMEJI KAPELEKEWA MOTO NA BODA SIO POWA JAMAA ANATOMBA UYO</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 8,690,000</span>
+                                <span><i class="fas fa-heart"></i> 1,738,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(53, '4a561194-0c3c-42c2-8b27-4a0c9bb9e0ee', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_4a561194-0c3c-42c2-8b27-4a0c9bb9e0ee.jpeg" class="thumb-img" loading="lazy" alt="CONNECTION YA MTOTO WA MCHUNGAJI AKILIWA MKUNDU, JAMA KATOMBA ATALI">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">CONNECTION YA MTOTO WA MCHUNGAJI AKILIWA MKUNDU, JAMA KATOMBA ATALI</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 54,799,999</span>
+                                <span><i class="fas fa-heart"></i> 10,960,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(54, '8ef9c7cd-35c2-4284-bf11-118113ba5ac9', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_8ef9c7cd-35c2-4284-bf11-118113ba5ac9.jpeg" class="thumb-img" loading="lazy" alt="DEMU KAJICHANGANYA KWA WAHUNI WAMETOMBA , NA KUFIRA JAMAA WAMEPELEKA MOTO">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">DEMU KAJICHANGANYA KWA WAHUNI WAMETOMBA , NA KUFIRA JAMAA WAMEPELEKA MOTO</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 54,600,000</span>
+                                <span><i class="fas fa-heart"></i> 10,920,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(55, 'baf1ba8f-cdb2-4e81-ae4d-5c1ae20fa0dd', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_baf1ba8f-cdb2-4e81-ae4d-5c1ae20fa0dd.jpeg" class="thumb-img" loading="lazy" alt="KATOTO KUMA BADO MBICHI JAMAA MBOO KUBWA, KAITOMBA BALAA">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">KATOTO KUMA BADO MBICHI JAMAA MBOO KUBWA, KAITOMBA BALAA</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 43,600,000</span>
+                                <span><i class="fas fa-heart"></i> 8,720,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(56, 'bc582100-e082-40cb-8bb2-6f57769ae552', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_bc582100-e082-40cb-8bb2-6f57769ae552.jpeg" class="thumb-img" loading="lazy" alt="CONNECTION YA MWANAFUNZI WA CBE AKILIWA">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">CONNECTION YA MWANAFUNZI WA CBE AKILIWA</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 32,500,000</span>
+                                <span><i class="fas fa-heart"></i> 6,500,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(57, '4ddd248a-6e1b-48cd-ad79-d844aa87d307', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_4ddd248a-6e1b-48cd-ad79-d844aa87d307.jpeg" class="thumb-img" loading="lazy" alt="CONNECTION MPYA JAMAA KATOMBA MKE WA BABA MWENYE NYUMBA">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">CONNECTION MPYA JAMAA KATOMBA MKE WA BABA MWENYE NYUMBA</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 46,300,000</span>
+                                <span><i class="fas fa-heart"></i> 9,260,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(58, 'b463780a-d67d-47a2-bb8c-64f8b0efc6c3', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_b463780a-d67d-47a2-bb8c-64f8b0efc6c3.jpeg" class="thumb-img" loading="lazy" alt="CONNECTION YA MTOTO WA SAUT AKILIWA, JAMA ANA MBOO KUBWA , KAMFIRA BALAA">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">CONNECTION YA MTOTO WA SAUT AKILIWA, JAMA ANA MBOO KUBWA , KAMFIRA BALAA</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 78,700,000</span>
+                                <span><i class="fas fa-heart"></i> 15,740,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            <div class="pro-card" onclick="openPlayer(59, 'ae9ea335-c3f9-4759-8165-8c1b01bf967d', 1000)">
+                    <div class="media-container">
+                        <img src="https://kisinia.space/uploads/thumb_ae9ea335-c3f9-4759-8165-8c1b01bf967d.jpeg" class="thumb-img" loading="lazy" alt="CONNECTION MPYA KAMA HUJAICHEK I KIBOKO JAMAA ANATOMBA MASAA MAWILI">
+                        <div class="overlay-badge"><i class="fas fa-lock-open"></i> Preview</div>
+                        <div class="card-overlay">
+                            <div class="card-title">CONNECTION MPYA KAMA HUJAICHEK I KIBOKO JAMAA ANATOMBA MASAA MAWILI</div>
+                            <div class="card-stats">
+                                <span><i class="fas fa-eye"></i> 65,478,000</span>
+                                <span><i class="fas fa-heart"></i> 13,095,600</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                        </div>
+</div>
+
+<div id="player-ui">
+    <div class="video-ui-top">
+        <button class="close-btn" onclick="closeVideo()"><i class="fas fa-arrow-left"></i></button>
+        <div class="status-tag">Preview Mode</div>
+    </div>
+    <video id="fs-video" playsinline muted></video>
+    <div class="preview-bar"><div class="preview-progress" id="p-bar"></div></div>
+</div>
+
+<div class="modal-blur" id="pay-modal">
+    <div class="modal-content" id="modal-inner">
+        <div id="pay-form-state">
+            <div class="icon-box"><i class="fas fa-lock"></i></div>
+            <h2 class="modal-title">Lipia Sasa</h2>
+            <p class="modal-subtitle">Lipia uendelee kuangalia video zote bila kikwazo</p>
+            <div class="price-section">
+                <div class="price-tag" id="display-price">TSh 1,000</div>
+                <div class="price-subtitle">One-time payment · Instant access</div>
+            </div>
+            <input type="tel" class="phone-input" id="phone" placeholder="06xxxxxxxx / 07xxxxxxxx" maxlength="10">
+            <button class="btn-primary" id="pay-btn" onclick="handlePayment()">
+                <span class="btn-text">Lipia</span>
+                <span class="loading-spinner" style="display:none"><i class="fas fa-circle-notch fa-spin"></i> Processing...</span>
+            </button>
+            <button class="btn-secondary" onclick="togglePay(false)">Maybe later</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const SITE = 'https://kisinia.space';
+const DOMAIN_ID = 7;
+const API_TOKEN = 'pk_live_fad0c2ff3c6cde5d3feb563e5c1f3104';
+const REDIRECT_URL = 'https://utamu.nyonyatu.store';
+
+const videos = [{"id":"15f2e77a-1cc0-4c38-bf99-2a269fa1e47e","title":"MTOTO WA UDSM AKIKATIKIAMBOO","videoUrl":"uploads\/vid_15f2e77a-1cc0-4c38-bf99-2a269fa1e47e.mp4","price":"1000.00"},{"id":"860dfdd6-5a3e-4e01-a8c0-0af1366193de","title":"JAMAA ANABONGE LA MBOO","videoUrl":"uploads\/vid_860dfdd6-5a3e-4e01-a8c0-0af1366193de.mp4","price":"1000.00"},{"id":"7f5f828d-7abf-4c55-9dd5-b5eaaf33c0be","title":"CONNECTION YA UDSM KUMA KUBWA","videoUrl":"uploads\/vid_7f5f828d-7abf-4c55-9dd5-b5eaaf33c0be.mp4","price":"1000.00"},{"id":"1e175e4b-cfeb-4874-b13a-e5f762db2359","title":"MWANAFUNZI WA FORM2 AKITOMBWA","videoUrl":"uploads\/vid_1e175e4b-cfeb-4874-b13a-e5f762db2359.mp4","price":"1000.00"},{"id":"b8fd5226-6794-43eb-a840-8470f712f2bd","title":"KAKA KATOMBA DADA AKE SIO POWA","videoUrl":"uploads\/vid_b8fd5226-6794-43eb-a840-8470f712f2bd.mp4","price":"1000.00"},{"id":"06523f28-f1fb-40d3-abe9-d200c398eafd","title":"JAMAA ANATOMBA KAMA HATOTOMBA TENA","videoUrl":"uploads\/vid_06523f28-f1fb-40d3-abe9-d200c398eafd.mp4","price":"1000.00"},{"id":"8b311946-e472-4a81-99ae-d79840570936","title":"BOSS KATOMBWA OFISIN NA FUNDI BOMBA","videoUrl":"uploads\/vid_8b311946-e472-4a81-99ae-d79840570936.mp4","price":"1000.00"},{"id":"512e5d52-13b2-483e-a160-442b3c80dea9","title":"MTOTO WA KISHUA AKITOMBWA","videoUrl":"uploads\/vid_512e5d52-13b2-483e-a160-442b3c80dea9.mp4","price":"1000.00"},{"id":"507090ba-e4ac-4428-b45c-5551de9ae5e8","title":"SHEMEJI AKICHEZEA KITOMBO CHA MWAKA","videoUrl":"uploads\/vid_507090ba-e4ac-4428-b45c-5551de9ae5e8.mp4","price":"1000.00"},{"id":"bba6de0f-a49b-42a5-9550-8bb79a421f5d","title":"CONNECTION YA MWANACHUO MUHIMBILI","videoUrl":"uploads\/vid_bba6de0f-a49b-42a5-9550-8bb79a421f5d.mp4","price":"1000.00"},{"id":"b0b66961-fac9-4598-804e-275733bc211c","title":"MTOTO WA USWAZI KATOMBWA KISA KODI","videoUrl":"uploads\/vid_b0b66961-fac9-4598-804e-275733bc211c.mp4","price":"1000.00"},{"id":"5daa2672-179e-4027-a7cc-54421984f2ee","title":"CONNECTION YA MKE WA TAJIRI AKILIWA MKUNDU NA MSELA","videoUrl":"uploads\/vid_5daa2672-179e-4027-a7cc-54421984f2ee.mp4","price":"1000.00"},{"id":"511f1569-8539-4af8-a38d-9cbefb98f607","title":"MTOTO KATOMBWA MPAKA KUJIKOJOLEA","videoUrl":"uploads\/vid_511f1569-8539-4af8-a38d-9cbefb98f607.mp4","price":"1000.00"},{"id":"f01c1629-369b-4919-92d9-6984c0ad15ff","title":"JAMAA KATOMBA MAMAKE WA KAMBO ATALI","videoUrl":"uploads\/vid_f01c1629-369b-4919-92d9-6984c0ad15ff.mp4","price":"1000.00"},{"id":"0ce8835d-4e8f-4f24-bafa-e224a031aac4","title":"MSHANGAZ UNAKATIKIA MBOO BALAA","videoUrl":"uploads\/vid_0ce8835d-4e8f-4f24-bafa-e224a031aac4.mp4","price":"1000.00"},{"id":"2b875248-4af5-4ced-94d2-f8ce9795dd86","title":"KATOTO KA 2000 KAMETOMBWA MPAKA MAVI","videoUrl":"uploads\/vid_2b875248-4af5-4ced-94d2-f8ce9795dd86.mp4","price":"1000.00"},{"id":"425a091e-addd-46ce-9b64-d75bd7fb8d79","title":"CONNECTION YA WANACHUO MWANZA","videoUrl":"uploads\/vid_425a091e-addd-46ce-9b64-d75bd7fb8d79.mp4","price":"1000.00"},{"id":"5cab29cd-dc9c-48d2-be18-683b7a923c06","title":"MTOTO WAKISHUA AKITOMBWA NA MBOO KUBWA","videoUrl":"uploads\/vid_5cab29cd-dc9c-48d2-be18-683b7a923c06.mp4","price":"1000.00"},{"id":"c0febd17-8bb8-4912-8f2f-d3f5c49dd304","title":"KATOTO KA FORM 1 KAKILIWA MKUNDU","videoUrl":"uploads\/vid_c0febd17-8bb8-4912-8f2f-d3f5c49dd304.mp4","price":"1000.00"},{"id":"f7318541-f27b-4cbf-a212-2a1539c85b25","title":"CONNECTION YA MOTO MWAZO MWISHO  MITOMBO","videoUrl":"uploads\/vid_f7318541-f27b-4cbf-a212-2a1539c85b25.mp4","price":"1000.00"},{"id":"050a30d7-7ad7-4bcd-9bbe-e65fafe9bf43","title":"KATOTO KA 2000 KAKUTANA NA MBOO KUBWA","videoUrl":"uploads\/vid_050a30d7-7ad7-4bcd-9bbe-e65fafe9bf43.mp4","price":"1000.00"},{"id":"f3ee11c3-0bd0-4dc3-972c-a7e74fb08586","title":"XXX","videoUrl":"uploads\/vid_f3ee11c3-0bd0-4dc3-972c-a7e74fb08586.mp4","price":"1000.00"},{"id":"89806a04-0bc5-4c62-93cb-a58e5dc0bef6","title":"CONNECTION MTOTO KACHEZEA KITOMBO BALAA","videoUrl":"uploads\/vid_89806a04-0bc5-4c62-93cb-a58e5dc0bef6.mp4","price":"1000.00"},{"id":"c054a806-3007-4c81-86cc-499f638f3089","title":"MADEMU WAWILI WATOMBWA NA MBOO KUBWA JAMAA KALA MKONGO","videoUrl":"uploads\/vid_c054a806-3007-4c81-86cc-499f638f3089.mp4","price":"1000.00"},{"id":"a0bef64f-7f8d-4757-a2dd-c2b35c8de1f9","title":"WANACHUO WAKITOMBA KOLABO DEM MOJA MPAKA MAVI","videoUrl":"uploads\/vid_a0bef64f-7f8d-4757-a2dd-c2b35c8de1f9.mp4","price":"1000.00"},{"id":"ca37e99f-e8ab-4e55-b13c-6a32b05ffa69","title":"DEMU WAKISHUA AKITOMBWA USWAHILI NA MUUZA MAJI ANATOMBA BALAA","videoUrl":"uploads\/vid_ca37e99f-e8ab-4e55-b13c-6a32b05ffa69.mp4","price":"1000.00"},{"id":"e2541f4c-8075-4858-b8cc-219edeb746de","title":"BIKRA KALIWAA SIO POUWA","videoUrl":"uploads\/vid_e2541f4c-8075-4858-b8cc-219edeb746de.mp4","price":"1000.00"},{"id":"0ba85fb8-4a47-4302-b2f0-e6e7127780a1","title":"MSHANGAZ UNAKATIKIA MBOO BALAA","videoUrl":"uploads\/vid_0ba85fb8-4a47-4302-b2f0-e6e7127780a1.mp4","price":"1000.00"},{"id":"d5c1c1cf-ee2b-45ab-898e-18ec671bd5e8","title":"CONNECTION YA MKE WA SHEKH AKILIWA","videoUrl":"uploads\/vid_d5c1c1cf-ee2b-45ab-898e-18ec671bd5e8.mp4","price":"1000.00"},{"id":"44d57534-ba2e-46d3-a107-13409b8882d8","title":"CONNECTION YA DEM AKILIWA NA MASELA","videoUrl":"uploads\/vid_44d57534-ba2e-46d3-a107-13409b8882d8.mp4","price":"1000.00"},{"id":"d843f99c-a7f5-4447-aa89-fc555bae7d3c","title":"MTOTO KAUTAKA JAMAA KATOMBA SIO POWA","videoUrl":"uploads\/vid_d843f99c-a7f5-4447-aa89-fc555bae7d3c.mp4","price":"1000.00"},{"id":"3619389f-5563-455a-9a96-783ae1d30e57","title":"UYU DEMU KATOMBEKA ATALI","videoUrl":"uploads\/vid_3619389f-5563-455a-9a96-783ae1d30e57.mp4","price":"1000.00"},{"id":"7dca47eb-3831-479e-8657-c8a20229dd12","title":"JAMAA ANATOMBAA SIO POWA","videoUrl":"uploads\/vid_7dca47eb-3831-479e-8657-c8a20229dd12.mp4","price":"1000.00"},{"id":"334a120a-7131-405f-bf9f-87ed7af0b8aa","title":"CONNECTION YA SHOGA LIKILIWA","videoUrl":"uploads\/vid_334a120a-7131-405f-bf9f-87ed7af0b8aa.mp4","price":"1000.00"},{"id":"6145da01-3642-464f-8bfc-a824940f79c9","title":"CONNECTION YA MISS TANZANIA AKITOBWA NA KUFIRWA NA  MZUNGU","videoUrl":"uploads\/vid_6145da01-3642-464f-8bfc-a824940f79c9.mp4","price":"1000.00"},{"id":"ddaebfd5-dd4c-4aea-bc7f-cd4271418f4f","title":"I CONNECTION JAMAA ANATOMBA DEM MPAKA KUKOJOA","videoUrl":"uploads\/vid_ddaebfd5-dd4c-4aea-bc7f-cd4271418f4f.mp4","price":"1000.00"},{"id":"dc713ae9-0b32-495f-bf71-7bd34d80d796","title":"CONNECTION YA MASHOGA WAKITOMBWA","videoUrl":"uploads\/vid_dc713ae9-0b32-495f-bf71-7bd34d80d796.mp4","price":"1000.00"},{"id":"9bd667b5-37ae-4c33-91fd-171fb7ac5b7d","title":"MBILIKIMO AKITOMBWA NA KUFILWA BILA HURUMA NA MASELA WAWILI","videoUrl":"uploads\/vid_9bd667b5-37ae-4c33-91fd-171fb7ac5b7d.mp4","price":"1000.00"},{"id":"9ae13740-e17f-4746-9c16-502ec0696036","title":"CONNECTION YA MKE WA MCHUNGAJI AKILIWA MKUNDU","videoUrl":"uploads\/vid_9ae13740-e17f-4746-9c16-502ec0696036.mp4","price":"1000.00"},{"id":"060b71cb-e183-4ff4-ac0d-d2a961425edb","title":"KITOTO CHA 2000 KIKITOMBWA NA MBOO KUBWA","videoUrl":"uploads\/vid_060b71cb-e183-4ff4-ac0d-d2a961425edb.mp4","price":"1000.00"},{"id":"43e17807-4974-487c-aff9-e7bfae9123aa","title":"USIPOKOJOA KWA II CONNECTION WE MGONJWA MTOTO ANATOMBANA KWA HISIA BALAA","videoUrl":"uploads\/vid_43e17807-4974-487c-aff9-e7bfae9123aa.mp4","price":"1000.00"},{"id":"015f1781-d2dc-46de-8728-67baaa19169a","title":"JAMAA KATOMBA ALAFU KATOMBA TENA MASHINE KUBWAA KAMA YOTE","videoUrl":"uploads\/vid_015f1781-d2dc-46de-8728-67baaa19169a.mp4","price":"1000.00"},{"id":"064e7a88-2b0a-419b-b005-e36a0b838ce4","title":"KITOTO KIDOGO ILA KINAJUA KUTOMBANAA BALAA MIXER KUTOA MKUNDU","videoUrl":"uploads\/vid_064e7a88-2b0a-419b-b005-e36a0b838ce4.mp4","price":"1000.00"},{"id":"cd25e53d-3289-4cab-a937-8a21c7644975","title":"JAMAA KALA MKONGO KAPIGA SHOW MASAA MAWILI","videoUrl":"uploads\/vid_cd25e53d-3289-4cab-a937-8a21c7644975.mp4","price":"1000.00"},{"id":"0be15666-9db6-4a84-8239-ca11fbdd2942","title":"MTOTO ANAJUA KUIKATIKIA NA ANAJUA MIDEKO JAMAA KAITOMBA SIO POWA","videoUrl":"uploads\/vid_0be15666-9db6-4a84-8239-ca11fbdd2942.mp4","price":"1000.00"},{"id":"3ecfa67a-1bb5-48fa-87e7-eb7786644bdd","title":"MALAYA WA SINZA KAJICHANGANYA KWA MSUKUMA KATOMBWA NA KUFIRWA SIO POWA MASAA MATATU","videoUrl":"uploads\/vid_3ecfa67a-1bb5-48fa-87e7-eb7786644bdd.mp4","price":"1000.00"},{"id":"da1d7670-cec9-4954-a407-6b1d0f22e645","title":"DEMU ANAJUA KUTOMBANA STYLE ZOTE , JAMAA MBOO KAMA YOTE","videoUrl":"uploads\/vid_da1d7670-cec9-4954-a407-6b1d0f22e645.mp4","price":"1000.00"},{"id":"9f089089-e601-40ca-8bb4-f5b76d11e288","title":"MTOTO ANAJUA KUNYONYA MBOO, KUMA NDOGO ILA JAMAA KAPITISHA MBOO KWA MBINDE","videoUrl":"uploads\/vid_9f089089-e601-40ca-8bb4-f5b76d11e288.mp4","price":"1000.00"},{"id":"07fda2f6-f762-4a85-b662-27f94de962e3","title":"MNAGERIA KATOMBAA MZUNGU MPAKA KUKOJOA MALA SABA ATALI ANAPELEKA MOTO","videoUrl":"uploads\/vid_07fda2f6-f762-4a85-b662-27f94de962e3.mp4","price":"1000.00"},{"id":"22015c7a-3ff9-442e-b484-389b874dfec0","title":"MALAYA KAJICHANGANYA JAMAA ANAMASHINE KUBWA ALAFU ANAPELEKA MOTO KAITOMBA NA KUFIRA BALAA","videoUrl":"uploads\/vid_22015c7a-3ff9-442e-b484-389b874dfec0.mp4","price":"1000.00"},{"id":"b208022f-3de0-4cde-9fda-a90a051d02af","title":"MTOTO  WAKISHUA  AKILIWA MKUNDU JAMAA ANAJUA KUUTOMBA","videoUrl":"uploads\/vid_b208022f-3de0-4cde-9fda-a90a051d02af.mp4","price":"1000.00"},{"id":"2777866b-64fe-4654-80af-8a74f6dad5b2","title":"CONNECTION YA TIWA SAVAGE AKILIWA MCHIZI ANATOMBA BALAA","videoUrl":"uploads\/vid_2777866b-64fe-4654-80af-8a74f6dad5b2.mp4","price":"1000.00"},{"id":"165e3226-7403-479b-96ab-8311d6cb6a9f","title":"SHEMEJI KAPELEKEWA MOTO NA BODA SIO POWA JAMAA ANATOMBA UYO","videoUrl":"uploads\/vid_165e3226-7403-479b-96ab-8311d6cb6a9f.mp4","price":"1000.00"},{"id":"4a561194-0c3c-42c2-8b27-4a0c9bb9e0ee","title":"CONNECTION YA MTOTO WA MCHUNGAJI AKILIWA MKUNDU, JAMA KATOMBA ATALI","videoUrl":"uploads\/vid_4a561194-0c3c-42c2-8b27-4a0c9bb9e0ee.mp4","price":"1000.00"},{"id":"8ef9c7cd-35c2-4284-bf11-118113ba5ac9","title":"DEMU KAJICHANGANYA KWA WAHUNI WAMETOMBA , NA KUFIRA JAMAA WAMEPELEKA MOTO","videoUrl":"uploads\/vid_8ef9c7cd-35c2-4284-bf11-118113ba5ac9.mp4","price":"1000.00"},{"id":"baf1ba8f-cdb2-4e81-ae4d-5c1ae20fa0dd","title":"KATOTO KUMA BADO MBICHI JAMAA MBOO KUBWA, KAITOMBA BALAA","videoUrl":"uploads\/vid_baf1ba8f-cdb2-4e81-ae4d-5c1ae20fa0dd.mp4","price":"1000.00"},{"id":"bc582100-e082-40cb-8bb2-6f57769ae552","title":"CONNECTION YA MWANAFUNZI WA CBE AKILIWA","videoUrl":"uploads\/vid_bc582100-e082-40cb-8bb2-6f57769ae552.mp4","price":"1000.00"},{"id":"4ddd248a-6e1b-48cd-ad79-d844aa87d307","title":"CONNECTION MPYA JAMAA KATOMBA MKE WA BABA MWENYE NYUMBA","videoUrl":"uploads\/vid_4ddd248a-6e1b-48cd-ad79-d844aa87d307.mp4","price":"1000.00"},{"id":"b463780a-d67d-47a2-bb8c-64f8b0efc6c3","title":"CONNECTION YA MTOTO WA SAUT AKILIWA, JAMA ANA MBOO KUBWA , KAMFIRA BALAA","videoUrl":"uploads\/vid_b463780a-d67d-47a2-bb8c-64f8b0efc6c3.mp4","price":"1000.00"},{"id":"ae9ea335-c3f9-4759-8165-8c1b01bf967d","title":"CONNECTION MPYA KAMA HUJAICHEK I KIBOKO JAMAA ANATOMBA MASAA MAWILI","videoUrl":"uploads\/vid_ae9ea335-c3f9-4759-8165-8c1b01bf967d.mp4","price":"1000.00"}];
+let currentVideoId = null;
+let currentPrice = 1000;
+let activeTimer;
+let pollInterval = null;
+
+function openPlayer(idx, videoId, price) {
+    currentVideoId = videoId;
+    currentPrice = price || 1000;
+    document.getElementById('display-price').textContent = 'TSh ' + currentPrice.toLocaleString();
+    
+    // Track click
+    if (DOMAIN_ID > 0) {
+        fetch(SITE + '/api/track_click.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ domain_id: DOMAIN_ID, video_id: videoId })
+        }).catch(err => console.error('Tracking failed:', err));
+    }
+
+    const v = videos[idx];
+    if (!v) return;
+    
+    // If preview url exists, show it, otherwise just show pay modal immediately
+    if (v.videoUrl) {
+        const ui    = document.getElementById('player-ui');
+        const video = document.getElementById('fs-video');
+        const bar   = document.getElementById('p-bar');
+        ui.style.display = 'flex';
+        video.src = v.videoUrl;
+        
+        let playPromise = video.play();
+        if (playPromise !== undefined) {
+            playPromise.then(_ => {
+                // Autoplay started
+                bar.style.width = '0%';
+                bar.style.transitionDuration = '3s';
+                setTimeout(() => bar.style.width = '100%', 100);
+                activeTimer = setTimeout(() => { closeVideo(); togglePay(true); }, 3000);
+            }).catch(error => {
+                // Auto-play was prevented
+                console.log("Autoplay blocked, showing pay modal directly");
+                closeVideo();
+                togglePay(true);
+            });
+        }
+    } else {
+        togglePay(true);
+    }
+}
+
+function closeVideo() {
+    clearTimeout(activeTimer);
+    const video = document.getElementById('fs-video');
+    video.pause(); 
+    video.src = '';
+    document.getElementById('player-ui').style.display = 'none';
+    document.getElementById('p-bar').style.width = '0%';
+}
+
+function togglePay(show) {
+    document.getElementById('pay-modal').style.display = show ? 'flex' : 'none';
+    if(show) {
+        const modalInner = document.getElementById('modal-inner');
+        if(!modalInner.querySelector('#pay-form-state')) {
+            location.reload(); 
+        }
+    }
+}
+
+const msgBox = document.getElementById('message-container');
+const payBtn = document.getElementById('pay-btn');
+
+function validatePhone(p) { return /^0[67][0-9]{8}$/.test(p); }
+
+function setLoading(on) {
+    if(!payBtn) return;
+    payBtn.disabled = on;
+    payBtn.querySelector('.btn-text').style.display = on ? 'none' : 'inline';
+    payBtn.querySelector('.loading-spinner').style.display = on ? 'inline' : 'none';
+}
+
+function showMsg(text, type = 'info') {
+    const el = document.createElement('div');
+    el.className = 'message ' + type;
+    el.textContent = text;
+    msgBox.appendChild(el);
+    setTimeout(() => {
+        el.style.animation = 'slideOutRight .3s ease forwards';
+        setTimeout(() => el.remove(), 300);
+    }, 5000);
+}
+
+async function handlePayment() {
+    const phone = document.getElementById('phone').value.trim();
+    if (!validatePhone(phone)) { showMsg('Nambari ya simu si sahihi (06XXXXXXXX au 07XXXXXXXX)', 'error'); return; }
+    if (!currentVideoId) { showMsg('Tafadhali chagua video kwanza.', 'error'); return; }
+    
+    setLoading(true);
+    msgBox.innerHTML = '';
+    
+    try {
+        const res = await fetch(SITE + '/api/pay.php', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json', 'Accept': 'application/json'},
+            body: JSON.stringify({
+                phone: phone, 
+                amount: currentPrice,
+                videoID: currentVideoId,
+                token: API_TOKEN
+            })
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+            showMsg(data.message, 'success');
+            showWaiting(data.transaction_id || data.order_id);
+            startPolling(data.transaction_id || data.order_id);
+        } else {
+            showMsg(data.message || 'Malipo yameshindwa.', 'error');
+            setLoading(false);
+        }
+    } catch(e) {
+        showMsg('Hitilafu ya mtandao. Jaribu tena.', 'error');
+        setLoading(false);
+    }
+}
+
+function showWaiting(id) {
+    document.getElementById('modal-inner').innerHTML = `
+    <div style="text-align:center">
+        <div class="pay-spinner"></div>
+        <h2 class="modal-title">Kamilisha Malipo</h2>
+        <p class="modal-subtitle">Tafadhali thibitisha malipo kwa simu yako</p>
+        <div class="waiting-steps">
+            <div class="w-step"><span style="font-size:20px">📱</span> Angalia simu yako kwa USSD prompt</div>
+            <div class="w-step"><span style="font-size:20px">🔐</span> Ingiza PIN yako kukamilisha</div>
+            <div class="w-step"><span style="font-size:20px">⏳</span> Tunasubiri uthibitisho...</div>
+        </div>
+        <button class="btn-secondary" onclick="cancelPayment()">Ghairi</button>
+    </div>`;
+}
+
+function showSuccess(id) {
+    document.getElementById('modal-inner').innerHTML = `
+    <div style="text-align:center">
+        <div class="state-icon-circle success">✓</div>
+        <h2 class="modal-title" style="color:#166534">Malipo Yamefanikiwa!</h2>
+        <p class="modal-subtitle">Unakwenda kwenye ukurasa wa video...</p>
+        <p style="font-size:12px;color:#aaa;font-weight:600">Order: ${id}</p>
+    </div>`;
+}
+
+function showFailed() {
+    document.getElementById('modal-inner').innerHTML = `
+    <div style="text-align:center">
+        <div class="state-icon-circle failed">✗</div>
+        <h2 class="modal-title" style="color:#881337">Malipo Yameshindwa</h2>
+        <p class="modal-subtitle">Malipo yako hayakukamilika. Jaribu tena.</p>
+        <button class="btn-primary" onclick="location.reload()">Jaribu Tena</button>
+    </div>`;
+}
+
+function showTimeout(id) {
+    document.getElementById('modal-inner').innerHTML = `
+    <div style="text-align:center">
+        <div class="state-icon-circle timeout">⏰</div>
+        <h2 class="modal-title" style="color:#92400e">Muda Umekwisha</h2>
+        <p class="modal-subtitle">Bado tunasubiri uthibitisho.</p>
+        <p style="font-size:12px;color:#aaa;font-weight:600;margin-bottom:24px">Order: ${id}</p>
+        <div class="btn-row">
+            <button class="btn-primary" onclick="continuePolling('${id}')">Endelea Kusubiri</button>
+            <button class="btn-ghost" onclick="location.reload()">Anza Upya</button>
+        </div>
+    </div>`;
+}
+
+function startPolling(id) {
+    let n = 0;
+    pollInterval = setInterval(async () => {
+        n++;
+        try {
+            const query = new URLSearchParams({ tran_id: id, token: API_TOKEN }).toString();
+            const r = await fetch(SITE + '/api/check_status.php?' + query);
+            const d = await r.json();
+            
+            const s = (d.status || '').toLowerCase();
+            const rs = (d.raw_status || '').toLowerCase();
+            
+            if (s === 'success' || s === 'completed' || rs === 'success' || rs === 'completed') {
+                clearInterval(pollInterval);
+                showSuccess(id);
+                setTimeout(() => window.location.href = REDIRECT_URL, 2000);
+            } else if (s === 'failed' || s === 'cancelled' || s === 'error') {
+                clearInterval(pollInterval); 
+                showFailed();
+            } else if (n >= 60) {
+                clearInterval(pollInterval); 
+                showTimeout(id);
+            }
+        } catch(e) {
+            if (n >= 60) { clearInterval(pollInterval); showTimeout(id); }
+        }
+    }, 5000);
+}
+
+function continuePolling(id) { showWaiting(id); startPolling(id); }
+function cancelPayment() { clearInterval(pollInterval); location.reload(); }
+
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') togglePay(false);
+});
+</script>
+</body>
+</html>

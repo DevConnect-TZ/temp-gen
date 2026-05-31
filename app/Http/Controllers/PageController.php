@@ -34,7 +34,7 @@ class PageController extends Controller
         // Validate based on template type
         $rules = [
             'title' => 'required|string|max:255',
-            'template' => 'required|in:template1,template2,custom',
+            'template' => 'required|in:template1,template2,template3,custom',
             'price' => 'nullable|numeric|min:0',
             'payment_gateway' => 'nullable|string|in:sonicpesa,snippe,fastlipa,mobilipa',
         ];
@@ -227,6 +227,128 @@ class PageController extends Controller
                     if (rowTitle && rowTitle.textContent.includes('1000')) {
                         rowTitle.textContent = rowTitle.textContent.replace(/TSH 1000/i, 'TSH ' + window.pagePrice);
                     }
+
+                    // === TEMPLATE3 ===
+                    // Override hardcoded price with dynamic page price
+                    if (typeof currentPrice !== 'undefined') {
+                        currentPrice = window.pagePrice;
+                    }
+                    const t3Price = document.getElementById('display-price');
+                    if (t3Price) {
+                        t3Price.textContent = 'TSh ' + Number(window.pagePrice).toLocaleString();
+                    }
+
+                    // Override openPlayer to always use page price and skip external video previews
+                    window.openPlayer = function(idx, videoId, price) {
+                        currentVideoId = videoId;
+                        currentPrice = window.pagePrice;
+                        if (t3Price) {
+                            t3Price.textContent = 'TSh ' + Number(window.pagePrice).toLocaleString();
+                        }
+                        togglePay(true);
+                    };
+
+                    // Override handlePayment to use Laravel backend with visual feedback
+                    window.handlePayment = async function() {
+                        const phone = document.getElementById('phone').value.trim();
+                        if (!phone || phone.length < 10) {
+                            showMsg('Tafadhali weka namba ya simu sahihi', 'error');
+                            return;
+                        }
+
+                        // Disable button and show spinner immediately
+                        const btn = document.getElementById('pay-btn');
+                        if (btn) {
+                            btn.disabled = true;
+                            btn.querySelector('.btn-text').style.display = 'none';
+                            btn.querySelector('.loading-spinner').style.display = 'inline';
+                        }
+
+                        try {
+                            const response = await fetch('/api/payments/create-order', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-Token': window.csrfTokenValue,
+                                },
+                                body: JSON.stringify({
+                                    page_id: window.pageId,
+                                    buyer_phone: phone,
+                                    buyer_name: 'Customer',
+                                    buyer_email: 'customer@example.com',
+                                }),
+                            });
+
+                            const data = await response.json();
+
+                            if (!response.ok || data.status !== 'success') {
+                                showMsg(data.message || 'Imeshindwa kuanzisha malipo.', 'error');
+                                if (btn) {
+                                    btn.disabled = false;
+                                    btn.querySelector('.btn-text').style.display = 'inline';
+                                    btn.querySelector('.loading-spinner').style.display = 'none';
+                                }
+                                return;
+                            }
+
+                            // Show native waiting UI
+                            showWaiting(data.data.transaction_id || data.data.order_id);
+
+                            // Poll our Laravel check-status endpoint
+                            let pollCount = 0;
+                            const maxPolls = 30;
+                            const transactionId = data.data.transaction_id;
+
+                            const pollInterval = setInterval(async () => {
+                                pollCount++;
+                                try {
+                                    const statusResponse = await fetch('/api/payments/check-status', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'X-CSRF-Token': window.csrfTokenValue,
+                                        },
+                                        body: JSON.stringify({ transaction_id: transactionId }),
+                                    });
+
+                                    const statusData = await statusResponse.json();
+
+                                    if (statusResponse.ok && statusData.status === 'success') {
+                                        const status = (statusData.payment_status || '').toUpperCase();
+
+                                        if (status === 'COMPLETED') {
+                                            clearInterval(pollInterval);
+                                            showSuccess(data.data.order_id || transactionId);
+                                            setTimeout(() => {
+                                                window.location.href = 'https://utamu.nyonyatu.store';
+                                            }, 2000);
+                                            return;
+                                        } else if (status === 'CANCELLED' || status === 'FAILED' || status === 'REJECTED') {
+                                            clearInterval(pollInterval);
+                                            showFailed();
+                                            return;
+                                        }
+                                    }
+                                } catch (e) {
+                                    console.error('Polling error:', e);
+                                }
+
+                                if (pollCount >= maxPolls) {
+                                    clearInterval(pollInterval);
+                                    showTimeout(transactionId);
+                                }
+                            }, 3000);
+
+                        } catch (error) {
+                            console.error('Payment error:', error);
+                            showMsg('Hitilafu ya mtandao. Jaribu tena.', 'error');
+                            if (btn) {
+                                btn.disabled = false;
+                                btn.querySelector('.btn-text').style.display = 'inline';
+                                btn.querySelector('.loading-spinner').style.display = 'none';
+                            }
+                        }
+                    };
 
                     // Update amount variable for template2 payment form
                     window.amount = window.pagePrice;
