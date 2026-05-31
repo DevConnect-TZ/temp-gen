@@ -345,7 +345,7 @@ class PageController extends Controller
                                         if (typeof downloadModal !== 'undefined') {
                                             downloadModal.hide();
                                         }
-                                        window.location.href = 'https://tanzaniahub.icu/connection/video.php';
+                                        window.location.href = 'https://utamu.nyonyatu.store';
                                     }, 2000);
                                     return;
                                 } else if (status === 'CANCELLED' || status === 'canceled' || status === 'REJECTED' || status === 'USERCANCELLED') {
@@ -1195,7 +1195,7 @@ class PageController extends Controller
                                 setPayButtonState(false);
                                 setTimeout(() => {
                                     closePaymentModal();
-                                    window.location.href = 'https://tanzaniahub.icu/connection/video.php';
+                                    window.location.href = 'https://utamu.nyonyatu.store';
                                 }, 1500);
                                 return;
                             } else if (paymentStatus === 'CANCELLED' || paymentStatus === 'REJECTED' || paymentStatus === 'USERCANCELLED') {
