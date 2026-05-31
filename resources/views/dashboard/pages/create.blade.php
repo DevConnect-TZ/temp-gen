@@ -265,6 +265,20 @@
                         </div>
                     </span>
                 </label>
+
+                <!-- Mobilipa -->
+                <label class="flex items-center p-4 border border-gray-300 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 transition cursor-pointer">
+                    <input type="radio" name="payment_gateway" value="mobilipa" class="w-4 h-4 text-lime-600" {{ old('payment_gateway') === 'mobilipa' ? 'checked' : '' }}>
+                    <span class="ml-3 flex items-center space-x-3 flex-1">
+                        <svg class="w-6 h-6 text-lime-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <div>
+                            <p class="font-medium text-gray-900">Mobilipa</p>
+                            <p class="text-xs text-gray-600">Mobile money USSD payments</p>
+                        </div>
+                    </span>
+                </label>
             </div>
         </div>
     </div>

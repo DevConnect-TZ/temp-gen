@@ -24,6 +24,7 @@
                     $gatewayTheme = match ($gateway->name) {
                         'sonicpesa' => ['gradient' => 'from-red-600 to-red-700', 'accent' => 'red'],
                         'fastlipa' => ['gradient' => 'from-emerald-600 to-emerald-700', 'accent' => 'emerald'],
+                        'mobilipa' => ['gradient' => 'from-lime-600 to-lime-700', 'accent' => 'lime'],
                         default => ['gradient' => 'from-blue-600 to-blue-700', 'accent' => 'blue'],
                     };
                 @endphp

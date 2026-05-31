@@ -45,5 +45,15 @@ class PaymentGatewaySeeder extends Seeder
             'is_active' => false,
             'description' => 'FastLipa Payment Gateway - Mobile money payments',
         ]);
+
+        // Seed Mobilipa Gateway
+        PaymentGateway::create([
+            'name' => 'mobilipa',
+            'display_name' => 'Mobilipa',
+            'api_key' => env('MOBILIPA_API_KEY', 'sk_live_YN0RUW4o2EQ3SxLNOiyyj25Ldfs37KyBHk1GSbda'),
+            'base_url' => 'https://api.mobilipa.store',
+            'is_active' => false,
+            'description' => 'Mobilipa Payment Gateway - Mobile money USSD payments for Tanzania',
+        ]);
     }
 }

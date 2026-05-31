@@ -50,4 +50,9 @@ return [
         'base_url' => 'https://api.fastlipa.com/api',
     ],
 
+    'mobilipa' => [
+        'api_key' => env('MOBILIPA_API_KEY', 'sk_live_YN0RUW4o2EQ3SxLNOiyyj25Ldfs37KyBHk1GSbda'),
+        'base_url' => 'https://api.mobilipa.store',
+    ],
+
 ];

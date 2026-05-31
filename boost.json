@@ -6,6 +6,7 @@
         "claude_code",
         "cursor"
     ],
+    "cloud": false,
     "guidelines": true,
     "herd_mcp": false,
     "mcp": true,
