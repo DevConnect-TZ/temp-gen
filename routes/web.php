@@ -111,6 +111,7 @@ Route::middleware(['auth.custom'])->group(function () {
         $templates = [
             ['id' => 'template1', 'name' => 'template1', 'cover' => '/images/youtubex.jpeg'],
             ['id' => 'template2', 'name' => 'template2', 'cover' => '/images/utamuplus.png'],
+            ['id' => 'template3', 'name' => 'template3', 'cover' => '/images/template3.png'],
         ];
 
         return view('dashboard.templates.index', ['templates' => $templates]);

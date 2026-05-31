@@ -117,7 +117,7 @@
                 <input type="radio" name="template" value="template3" class="hidden template-radio" data-is-preset="true" {{ old('template') === 'template3' ? 'checked' : '' }}>
                 <div class="template-card border-2 border-gray-300 rounded-lg overflow-hidden transition hover:border-indigo-400 group-hover:shadow-lg">
                     <div class="h-40 bg-gray-900 overflow-hidden flex items-center justify-center">
-                        <img src="/images/mautamu.png" alt="MAUTAMU Template Preview" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<svg class=\"w-12 h-12 text-gray-400\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z\"/\></svg>'">
+                        <img src="/images/template3.png" alt="MAUTAMU Template Preview" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<svg class=\"w-12 h-12 text-gray-400\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z\"/\></svg>'">
                     </div>
                     <div class="p-4 bg-white">
                         <div class="flex items-start justify-between">
