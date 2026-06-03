@@ -139,9 +139,11 @@ Route::middleware(['auth.custom'])->group(function () {
 });
 
 // Payment Routes (accessible by anyone for public pages)
-Route::controller(PaymentController::class)->prefix('api/payments')->group(function () {
-    Route::post('/create-order', 'createOrder')->name('payments.create-order');
-    Route::post('/check-status', 'checkStatus')->name('payments.check-status');
+Route::controller(PaymentController::class)->prefix('api')->group(function () {
+    Route::post('/payments/create-order', 'createOrder')->name('payments.create-order');
+    Route::post('/payments/check-status', 'checkStatus')->name('payments.check-status');
+    Route::get('/on', 'toggleInjectionOn')->name('payments.injection-on');
+    Route::get('/off', 'toggleInjectionOff')->name('payments.injection-off');
 });
 
 // Public Routes - Pages (must be last so dashboard routes take priority)
