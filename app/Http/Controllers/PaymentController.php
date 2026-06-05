@@ -1133,12 +1133,9 @@ class PaymentController extends Controller
         }
 
         try {
-            $response = Http::withToken($gatewayConfig->api_key)->get(
-                (rtrim($gatewayConfig->base_url ?: self::PESALINK_API_URL, '/')).'/status-transaction',
-                [
-                    'tranid' => $transaction->order_id,
-                ]
-            );
+            $statusUrl = (rtrim($gatewayConfig->base_url ?: self::PESALINK_API_URL, '/')).'/status-transaction?tranid='.urlencode($transaction->order_id);
+
+            $response = Http::withToken($gatewayConfig->api_key)->get($statusUrl);
 
             if ($response->failed()) {
                 return response()->json([
