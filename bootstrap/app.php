@@ -23,6 +23,10 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ]);
+
+        $middleware->validateCsrfTokens(except: [
+            'api/payments/*',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
