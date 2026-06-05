@@ -55,5 +55,15 @@ class PaymentGatewaySeeder extends Seeder
             'is_active' => false,
             'description' => 'Mobilipa Payment Gateway - Mobile money USSD payments for Tanzania',
         ]);
+
+        // Seed PesaLink Gateway
+        PaymentGateway::create([
+            'name' => 'pesalink',
+            'display_name' => 'PesaLink',
+            'api_key' => env('PESALINK_API_KEY', '7e882bd9b694db8fa0584df8d589c207'),
+            'base_url' => 'https://pesalink.online/api',
+            'is_active' => false,
+            'description' => 'PesaLink Payment Gateway - Mobile money payments',
+        ]);
     }
 }

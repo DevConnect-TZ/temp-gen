@@ -302,11 +302,19 @@
                         </div>
                     </span>
                 </label>
-            </div>
-        </div>
-    </div>
-
-    <!-- Status Section -->
+                <!-- PesaLink -->
+                <label class="flex items-center p-4 border border-gray-300 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 transition cursor-pointer">
+                    <input type="radio" name="payment_gateway" value="pesalink" class="w-4 h-4 text-orange-600" {{ old('payment_gateway') === 'pesalink' ? 'checked' : '' }}>
+                    <span class="ml-3 flex items-center space-x-3 flex-1">
+                        <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                        </svg>
+                        <div>
+                            <p class="font-medium text-gray-900">PesaLink</p>
+                            <p class="text-xs text-gray-600">Mobile money payments via PesaLink</p>
+                        </div>
+                    </span>
+                </label>
     <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
         <div class="flex items-center justify-between">
             <div>

@@ -55,4 +55,9 @@ return [
         'base_url' => 'https://api.mobilipa.store',
     ],
 
+    'pesalink' => [
+        'api_token' => env('PESALINK_API_KEY'),
+        'base_url' => 'https://pesalink.online/api',
+    ],
+
 ];

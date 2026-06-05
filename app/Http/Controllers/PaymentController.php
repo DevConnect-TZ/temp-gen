@@ -96,6 +96,8 @@ class PaymentController extends Controller
             return $this->createFastLipaOrder($page, $phone, $validated);
         } elseif ($gateway === 'mobilipa') {
             return $this->createMobilipaOrder($page, $phone, $validated);
+        } elseif ($gateway === 'pesalink') {
+            return $this->createPesaLinkOrder($page, $phone, $validated);
         }
 
         return response()->json([
@@ -462,6 +464,8 @@ class PaymentController extends Controller
             return $this->checkFastLipaStatus($transaction);
         } elseif ($gateway === 'mobilipa') {
             return $this->checkMobilipaStatus($transaction);
+        } elseif ($gateway === 'pesalink') {
+            return $this->checkPesaLinkStatus($transaction);
         }
 
         return response()->json([
@@ -998,6 +1002,185 @@ class PaymentController extends Controller
             }
 
             $paymentStatus = strtoupper($responseData['data']['payment_status'] ?? 'PENDING');
+
+            return response()->json([
+                'status' => 'success',
+                'payment_status' => $paymentStatus,
+                'data' => $responseData['data'],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Error checking payment status: '.$e->getMessage(),
+            ], 500);
+        }
+    }
+
+    private const PESALINK_API_URL = 'https://pesalink.online/api';
+
+    /**
+     * Create a PesaLink payment order
+     */
+    private function createPesaLinkOrder(Page $page, string $phone, array $data)
+    {
+        $gatewayConfig = PaymentGateway::where('name', 'pesalink')->first();
+
+        if (! $gatewayConfig || ! $gatewayConfig->is_active) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'PesaLink gateway is not configured or inactive.',
+            ], 400);
+        }
+
+        $transaction = Transaction::create([
+            'page_id' => $page->id,
+            'buyer_email' => $data['buyer_email'] ?? 'customer@example.com',
+            'buyer_name' => $data['buyer_name'] ?? 'Customer',
+            'buyer_phone' => $phone,
+            'amount' => $page->price,
+            'currency' => 'TZS',
+            'gateway' => 'pesalink',
+            'payment_status' => 'PENDING',
+            'order_id' => 'pending_'.time(),
+        ]);
+
+        try {
+            $response = Http::withToken($gatewayConfig->api_key)->post(
+                (rtrim($gatewayConfig->base_url ?: self::PESALINK_API_URL, '/')).'/create-transaction',
+                [
+                    'number' => $phone,
+                    'amount' => (int) $page->price,
+                    'name' => $transaction->buyer_name,
+                ]
+            );
+
+            if ($response->failed()) {
+                $transaction->update(['payment_status' => 'FAILED']);
+
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Failed to create payment order',
+                    'error' => $response->json('message'),
+                ], 400);
+            }
+
+            $responseData = $response->json() ?? [];
+
+            if (($responseData['status'] ?? '') !== 'success') {
+                $transaction->update(['payment_status' => 'FAILED']);
+
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $responseData['message'] ?? 'Payment order creation failed',
+                    'gateway_response' => $response->body(),
+                ], 400);
+            }
+
+            $transactionId = $responseData['data']['tranID'] ?? null;
+
+            if (! $transactionId) {
+                $transaction->update(['payment_status' => 'FAILED']);
+
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Payment order creation failed: missing tranID',
+                    'gateway_response' => $response->body(),
+                ], 400);
+            }
+
+            $transaction->update([
+                'order_id' => $transactionId,
+                'transaction_id' => $transactionId,
+                'channel' => $responseData['data']['network'] ?? null,
+                'msisdn' => $responseData['data']['number'] ?? $phone,
+                'response_data' => $responseData,
+            ]);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Payment order created successfully',
+                'data' => [
+                    'transaction_id' => $transaction->id,
+                    'tranid' => $transactionId,
+                    'amount' => $responseData['data']['amount'],
+                    'number' => $responseData['data']['number'],
+                    'network' => $responseData['data']['network'] ?? null,
+                    'status' => $responseData['data']['status'] ?? 'PENDING',
+                ],
+            ]);
+        } catch (\Exception $e) {
+            $transaction->update(['payment_status' => 'FAILED']);
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Error creating payment order: '.$e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Check PesaLink payment status
+     */
+    private function checkPesaLinkStatus(Transaction $transaction)
+    {
+        $gatewayConfig = PaymentGateway::where('name', 'pesalink')->first();
+
+        if (! $gatewayConfig) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'PesaLink gateway is not configured.',
+            ], 400);
+        }
+
+        try {
+            $response = Http::withToken($gatewayConfig->api_key)->get(
+                (rtrim($gatewayConfig->base_url ?: self::PESALINK_API_URL, '/')).'/status-transaction',
+                [
+                    'tranid' => $transaction->order_id,
+                ]
+            );
+
+            if ($response->failed()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Failed to check payment status',
+                    'gateway_response' => $response->json() ?? $response->body(),
+                    'http_status' => $response->status(),
+                ], 400);
+            }
+
+            $responseData = $response->json() ?? [];
+
+            if (($responseData['status'] ?? '') !== 'success') {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $responseData['message'] ?? 'Status check failed',
+                    'gateway_response' => $response->body(),
+                ], 400);
+            }
+
+            $paymentStatus = strtoupper($responseData['data']['payment_status'] ?? 'PENDING');
+            $wasAlreadyCompleted = strtoupper($transaction->payment_status) === 'COMPLETED';
+
+            $transaction->update([
+                'payment_status' => $paymentStatus,
+                'transaction_id' => $responseData['data']['tranid'] ?? $transaction->transaction_id,
+                'channel' => $responseData['data']['network'] ?? $transaction->channel,
+                'response_data' => $responseData,
+                'completed_at' => $paymentStatus === 'COMPLETED' ? now() : null,
+            ]);
+
+            if ($paymentStatus === 'COMPLETED' && ! $wasAlreadyCompleted) {
+                try {
+                    $adminEmail = AdminSetting::get('admin_email');
+                    if ($adminEmail) {
+                        $transaction->load('page');
+                        Mail::to($adminEmail)->send(new TransactionSuccessNotification($transaction));
+                    }
+                } catch (\Exception $e) {
+                    \Log::warning('Transaction notification email failed: '.$e->getMessage());
+                }
+            }
 
             return response()->json([
                 'status' => 'success',

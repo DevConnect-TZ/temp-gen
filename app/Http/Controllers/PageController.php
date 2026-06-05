@@ -36,7 +36,7 @@ class PageController extends Controller
             'title' => 'required|string|max:255',
             'template' => 'required|in:template1,template2,template3,custom',
             'price' => 'nullable|numeric|min:0',
-            'payment_gateway' => 'nullable|string|in:sonicpesa,snippe,fastlipa,mobilipa',
+            'payment_gateway' => 'nullable|string|in:sonicpesa,snippe,fastlipa,mobilipa,pesalink',
         ];
 
         // If custom template, require video
@@ -113,7 +113,7 @@ class PageController extends Controller
         $rules = [
             'title' => 'required|string|max:255',
             'price' => 'nullable|numeric|min:0',
-            'payment_gateway' => 'nullable|string|in:sonicpesa,snippe,fastlipa,mobilipa',
+            'payment_gateway' => 'nullable|string|in:sonicpesa,snippe,fastlipa,mobilipa,pesalink',
         ];
 
         // Only validate video if custom template and video is being uploaded

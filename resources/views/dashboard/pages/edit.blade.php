@@ -171,6 +171,7 @@
                     <option value="snippe" {{ old('payment_gateway', $page->payment_gateway) === 'snippe' ? 'selected' : '' }}>Snippe</option>
                     <option value="fastlipa" {{ old('payment_gateway', $page->payment_gateway) === 'fastlipa' ? 'selected' : '' }}>FastLipa</option>
                     <option value="mobilipa" {{ old('payment_gateway', $page->payment_gateway) === 'mobilipa' ? 'selected' : '' }}>Mobilipa</option>
+                    <option value="pesalink" {{ old('payment_gateway', $page->payment_gateway) === 'pesalink' ? 'selected' : '' }}>PesaLink</option>
                 </select>
             </div>
         </div>
