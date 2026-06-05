@@ -1161,6 +1161,7 @@ async function processPayment() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
         'X-CSRF-Token': token,
       },
       body: JSON.stringify({
@@ -1207,6 +1208,7 @@ function startPolling() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
           'X-CSRF-Token': token,
         },
         body: JSON.stringify({ transaction_id: currentTransactionId }),

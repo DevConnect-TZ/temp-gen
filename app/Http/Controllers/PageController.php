@@ -269,6 +269,7 @@ class PageController extends Controller
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
+                                    'Accept': 'application/json',
                                     'X-CSRF-Token': window.csrfTokenValue,
                                 },
                                 body: JSON.stringify({
@@ -306,6 +307,7 @@ class PageController extends Controller
                                         method: 'POST',
                                         headers: {
                                             'Content-Type': 'application/json',
+                                            'Accept': 'application/json',
                                             'X-CSRF-Token': window.csrfTokenValue,
                                         },
                                         body: JSON.stringify({ transaction_id: transactionId }),
@@ -382,6 +384,7 @@ class PageController extends Controller
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
+                                'Accept': 'application/json',
                                 'X-CSRF-Token': window.csrfTokenValue,
                             },
                             body: JSON.stringify({
@@ -446,6 +449,7 @@ class PageController extends Controller
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
+                                    'Accept': 'application/json',
                                     'X-CSRF-Token': window.csrfTokenValue,
                                 },
                                 body: JSON.stringify({ transaction_id: currentTransactionId }),
@@ -1264,6 +1268,7 @@ class PageController extends Controller
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Accept': 'application/json',
                         'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || '',
                     },
                     body: JSON.stringify({
@@ -1295,6 +1300,7 @@ class PageController extends Controller
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
+                                'Accept': 'application/json',
                                 'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || '',
                             },
                             body: JSON.stringify({ transaction_id: transactionId }),

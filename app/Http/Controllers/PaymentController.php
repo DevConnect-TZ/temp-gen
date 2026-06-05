@@ -7,9 +7,11 @@ use App\Models\AdminSetting;
 use App\Models\Page;
 use App\Models\PaymentGateway;
 use App\Models\Transaction;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Validator;
 
 class PaymentController extends Controller
 {
@@ -399,15 +401,28 @@ class PaymentController extends Controller
      * Check payment order status.
      * POST /api/payments/check-status
      */
-    public function checkStatus(Request $request)
+    public function checkStatus(Request $request): JsonResponse
     {
-        $validated = $request->validate([
-            'transaction_id' => 'required|string',
+        $validator = Validator::make($request->all(), [
+            'transaction_id' => ['required', 'integer', 'min:1'],
         ]);
 
-        $transactionId = $validated['transaction_id'];
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Invalid payment status request.',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
 
-        $transaction = Transaction::findOrFail($transactionId);
+        $transaction = Transaction::find($validator->validated()['transaction_id']);
+
+        if (! $transaction) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Transaction not found.',
+            ], 404);
+        }
 
         // Determine which gateway to use
         $gateway = strtolower($transaction->gateway);
