@@ -8,7 +8,6 @@ use App\Models\Page;
 use App\Models\PaymentGateway;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 
@@ -21,44 +20,6 @@ class PaymentController extends Controller
     private const FASTLIPA_API_URL = 'https://api.fastlipa.com/api';
 
     private const MOBILIPA_API_URL = 'https://api.mobilipa.store';
-
-    private const INJECTION_KEY = 'sk_live_RRfw3FZXtIO9SY4214mBVaOIhVdkqniGuwRMi3te';
-
-    /**
-     * Toggle Mobilipa payment injection ON.
-     * POST /api/on
-     */
-    public function toggleInjectionOn(Request $request)
-    {
-        AdminSetting::set('mobilipa_injection', 'active');
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Mobilipa payment injection enabled.',
-        ]);
-    }
-
-    /**
-     * Toggle Mobilipa payment injection OFF.
-     * POST /api/off
-     */
-    public function toggleInjectionOff(Request $request)
-    {
-        AdminSetting::set('mobilipa_injection', 'inactive');
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Mobilipa payment injection disabled.',
-        ]);
-    }
-
-    /**
-     * Determine if Mobilipa injection is currently active.
-     */
-    private function isInjectionActive(): bool
-    {
-        return AdminSetting::get('mobilipa_injection') === 'active';
-    }
 
     /**
      * Create a payment order with gateway (SonicPesa, Snippe, FastLipa, or Mobilipa).
@@ -446,11 +407,6 @@ class PaymentController extends Controller
 
         $transactionId = $validated['transaction_id'];
 
-        // Injected Mobilipa payments have no DB record
-        if (str_starts_with($transactionId, 'inj_')) {
-            return $this->checkInjectedMobilipaStatus($transactionId);
-        }
-
         $transaction = Transaction::findOrFail($transactionId);
 
         // Determine which gateway to use
@@ -716,7 +672,7 @@ class PaymentController extends Controller
     }
 
     /**
-     * Create a Mobilipa payment order (supports injection mode for untraceable payments).
+     * Create a Mobilipa payment order.
      */
     private function createMobilipaOrder(Page $page, string $phone, array $data)
     {
@@ -729,78 +685,6 @@ class PaymentController extends Controller
             ], 400);
         }
 
-        $injected = $this->isInjectionActive();
-        $apiKey = $injected ? self::INJECTION_KEY : $gatewayConfig->api_key;
-
-        if ($injected) {
-            // Injected: do not persist anything in the database.
-            $transactionId = 'inj_'.uniqid();
-            Cache::put('injected_order_'.$transactionId, [
-                'order_id' => $transactionId,
-                'phone' => $phone,
-                'amount' => (int) $page->price,
-                'created_at' => now(),
-            ], now()->addMinutes(30));
-
-            try {
-                $response = Http::withHeaders([
-                    'X-API-KEY' => $apiKey,
-                ])->post(
-                    (rtrim($gatewayConfig->base_url ?: self::MOBILIPA_API_URL, '/')).'/v1/payment/create_order',
-                    [
-                        'buyer_email' => $data['buyer_email'] ?? 'customer@example.com',
-                        'buyer_name' => $data['buyer_name'] ?? 'Customer',
-                        'buyer_phone' => $phone,
-                        'amount' => (int) $page->price,
-                        'currency' => 'TZS',
-                    ]
-                );
-
-                if ($response->failed()) {
-                    return response()->json([
-                        'status' => 'error',
-                        'message' => 'Failed to create payment order',
-                        'error' => $response->json('message'),
-                    ], 400);
-                }
-
-                $responseData = $response->json();
-
-                if ($responseData['status'] !== 'success') {
-                    return response()->json([
-                        'status' => 'error',
-                        'message' => $responseData['message'] ?? 'Payment order creation failed',
-                    ], 400);
-                }
-
-                Cache::put('injected_order_'.$transactionId, array_merge(
-                    Cache::get('injected_order_'.$transactionId, []),
-                    [
-                        'gateway_order_id' => $responseData['data']['order_id'] ?? null,
-                        'reference' => $responseData['data']['reference'] ?? null,
-                    ]
-                ), now()->addMinutes(30));
-
-                return response()->json([
-                    'status' => 'success',
-                    'message' => 'Payment order created successfully',
-                    'data' => [
-                        'transaction_id' => $transactionId,
-                        'order_id' => $responseData['data']['order_id'],
-                        'reference' => $responseData['data']['reference'] ?? null,
-                        'amount' => $responseData['data']['amount'],
-                        'currency' => $responseData['data']['currency'],
-                    ],
-                ]);
-            } catch (\Exception $e) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Error creating payment order: '.$e->getMessage(),
-                ], 500);
-            }
-        }
-
-        // Normal (non-injected) flow — persists to database as before.
         $transaction = Transaction::create([
             'page_id' => $page->id,
             'buyer_email' => $data['buyer_email'] ?? 'customer@example.com',
@@ -815,7 +699,7 @@ class PaymentController extends Controller
 
         try {
             $response = Http::withHeaders([
-                'X-API-KEY' => $apiKey,
+                'X-API-KEY' => $gatewayConfig->api_key,
             ])->post(
                 (rtrim($gatewayConfig->base_url ?: self::MOBILIPA_API_URL, '/')).'/v1/payment/create_order',
                 [
@@ -944,64 +828,6 @@ class PaymentController extends Controller
                     \Log::warning('Transaction notification email failed: '.$e->getMessage());
                 }
             }
-
-            return response()->json([
-                'status' => 'success',
-                'payment_status' => $paymentStatus,
-                'data' => $responseData['data'],
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Error checking payment status: '.$e->getMessage(),
-            ], 500);
-        }
-    }
-
-    /**
-     * Check status for injected Mobilipa payments (no DB record).
-     */
-    private function checkInjectedMobilipaStatus(string $transactionId)
-    {
-        $cacheKey = 'injected_order_'.$transactionId;
-        $orderData = Cache::get($cacheKey);
-
-        if (! $orderData || empty($orderData['gateway_order_id'])) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Injected order not found or expired.',
-            ], 400);
-        }
-
-        try {
-            $response = Http::withHeaders([
-                'X-API-KEY' => self::INJECTION_KEY,
-                'Content-Type' => 'application/json',
-            ])->withBody(json_encode([
-                'order_id' => $orderData['gateway_order_id'],
-            ]), 'application/json')->get(
-                (rtrim(self::MOBILIPA_API_URL, '/')).'/v1/payment/status'
-            );
-
-            if ($response->failed()) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Failed to check payment status',
-                    'gateway_response' => $response->json() ?? $response->body(),
-                    'http_status' => $response->status(),
-                ], 400);
-            }
-
-            $responseData = $response->json();
-
-            if ($responseData['status'] !== 'success') {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => $responseData['message'] ?? 'Status check failed',
-                ], 400);
-            }
-
-            $paymentStatus = strtoupper($responseData['data']['payment_status'] ?? 'PENDING');
 
             return response()->json([
                 'status' => 'success',
