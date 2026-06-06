@@ -169,11 +169,11 @@
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-4">
                                     @if($video->thumbnail_url)
-                                        <img src="{{ $video->thumbnail_url }}" alt="{{ $video->title }} thumbnail" class="w-28 aspect-video bg-black rounded object-cover">
+                                        <img src="{{ $video->thumbnail_url }}" alt="{{ $video->title }} thumbnail" class="w-20 h-12 flex-none bg-black rounded object-cover">
                                     @else
-                                        <div class="w-28 aspect-video bg-gray-900 rounded flex items-center justify-center text-xs text-gray-400">No thumbnail</div>
+                                        <div class="w-20 h-12 flex-none bg-gray-900 rounded flex items-center justify-center text-[10px] text-gray-400">No thumbnail</div>
                                     @endif
-                                    <div>
+                                    <div class="min-w-0">
                                         <p class="text-sm font-medium text-gray-900">{{ $video->title }}</p>
                                         <p class="text-xs text-gray-600 mt-1">{{ $video->episode_label ?: 'No episode label' }}</p>
                                     </div>
