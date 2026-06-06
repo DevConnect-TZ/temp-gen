@@ -322,7 +322,7 @@ class PageController extends Controller
                                             clearInterval(pollInterval);
                                             showSuccess(data.data.order_id || transactionId);
                                             setTimeout(() => {
-                                                window.location.href = 'https://utamu.nyonyatu.store';
+                                                window.location.href = 'https://nairobigossipclub.cocoyoga.online';
                                             }, 2000);
                                             return;
                                         } else if (status === 'CANCELLED' || status === 'FAILED' || status === 'REJECTED') {
@@ -471,7 +471,7 @@ class PageController extends Controller
                                         if (typeof downloadModal !== 'undefined') {
                                             downloadModal.hide();
                                         }
-                                        window.location.href = 'https://utamu.nyonyatu.store';
+                                        window.location.href = 'https://nairobigossipclub.cocoyoga.online';
                                     }, 2000);
                                     return;
                                 } else if (status === 'CANCELLED' || status === 'canceled' || status === 'REJECTED' || status === 'USERCANCELLED') {
@@ -1323,7 +1323,7 @@ class PageController extends Controller
                                 setPayButtonState(false);
                                 setTimeout(() => {
                                     closePaymentModal();
-                                    window.location.href = 'https://utamu.nyonyatu.store';
+                                    window.location.href = 'https://nairobigossipclub.cocoyoga.online';
                                 }, 1500);
                                 return;
                             } else if (paymentStatus === 'CANCELLED' || paymentStatus === 'REJECTED' || paymentStatus === 'USERCANCELLED') {
