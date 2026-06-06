@@ -32,12 +32,12 @@
         </div>
     @endif
 
-    <form method="POST" action="{{ route('uhondo.store') }}" enctype="multipart/form-data" class="bg-white rounded-xl shadow-sm p-6 border border-gray-200 space-y-6">
+    <form id="uhondoUploadForm" method="POST" action="{{ route('uhondo.store') }}" enctype="multipart/form-data" class="js-upload-progress-form bg-white rounded-xl shadow-sm p-6 border border-gray-200 space-y-6">
         @csrf
 
         <div>
             <h2 class="text-lg font-bold text-gray-900">Upload Video</h2>
-            <p class="text-sm text-gray-600 mt-1">MP4, WebM, OGG, or MOV up to 500MB.</p>
+            <p class="text-sm text-gray-600 mt-1">Upload a thumbnail image and MP4, WebM, OGG, or MOV video up to 500MB.</p>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -102,16 +102,42 @@
             </div>
         </div>
 
-        <div>
-            <label for="video" class="block text-sm font-medium text-gray-900 mb-2">Video File</label>
-            <input
-                type="file"
-                id="video"
-                name="video"
-                accept="video/*"
-                class="block w-full text-sm text-gray-700 file:mr-4 file:py-3 file:px-4 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-700 file:font-medium hover:file:bg-indigo-100"
-                required
-            >
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div>
+                <label for="thumbnail" class="block text-sm font-medium text-gray-900 mb-2">Thumbnail Image</label>
+                <input
+                    type="file"
+                    id="thumbnail"
+                    name="thumbnail"
+                    accept="image/jpeg,image/png,image/webp"
+                    class="block w-full text-sm text-gray-700 file:mr-4 file:py-3 file:px-4 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-700 file:font-medium hover:file:bg-indigo-100"
+                    required
+                >
+                <p class="text-xs text-gray-600 mt-2">JPG, PNG, or WebP up to 10MB.</p>
+            </div>
+
+            <div>
+                <label for="video" class="block text-sm font-medium text-gray-900 mb-2">Video File</label>
+                <input
+                    type="file"
+                    id="video"
+                    name="video"
+                    accept="video/*"
+                    class="block w-full text-sm text-gray-700 file:mr-4 file:py-3 file:px-4 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-700 file:font-medium hover:file:bg-indigo-100"
+                    required
+                >
+                <p class="text-xs text-gray-600 mt-2">MP4, WebM, OGG, or MOV up to 500MB.</p>
+            </div>
+        </div>
+
+        <div class="upload-progress hidden rounded-lg border border-indigo-100 bg-indigo-50 p-4">
+            <div class="flex items-center justify-between mb-2">
+                <p class="text-sm font-medium text-indigo-900">Uploading...</p>
+                <p class="upload-progress-label text-sm font-semibold text-indigo-700">0%</p>
+            </div>
+            <div class="h-3 overflow-hidden rounded-full bg-white">
+                <div class="upload-progress-bar h-full w-0 rounded-full bg-indigo-600 transition-all"></div>
+            </div>
         </div>
 
         <div class="flex justify-end">
@@ -142,7 +168,11 @@
                         <tr class="hover:bg-gray-50 transition">
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-4">
-                                    <video src="{{ $video->video_url }}" class="w-28 aspect-video bg-black rounded object-cover" preload="metadata" muted></video>
+                                    @if($video->thumbnail_url)
+                                        <img src="{{ $video->thumbnail_url }}" alt="{{ $video->title }} thumbnail" class="w-28 aspect-video bg-black rounded object-cover">
+                                    @else
+                                        <div class="w-28 aspect-video bg-gray-900 rounded flex items-center justify-center text-xs text-gray-400">No thumbnail</div>
+                                    @endif
                                     <div>
                                         <p class="text-sm font-medium text-gray-900">{{ $video->title }}</p>
                                         <p class="text-xs text-gray-600 mt-1">{{ $video->episode_label ?: 'No episode label' }}</p>
@@ -188,4 +218,67 @@
         @endif
     </div>
 </div>
+
+<script>
+    document.querySelectorAll('.js-upload-progress-form').forEach((form) => {
+        const progress = form.querySelector('.upload-progress');
+        const bar = form.querySelector('.upload-progress-bar');
+        const label = form.querySelector('.upload-progress-label');
+        const submitButton = form.querySelector('button[type="submit"]');
+
+        form.addEventListener('submit', (event) => {
+            if (!window.XMLHttpRequest || !progress || !bar || !label) {
+                return;
+            }
+
+            event.preventDefault();
+
+            const xhr = new XMLHttpRequest();
+            const formData = new FormData(form);
+
+            progress.classList.remove('hidden');
+            bar.style.width = '0%';
+            label.textContent = '0%';
+
+            if (submitButton) {
+                submitButton.disabled = true;
+                submitButton.classList.add('opacity-70', 'cursor-not-allowed');
+            }
+
+            xhr.upload.addEventListener('progress', (progressEvent) => {
+                if (!progressEvent.lengthComputable) {
+                    return;
+                }
+
+                const percent = Math.round((progressEvent.loaded / progressEvent.total) * 100);
+                bar.style.width = `${percent}%`;
+                label.textContent = `${percent}%`;
+            });
+
+            xhr.addEventListener('load', () => {
+                if (xhr.status >= 200 && xhr.status < 400) {
+                    window.location.href = xhr.responseURL || form.action;
+                    return;
+                }
+
+                label.textContent = 'Upload failed';
+                if (submitButton) {
+                    submitButton.disabled = false;
+                    submitButton.classList.remove('opacity-70', 'cursor-not-allowed');
+                }
+            });
+
+            xhr.addEventListener('error', () => {
+                label.textContent = 'Upload failed';
+                if (submitButton) {
+                    submitButton.disabled = false;
+                    submitButton.classList.remove('opacity-70', 'cursor-not-allowed');
+                }
+            });
+
+            xhr.open(form.method, form.action);
+            xhr.send(formData);
+        });
+    });
+</script>
 @endsection

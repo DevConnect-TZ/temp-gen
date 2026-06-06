@@ -29,11 +29,13 @@ class UhondoVideoController extends Controller
             'episode_label' => 'nullable|string|max:50',
             'description' => 'nullable|string|max:1000',
             'display_order' => 'nullable|integer|min:0',
+            'thumbnail' => 'required|image|mimes:jpg,jpeg,png,webp|max:10240',
             'video' => 'required|file|mimes:mp4,webm,ogv,ogg,mov|max:512000',
         ]);
 
         $validated['display_order'] = $validated['display_order'] ?? 0;
         $validated['is_active'] = $request->has('is_active');
+        $validated['thumbnail_path'] = $request->file('thumbnail')->store('uhondo-thumbnails', 'public');
         $validated['video_path'] = $request->file('video')->store('uhondo-videos', 'public');
 
         UhondoVideo::create($validated);
@@ -55,6 +57,7 @@ class UhondoVideoController extends Controller
             'episode_label' => 'nullable|string|max:50',
             'description' => 'nullable|string|max:1000',
             'display_order' => 'nullable|integer|min:0',
+            'thumbnail' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:10240',
             'video' => 'nullable|file|mimes:mp4,webm,ogv,ogg,mov|max:512000',
         ]);
 
@@ -69,6 +72,14 @@ class UhondoVideoController extends Controller
             $validated['video_path'] = $request->file('video')->store('uhondo-videos', 'public');
         }
 
+        if ($request->hasFile('thumbnail')) {
+            if ($uhondo->thumbnail_path && Storage::disk('public')->exists($uhondo->thumbnail_path)) {
+                Storage::disk('public')->delete($uhondo->thumbnail_path);
+            }
+
+            $validated['thumbnail_path'] = $request->file('thumbnail')->store('uhondo-thumbnails', 'public');
+        }
+
         $uhondo->update($validated);
 
         return redirect()
@@ -80,6 +91,10 @@ class UhondoVideoController extends Controller
     {
         if ($uhondo->video_path && Storage::disk('public')->exists($uhondo->video_path)) {
             Storage::disk('public')->delete($uhondo->video_path);
+        }
+
+        if ($uhondo->thumbnail_path && Storage::disk('public')->exists($uhondo->thumbnail_path)) {
+            Storage::disk('public')->delete($uhondo->thumbnail_path);
         }
 
         $uhondo->delete();
@@ -105,6 +120,7 @@ class UhondoVideoController extends Controller
                 'episode_label' => $video->episode_label,
                 'description' => $video->description,
                 'video_url' => route('api.uhondo-videos.stream', $video),
+                'thumbnail_url' => $video->thumbnail_url,
                 'created_at' => $video->created_at?->toIso8601String(),
             ]);
 

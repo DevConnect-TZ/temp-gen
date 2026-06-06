@@ -12,6 +12,7 @@ class UhondoVideo extends Model
         'episode_label',
         'description',
         'video_path',
+        'thumbnail_path',
         'display_order',
         'is_active',
     ];
@@ -24,5 +25,10 @@ class UhondoVideo extends Model
     public function getVideoUrlAttribute(): string
     {
         return Storage::disk('public')->url($this->video_path);
+    }
+
+    public function getThumbnailUrlAttribute(): ?string
+    {
+        return $this->thumbnail_path ? Storage::disk('public')->url($this->thumbnail_path) : null;
     }
 }
