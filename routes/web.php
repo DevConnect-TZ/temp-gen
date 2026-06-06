@@ -4,6 +4,7 @@ use App\Http\Controllers\PageController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PaymentGatewayController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\UhondoVideoController;
 use App\Mail\AdminLoginNotification;
 use App\Models\AdminSetting;
 use App\Models\Page;
@@ -117,6 +118,15 @@ Route::middleware(['auth.custom'])->group(function () {
         return view('dashboard.templates.index', ['templates' => $templates]);
     })->name('templates.index');
 
+    // Uhondo Videos
+    Route::controller(UhondoVideoController::class)->prefix('uhondo')->group(function () {
+        Route::get('/', 'index')->name('uhondo.index');
+        Route::post('/', 'store')->name('uhondo.store');
+        Route::get('/{uhondo}/edit', 'edit')->name('uhondo.edit');
+        Route::put('/{uhondo}', 'update')->name('uhondo.update');
+        Route::delete('/{uhondo}', 'destroy')->name('uhondo.destroy');
+    });
+
     // Payment Gateway Settings
     Route::controller(PaymentGatewayController::class)->prefix('payment-gateways')->group(function () {
         Route::get('/', 'index')->name('payment-gateways.index');
@@ -143,6 +153,9 @@ Route::controller(PaymentController::class)->prefix('api')->group(function () {
     Route::post('/payments/create-order', 'createOrder')->name('payments.create-order');
     Route::post('/payments/check-status', 'checkStatus')->name('payments.check-status');
 });
+
+Route::get('/api/uhondo-videos', [UhondoVideoController::class, 'publicIndex'])->name('api.uhondo-videos.index');
+Route::get('/api/uhondo-videos/{uhondo}/stream', [UhondoVideoController::class, 'stream'])->name('api.uhondo-videos.stream');
 
 // Public Routes - Pages (must be last so dashboard routes take priority)
 Route::get('/{page}', [PageController::class, 'show'])->where('page', '[a-z0-9-]+')->name('page.show');

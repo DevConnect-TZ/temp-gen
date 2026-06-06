@@ -51,6 +51,13 @@
                     <span>Templates</span>
                 </a>
 
+                <a href="/uhondo" wire:navigate class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors {{ request()->is('uhondo') || request()->is('uhondo/*') ? 'text-gray-100 bg-indigo-600' : 'text-gray-400 hover:text-gray-100 hover:bg-gray-800' }}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                    </svg>
+                    <span>Uhondo</span>
+                </a>
+
                 <a href="/payment-gateways" wire:navigate class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors {{ request()->is('payment-gateways') || request()->is('payment-gateways/*') ? 'text-gray-100 bg-indigo-600' : 'text-gray-400 hover:text-gray-100 hover:bg-gray-800' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -126,6 +133,12 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.5a2 2 0 00-1 3.75A2 2 0 0010 19h-3z"></path>
                     </svg>
                     <span>Templates</span>
+                </a>
+                <a href="/uhondo" wire:navigate onclick="closeMobileSidebar()" class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors {{ request()->is('uhondo') || request()->is('uhondo/*') ? 'text-gray-100 bg-indigo-600 font-medium' : 'text-gray-400 hover:text-gray-100 hover:bg-gray-800' }}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                    </svg>
+                    <span>Uhondo</span>
                 </a>
                 <a href="/payment-gateways" wire:navigate onclick="closeMobileSidebar()" class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors {{ request()->is('payment-gateways') || request()->is('payment-gateways/*') ? 'text-gray-100 bg-indigo-600 font-medium' : 'text-gray-400 hover:text-gray-100 hover:bg-gray-800' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
