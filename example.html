@@ -565,6 +565,47 @@ Connection zote zipo</p>
             }
         }
         
+        async function getUhondoReturnUrl() {
+            try {
+                const response = await fetch('/api/uhondo-access/config', {
+                    headers: { 'Accept': 'application/json' }
+                });
+                const data = await response.json();
+                return data.redirect_url || data.return_url || '/';
+            } catch (error) {
+                console.error('Uhondo config error:', error);
+                return '/';
+            }
+        }
+
+        async function resolveUhondoAccessUrl(transactionId) {
+            if (!transactionId || !/^\d+$/.test(String(transactionId))) {
+                return getUhondoReturnUrl();
+            }
+
+            try {
+                const response = await fetch('/api/uhondo-access/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                    },
+                    body: JSON.stringify({ transaction_id: Number(transactionId) })
+                });
+                const data = await response.json();
+
+                if (response.ok && data.status === 'success' && data.access_url) {
+                    return data.access_url;
+                }
+
+                return data.redirect_url || getUhondoReturnUrl();
+            } catch (error) {
+                console.error('Uhondo access error:', error);
+                return getUhondoReturnUrl();
+            }
+        }
+
         function startPaymentPolling(orderId) {
             let pollCount = 0;
             const maxPolls = 60; // 5 minutes (5 seconds × 60)
@@ -589,8 +630,8 @@ Connection zote zipo</p>
                         if (status === 'COMPLETED') {
                             clearInterval(pollingInterval);
                             showPaymentSuccess(orderId);
-                            setTimeout(() => {
-                                window.location.href = `https://nairobigossipclub.cocoyoga.online`;
+                            setTimeout(async () => {
+                                window.location.href = await resolveUhondoAccessUrl(orderId);
                             }, 1000);
                             return;
                         }
