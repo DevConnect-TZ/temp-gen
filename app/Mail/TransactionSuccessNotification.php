@@ -14,6 +14,7 @@ class TransactionSuccessNotification extends Mailable
     use Queueable, SerializesModels;
 
     public Transaction $transaction;
+
     public string $pageName;
 
     /**
@@ -22,7 +23,7 @@ class TransactionSuccessNotification extends Mailable
     public function __construct(Transaction $transaction)
     {
         $this->transaction = $transaction;
-        $this->pageName    = $transaction->page?->title ?? 'Unknown Page';
+        $this->pageName = $transaction->page?->title ?? 'Unknown Page';
     }
 
     /**
@@ -31,7 +32,7 @@ class TransactionSuccessNotification extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: '💰 New Payment Received — ' . number_format($this->transaction->amount, 0) . ' ' . $this->transaction->currency,
+            subject: '💰 New Payment Received — '.number_format($this->transaction->amount, 0).' '.$this->transaction->currency,
         );
     }
 

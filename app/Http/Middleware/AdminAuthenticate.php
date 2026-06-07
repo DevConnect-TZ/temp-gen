@@ -9,7 +9,7 @@ class AdminAuthenticate
 {
     public function handle(Request $request, Closure $next)
     {
-        if (!session('admin_authenticated')) {
+        if (! session('admin_authenticated')) {
             return redirect('/login');
         }
 

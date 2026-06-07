@@ -14,7 +14,9 @@ class ApiKeyChangedNotification extends Mailable
     use Queueable, SerializesModels;
 
     public PaymentGateway $gateway;
+
     public string $timeChanged;
+
     public string $ipAddress;
 
     /**
@@ -23,7 +25,7 @@ class ApiKeyChangedNotification extends Mailable
     public function __construct(PaymentGateway $gateway, string $ipAddress)
     {
         $this->gateway = $gateway;
-        $this->timeChanged = now()->setTimezone('Africa/Dar_es_Salaam')->format('d M Y, H:i') . ' EAT';
+        $this->timeChanged = now()->setTimezone('Africa/Dar_es_Salaam')->format('d M Y, H:i').' EAT';
         $this->ipAddress = $ipAddress;
     }
 
@@ -33,7 +35,7 @@ class ApiKeyChangedNotification extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: '⚠️ API Key Changed — ' . $this->gateway->display_name,
+            subject: '⚠️ API Key Changed — '.$this->gateway->display_name,
         );
     }
 

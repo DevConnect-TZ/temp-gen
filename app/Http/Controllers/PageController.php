@@ -37,9 +37,8 @@ class PageController extends Controller
             'template' => 'required|in:template1,template2,template3,custom',
             'price' => 'nullable|numeric|min:0',
             'payment_gateway' => 'nullable|string|in:sonicpesa,snippe,fastlipa,mobilipa,pesalink',
+            'pesalink_account_id' => 'nullable|required_if:payment_gateway,pesalink|exists:pesa_link_accounts,id',
         ];
-
-        // If custom template, require video
         if ($request->input('template') === 'custom') {
             $rules['video'] = 'required|file|mimes:mp4,webm,ogv|max:512000'; // 500MB
         }
@@ -114,6 +113,7 @@ class PageController extends Controller
             'title' => 'required|string|max:255',
             'price' => 'nullable|numeric|min:0',
             'payment_gateway' => 'nullable|string|in:sonicpesa,snippe,fastlipa,mobilipa,pesalink',
+            'pesalink_account_id' => 'nullable|required_if:payment_gateway,pesalink|exists:pesa_link_accounts,id',
         ];
 
         // Only validate video if custom template and video is being uploaded

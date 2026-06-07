@@ -13,7 +13,9 @@ class AdminLoginNotification extends Mailable
     use Queueable, SerializesModels;
 
     public string $loginTime;
+
     public string $ipAddress;
+
     public string $userAgent;
 
     /**
@@ -21,7 +23,7 @@ class AdminLoginNotification extends Mailable
      */
     public function __construct(string $ipAddress, string $userAgent)
     {
-        $this->loginTime = now()->setTimezone('Africa/Dar_es_Salaam')->format('d M Y, H:i') . ' EAT';
+        $this->loginTime = now()->setTimezone('Africa/Dar_es_Salaam')->format('d M Y, H:i').' EAT';
         $this->ipAddress = $ipAddress;
         $this->userAgent = $userAgent;
     }
@@ -32,7 +34,7 @@ class AdminLoginNotification extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: '🔐 Admin Login Alert — ' . config('app.name'),
+            subject: '🔐 Admin Login Alert — '.config('app.name'),
         );
     }
 

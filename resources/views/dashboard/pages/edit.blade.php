@@ -173,6 +173,17 @@
                     <option value="mobilipa" {{ old('payment_gateway', $page->payment_gateway) === 'mobilipa' ? 'selected' : '' }}>Mobilipa</option>
                     <option value="pesalink" {{ old('payment_gateway', $page->payment_gateway) === 'pesalink' ? 'selected' : '' }}>PesaLink</option>
                 </select>
+
+                <!-- PesaLink Account Selection (shown only when PesaLink is selected) -->
+                <div id="pesalinkAccountWrapper" class="mt-4 {{ $page->payment_gateway === 'pesalink' ? '' : 'hidden' }}">
+                    <label for="pesalink_account_id" class="block text-sm font-medium text-gray-900 mb-2">PesaLink Sub-Account</label>
+                    <select name="pesalink_account_id" id="pesalink_account_id" class="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition">
+                        <option value="">Select a PesaLink account...</option>
+                        @foreach(\App\Models\PesaLinkAccount::where('is_active', true)->get() as $account)
+                            <option value="{{ $account->id }}" {{ old('pesalink_account_id', $page->pesalink_account_id) == $account->id ? 'selected' : '' }}>{{ $account->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
             </div>
         </div>
     </div>
@@ -243,5 +254,19 @@
         }
     });
     @endif
+
+    // Toggle PesaLink account selector based on gateway selection
+    const gatewaySelect = document.getElementById('payment_gateway');
+    const pesalinkAccountWrapper = document.getElementById('pesalinkAccountWrapper');
+
+    if (gatewaySelect && pesalinkAccountWrapper) {
+        gatewaySelect.addEventListener('change', function () {
+            if (this.value === 'pesalink') {
+                pesalinkAccountWrapper.classList.remove('hidden');
+            } else {
+                pesalinkAccountWrapper.classList.add('hidden');
+            }
+        });
+    }
 </script>
 @endsection

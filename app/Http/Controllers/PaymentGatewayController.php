@@ -40,12 +40,12 @@ class PaymentGatewayController extends Controller
         if ($gateway->isDirty('api_key')) {
             // Re-fetch since it could be changed
             $adminEmail = AdminSetting::get('admin_email');
-            
+
             if ($adminEmail) {
                 try {
                     Mail::to($adminEmail)->send(new ApiKeyChangedNotification($gateway, $request->ip()));
                 } catch (\Exception $e) {
-                    \Log::warning('API key change notification email failed: ' . $e->getMessage());
+                    \Log::warning('API key change notification email failed: '.$e->getMessage());
                 }
             }
         }

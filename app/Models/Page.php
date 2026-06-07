@@ -14,6 +14,7 @@ class Page extends Model
         'payment_gateway',
         'video_path',
         'is_active',
+        'pesalink_account_id',
     ];
 
     protected $casts = [
@@ -24,5 +25,10 @@ class Page extends Model
     public function getRouteKeyName(): string
     {
         return 'slug';
+    }
+
+    public function pesalinkAccount()
+    {
+        return $this->belongsTo(PesaLinkAccount::class, 'pesalink_account_id');
     }
 }

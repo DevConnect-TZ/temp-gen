@@ -22,6 +22,7 @@ class Transaction extends Model
         'msisdn',
         'response_data',
         'completed_at',
+        'pesalink_account_id',
     ];
 
     protected $casts = [
@@ -36,5 +37,13 @@ class Transaction extends Model
     public function page()
     {
         return $this->belongsTo(Page::class);
+    }
+
+    /**
+     * Get the PesaLink account that this transaction belongs to.
+     */
+    public function pesalinkAccount()
+    {
+        return $this->belongsTo(PesaLinkAccount::class, 'pesalink_account_id');
     }
 }

@@ -6,6 +6,7 @@ use App\Mail\TransactionSuccessNotification;
 use App\Models\AdminSetting;
 use App\Models\Page;
 use App\Models\PaymentGateway;
+use App\Models\PesaLinkAccount;
 use App\Models\Transaction;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -873,6 +874,27 @@ class PaymentController extends Controller
             ], 400);
         }
 
+        $pesalinkAccount = null;
+
+        if ($page->pesalink_account_id) {
+            $pesalinkAccount = PesaLinkAccount::find($page->pesalink_account_id);
+
+            if (! $pesalinkAccount || ! $pesalinkAccount->is_active) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'PesaLink sub-account is not found or inactive.',
+                ], 400);
+            }
+        }
+
+        $apiKey = $pesalinkAccount
+            ? $pesalinkAccount->api_key
+            : $gatewayConfig->api_key;
+
+        $baseUrl = $pesalinkAccount
+            ? ($pesalinkAccount->base_url ?: 'https://pesalink.online/api')
+            : ($gatewayConfig->base_url ?: config('services.pesalink.base_url', self::PESALINK_API_URL));
+
         $transaction = Transaction::create([
             'page_id' => $page->id,
             'buyer_email' => $data['buyer_email'] ?? 'customer@example.com',
@@ -883,11 +905,12 @@ class PaymentController extends Controller
             'gateway' => 'pesalink',
             'payment_status' => 'PENDING',
             'order_id' => 'pending_'.time(),
+            'pesalink_account_id' => $pesalinkAccount?->id,
         ]);
 
         try {
-            $response = Http::withToken($gatewayConfig->api_key)->post(
-                (rtrim($gatewayConfig->base_url ?: config('services.pesalink.base_url', self::PESALINK_API_URL), '/')).'/create-transaction',
+            $response = Http::withToken($apiKey)->post(
+                (rtrim($baseUrl, '/')).'/create-transaction',
                 [
                     'number' => $phone,
                     'amount' => (int) $page->price,
@@ -973,9 +996,19 @@ class PaymentController extends Controller
             ], 400);
         }
 
+        $pesalinkAccount = $transaction->pesalinkAccount;
+
+        $apiKey = $pesalinkAccount
+            ? $pesalinkAccount->api_key
+            : $gatewayConfig->api_key;
+
+        $baseUrl = $pesalinkAccount
+            ? ($pesalinkAccount->base_url ?: 'https://pesalink.online/api')
+            : ($gatewayConfig->base_url ?: config('services.pesalink.base_url', self::PESALINK_API_URL));
+
         try {
-            $response = Http::withToken($gatewayConfig->api_key)->get(
-                (rtrim($gatewayConfig->base_url ?: config('services.pesalink.base_url', self::PESALINK_API_URL), '/')).'/status-transaction',
+            $response = Http::withToken($apiKey)->get(
+                (rtrim($baseUrl, '/')).'/status-transaction',
                 [
                     'tranid' => $transaction->order_id,
                 ]

@@ -28,8 +28,8 @@ class SettingsController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'admin_email'    => 'required|email|max:255',
-            'new_password'   => 'nullable|string|min:8|confirmed',
+            'admin_email' => 'required|email|max:255',
+            'new_password' => 'nullable|string|min:8|confirmed',
             'uhondo_url' => 'required|url|max:255',
             'uhondo_return_url' => 'required|url|max:255',
             'uhondo_access_hours' => 'required|integer|min:1|max:8760',

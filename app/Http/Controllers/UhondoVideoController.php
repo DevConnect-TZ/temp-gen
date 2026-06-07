@@ -118,14 +118,14 @@ class UhondoVideoController extends Controller
             ->paginate($perPage);
 
         $videos = $paginator->getCollection()->map(fn (UhondoVideo $video): array => [
-                'id' => $video->id,
-                'title' => $video->title,
-                'episode_label' => $video->episode_label,
-                'description' => $video->description,
-                'video_url' => route('api.uhondo-videos.stream', $video),
-                'thumbnail_url' => $video->thumbnail_url,
-                'created_at' => $video->created_at?->toIso8601String(),
-            ]);
+            'id' => $video->id,
+            'title' => $video->title,
+            'episode_label' => $video->episode_label,
+            'description' => $video->description,
+            'video_url' => route('api.uhondo-videos.stream', $video),
+            'thumbnail_url' => $video->thumbnail_url,
+            'created_at' => $video->created_at?->toIso8601String(),
+        ]);
 
         return response()
             ->json([

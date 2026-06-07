@@ -3,6 +3,7 @@
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PaymentGatewayController;
+use App\Http\Controllers\PesaLinkAccountController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\UhondoAccessController;
 use App\Http\Controllers\UhondoVideoController;
@@ -11,9 +12,12 @@ use App\Models\AdminSetting;
 use App\Models\Page;
 use App\Models\Transaction;
 use Carbon\CarbonPeriod;
+use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
+use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
+use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 // Public Routes - Login
 Route::middleware('guest')->group(function () {
@@ -135,6 +139,15 @@ Route::middleware(['auth.custom'])->group(function () {
         Route::post('/{gateway}/toggle', 'toggle')->name('payment-gateways.toggle');
     });
 
+    // PesaLink Sub-Accounts
+    Route::controller(PesaLinkAccountController::class)->prefix('pesalink-accounts')->group(function () {
+        Route::get('/', 'index')->name('pesalink-accounts.index');
+        Route::post('/', 'store')->name('pesalink-accounts.store');
+        Route::post('/{account}/update', 'update')->name('pesalink-accounts.update');
+        Route::post('/{account}/toggle', 'toggle')->name('pesalink-accounts.toggle');
+        Route::delete('/{account}', 'destroy')->name('pesalink-accounts.destroy');
+    });
+
     // Settings
     Route::controller(SettingsController::class)->group(function () {
         Route::get('/settings', 'index')->name('settings.index');
@@ -156,17 +169,17 @@ Route::controller(PaymentController::class)->prefix('api')->group(function () {
 });
 
 Route::get('/api/uhondo-videos', [UhondoVideoController::class, 'publicIndex'])
-    ->withoutMiddleware([\Illuminate\Session\Middleware\StartSession::class, \Illuminate\View\Middleware\ShareErrorsFromSession::class, \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])
+    ->withoutMiddleware([StartSession::class, ShareErrorsFromSession::class, VerifyCsrfToken::class])
     ->name('api.uhondo-videos.index');
 Route::get('/api/uhondo-videos/{uhondo}/stream', [UhondoVideoController::class, 'stream'])
-    ->withoutMiddleware([\Illuminate\Session\Middleware\StartSession::class, \Illuminate\View\Middleware\ShareErrorsFromSession::class, \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])
+    ->withoutMiddleware([StartSession::class, ShareErrorsFromSession::class, VerifyCsrfToken::class])
     ->name('api.uhondo-videos.stream');
 Route::post('/api/uhondo-access/create', [UhondoAccessController::class, 'create'])->name('api.uhondo-access.create');
 Route::get('/api/uhondo-access/verify', [UhondoAccessController::class, 'verify'])
-    ->withoutMiddleware([\Illuminate\Session\Middleware\StartSession::class, \Illuminate\View\Middleware\ShareErrorsFromSession::class, \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])
+    ->withoutMiddleware([StartSession::class, ShareErrorsFromSession::class, VerifyCsrfToken::class])
     ->name('api.uhondo-access.verify');
 Route::get('/api/uhondo-access/config', [UhondoAccessController::class, 'config'])
-    ->withoutMiddleware([\Illuminate\Session\Middleware\StartSession::class, \Illuminate\View\Middleware\ShareErrorsFromSession::class, \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])
+    ->withoutMiddleware([StartSession::class, ShareErrorsFromSession::class, VerifyCsrfToken::class])
     ->name('api.uhondo-access.config');
 
 // Public Routes - Pages (must be last so dashboard routes take priority)

@@ -315,6 +315,20 @@
                         </div>
                     </span>
                 </label>
+            </div>
+
+            <!-- PesaLink Account Selection (shown only when PesaLink is selected) -->
+            <div id="pesalinkAccountSection" class="mt-6 {{ old('payment_gateway') === 'pesalink' ? '' : 'hidden' }}">
+                <label for="pesalink_account_id" class="block text-sm font-medium text-gray-900 mb-2">PesaLink Sub-Account</label>
+                <select name="pesalink_account_id" id="pesalink_account_id" class="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition">
+                    <option value="">Select a PesaLink account...</option>
+                    @foreach(\App\Models\PesaLinkAccount::where('is_active', true)->get() as $account)
+                        <option value="{{ $account->id }}" {{ old('pesalink_account_id') == $account->id ? 'selected' : '' }}>{{ $account->name }}</option>
+                    @endforeach
+                </select>
+                <p class="text-xs text-gray-600 mt-1">Choose which PesaLink API account to use for payments on this page</p>
+            </div>
+        </div>
     <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
         <div class="flex items-center justify-between">
             <div>
@@ -440,5 +454,22 @@
 
     // Initialize on page load
     updateFormVisibility();
+
+    // Toggle PesaLink account selector based on gateway selection
+    const gatewayRadios = document.querySelectorAll('input[name="payment_gateway"]');
+    const pesalinkAccountSection = document.getElementById('pesalinkAccountSection');
+
+    function togglePesaLinkAccount() {
+        const selectedGateway = document.querySelector('input[name="payment_gateway"]:checked');
+        if (selectedGateway && selectedGateway.value === 'pesalink') {
+            pesalinkAccountSection.classList.remove('hidden');
+        } else {
+            pesalinkAccountSection.classList.add('hidden');
+        }
+    }
+
+    gatewayRadios.forEach(radio => {
+        radio.addEventListener('change', togglePesaLinkAccount);
+    });
 </script>
 @endsection
