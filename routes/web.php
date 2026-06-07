@@ -10,6 +10,7 @@ use App\Http\Controllers\UhondoVideoController;
 use App\Mail\AdminLoginNotification;
 use App\Models\AdminSetting;
 use App\Models\Page;
+use App\Models\PesaLinkAccount;
 use App\Models\Transaction;
 use Carbon\CarbonPeriod;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -66,7 +67,7 @@ Route::middleware(['auth.custom'])->group(function () {
         $completedTransactions = Transaction::query()
             ->where('payment_status', 'COMPLETED')
             ->where('created_at', '>=', now()->subDays(13)->startOfDay())
-            ->get(['amount', 'created_at']);
+            ->get(['amount', 'created_at', 'pesalink_account_id']);
 
         $revenueByMonth = $completedTransactions->groupBy(function (Transaction $transaction): string {
             return $transaction->created_at->format('Y-m-d');
@@ -84,6 +85,57 @@ Route::middleware(['auth.custom'])->group(function () {
             $revenueTrendValues[] = (float) ($revenueByMonth[$key] ?? 0);
         }
 
+        $pesalinkAccounts = PesaLinkAccount::orderBy('name')->get();
+
+        $accountRevenue = [];
+        $accountDatasets = [];
+        $colors = [
+            ['border' => '#ea580c', 'bg' => 'rgba(234, 88, 12, 0.10)'],
+            ['border' => '#2563eb', 'bg' => 'rgba(37, 99, 235, 0.10)'],
+            ['border' => '#16a34a', 'bg' => 'rgba(22, 163, 74, 0.10)'],
+            ['border' => '#ca8a04', 'bg' => 'rgba(202, 138, 4, 0.10)'],
+            ['border' => '#dc2626', 'bg' => 'rgba(220, 38, 38, 0.10)'],
+            ['border' => '#7c3aed', 'bg' => 'rgba(124, 58, 237, 0.10)'],
+            ['border' => '#0891b2', 'bg' => 'rgba(8, 145, 178, 0.10)'],
+            ['border' => '#be185d', 'bg' => 'rgba(190, 24, 93, 0.10)'],
+        ];
+
+        foreach ($pesalinkAccounts as $i => $account) {
+            $color = $colors[$i % count($colors)];
+
+            $dailyRevenue = [];
+            foreach (CarbonPeriod::create(now()->subDays(13)->startOfDay(), '1 day', now()->startOfDay()) as $day) {
+                $key = $day->format('Y-m-d');
+                $dailyRevenue[] = (float) Transaction::where('payment_status', 'COMPLETED')
+                    ->where('pesalink_account_id', $account->id)
+                    ->whereDate('created_at', $key)
+                    ->sum('amount');
+            }
+
+            $total = Transaction::where('payment_status', 'COMPLETED')
+                ->where('pesalink_account_id', $account->id)
+                ->sum('amount');
+
+            $accountRevenue[] = [
+                'name' => $account->name,
+                'total' => $total,
+                'borderColor' => $color['border'],
+            ];
+
+            $accountDatasets[] = [
+                'label' => $account->name,
+                'data' => $dailyRevenue,
+                'borderColor' => $color['border'],
+                'backgroundColor' => $color['bg'],
+                'fill' => false,
+                'tension' => 0.35,
+                'borderWidth' => 2,
+                'pointRadius' => 3,
+                'pointHoverRadius' => 5,
+                'pointBackgroundColor' => $color['border'],
+            ];
+        }
+
         $totalPages = Page::count();
         $activePages = Page::where('is_active', true)->count();
         $inactivePages = Page::where('is_active', false)->count();
@@ -98,6 +150,8 @@ Route::middleware(['auth.custom'])->group(function () {
             'recentPages' => $recentPages,
             'revenueTrendLabels' => $revenueTrendLabels,
             'revenueTrendValues' => $revenueTrendValues,
+            'accountRevenue' => $accountRevenue,
+            'accountDatasets' => $accountDatasets,
         ]);
     })->name('dashboard');
 

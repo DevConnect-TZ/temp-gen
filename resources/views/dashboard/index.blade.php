@@ -71,6 +71,21 @@
     </div>
 </div>
 
+@if(!empty($accountRevenue))
+<!-- PesaLink Account Revenue Cards -->
+<div class="mb-8">
+    <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">PesaLink Account Revenue</h3>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        @foreach($accountRevenue as $acc)
+        <div class="bg-white rounded-lg shadow-sm p-4 border-l-4" style="border-left-color: {{ $acc['borderColor'] }}">
+            <p class="text-xs text-gray-500 font-medium truncate">{{ $acc['name'] }}</p>
+            <p class="text-lg font-bold text-gray-900 mt-1">TZS {{ number_format($acc['total'], 0) }}</p>
+        </div>
+        @endforeach
+    </div>
+</div>
+@endif
+
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
     <!-- Chart Section -->
     <div class="lg:col-span-2">
@@ -78,7 +93,7 @@
             <div class="flex items-center justify-between mb-6">
                 <div>
                     <h2 class="text-lg font-bold text-gray-900">Revenue Trend</h2>
-                    <p class="text-sm text-gray-500 mt-1">Completed revenue over the last 14 days</p>
+                    <p class="text-sm text-gray-500 mt-1">Per-account revenue over the last 14 days</p>
                 </div>
                 <div class="text-right">
                     <p class="text-xs uppercase tracking-wide text-gray-500">Current Revenue</p>
@@ -93,35 +108,29 @@
 
     <!-- Stats Sidebar -->
     <div class="space-y-6">
-        <!-- Average Order Value -->
+        <!-- Avg Order Value -->
         <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-            <p class="text-gray-600 text-sm font-medium mb-2">Avg. Order Value</p>
-            <p class="text-2xl font-bold text-gray-900">TZS142.67</p>
-            <p class="text-green-600 text-xs font-medium mt-3">↑ 5% vs last month</p>
+            <p class="text-gray-600 text-sm font-medium mb-2">PesaLink Accounts</p>
+            <p class="text-2xl font-bold text-gray-900">{{ count($accountRevenue) }}</p>
+            <p class="text-gray-600 text-xs font-medium mt-3">Active sub-accounts</p>
         </div>
 
-        <!-- Conversion Rate -->
+        <!-- Total PesaLink Revenue -->
         <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-            <p class="text-gray-600 text-sm font-medium mb-2">Conversion Rate</p>
-            <p class="text-2xl font-bold text-gray-900">3.24%</p>
-            <p class="text-gray-600 text-xs font-medium mt-3">328 total conversions</p>
+            <p class="text-gray-600 text-sm font-medium mb-2">PesaLink Total</p>
+            <p class="text-2xl font-bold text-gray-900">TZS {{ number_format(collect($accountRevenue)->sum('total'), 0) }}</p>
+            <p class="text-gray-600 text-xs font-medium mt-3">From all accounts combined</p>
         </div>
 
         <!-- Quick Actions -->
         <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
             <p class="text-gray-900 text-sm font-bold mb-4">Quick Actions</p>
-            <button class="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition mb-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                </svg>
-                <span>New Page</span>
-            </button>
-            <button class="w-full flex items-center justify-center space-x-2 px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
-                </svg>
-                <span>View Reports</span>
-            </button>
+            <a href="/pages/create" class="block w-full text-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition mb-2">
+                New Page
+            </a>
+            <a href="/pesalink-accounts" class="block w-full text-center px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition">
+                PesaLink Accounts
+            </a>
         </div>
     </div>
 </div>
@@ -186,26 +195,13 @@
         }
 
         const labels = @json($revenueTrendLabels);
-        const revenueData = @json($revenueTrendValues);
+        const accountDatasets = @json($accountDatasets);
 
         new Chart(canvas, {
             type: 'line',
             data: {
                 labels,
-                datasets: [{
-                    label: 'Revenue',
-                    data: revenueData,
-                    borderColor: '#4f46e5',
-                    backgroundColor: 'rgba(79, 70, 229, 0.12)',
-                    fill: true,
-                    tension: 0.35,
-                    borderWidth: 3,
-                    pointRadius: 4,
-                    pointHoverRadius: 6,
-                    pointBackgroundColor: '#4f46e5',
-                    pointBorderColor: '#ffffff',
-                    pointBorderWidth: 2,
-                }],
+                datasets: accountDatasets,
             },
             options: {
                 responsive: true,
@@ -216,32 +212,32 @@
                 },
                 plugins: {
                     legend: {
-                        display: false,
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20,
+                            color: '#6b7280',
+                            font: { size: 12 },
+                        },
                     },
                     tooltip: {
                         backgroundColor: '#111827',
                         padding: 12,
                         callbacks: {
                             label(context) {
-                                return 'TZS ' + Number(context.parsed.y || 0).toLocaleString('en-US');
+                                return context.dataset.label + ': TZS ' + Number(context.parsed.y || 0).toLocaleString('en-US');
                             },
                         },
                     },
                 },
                 scales: {
                     x: {
-                        grid: {
-                            display: false,
-                        },
-                        ticks: {
-                            color: '#6b7280',
-                        },
+                        grid: { display: false },
+                        ticks: { color: '#6b7280' },
                     },
                     y: {
                         beginAtZero: true,
-                        grid: {
-                            color: 'rgba(148, 163, 184, 0.18)',
-                        },
+                        grid: { color: 'rgba(148, 163, 184, 0.18)' },
                         ticks: {
                             color: '#6b7280',
                             callback(value) {
