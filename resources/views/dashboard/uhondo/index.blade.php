@@ -37,7 +37,7 @@
 
         <div>
             <h2 class="text-lg font-bold text-gray-900">Upload Video</h2>
-            <p class="text-sm text-gray-600 mt-1">Upload a thumbnail image and MP4, WebM, OGG, or MOV video up to 500MB.</p>
+            <p class="text-sm text-gray-600 mt-1">Upload an MP4, WebM, OGG, or MOV video up to 500MB. Thumbnail image is optional.</p>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -104,16 +104,15 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div>
-                <label for="thumbnail" class="block text-sm font-medium text-gray-900 mb-2">Thumbnail Image</label>
+                <label for="thumbnail" class="block text-sm font-medium text-gray-900 mb-2">Thumbnail Image <span class="text-gray-500 font-normal">(optional)</span></label>
                 <input
                     type="file"
                     id="thumbnail"
                     name="thumbnail"
                     accept="image/jpeg,image/png,image/webp"
                     class="block w-full text-sm text-gray-700 file:mr-4 file:py-3 file:px-4 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-700 file:font-medium hover:file:bg-indigo-100"
-                    required
                 >
-                <p class="text-xs text-gray-600 mt-2">JPG, PNG, or WebP up to 10MB.</p>
+                <p class="text-xs text-gray-600 mt-2">Optional JPG, PNG, or WebP up to 10MB.</p>
             </div>
 
             <div>

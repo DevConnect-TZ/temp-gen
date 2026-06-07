@@ -29,14 +29,17 @@ class UhondoVideoController extends Controller
             'episode_label' => 'nullable|string|max:50',
             'description' => 'nullable|string|max:1000',
             'display_order' => 'nullable|integer|min:0',
-            'thumbnail' => 'required|image|mimes:jpg,jpeg,png,webp|max:10240',
+            'thumbnail' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:10240',
             'video' => 'required|file|mimes:mp4,webm,ogv,ogg,mov|max:512000',
         ]);
 
         $validated['display_order'] = $validated['display_order'] ?? 0;
         $validated['is_active'] = $request->has('is_active');
-        $validated['thumbnail_path'] = $request->file('thumbnail')->store('uhondo-thumbnails', 'public');
         $validated['video_path'] = $request->file('video')->store('uhondo-videos', 'public');
+
+        if ($request->hasFile('thumbnail')) {
+            $validated['thumbnail_path'] = $request->file('thumbnail')->store('uhondo-thumbnails', 'public');
+        }
 
         UhondoVideo::create($validated);
 
