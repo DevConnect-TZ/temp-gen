@@ -81,6 +81,53 @@
                     </div>
                 </div>
 
+                <div class="border-t border-gray-100 pt-5">
+                    <h3 class="text-sm font-semibold text-gray-700 mb-4">Uhondo Access Gate</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="uhondo_url" class="block text-sm font-medium text-gray-900 mb-2">Uhondo Site URL</label>
+                            <input
+                                type="url"
+                                id="uhondo_url"
+                                name="uhondo_url"
+                                value="{{ old('uhondo_url', $uhondoUrl) }}"
+                                required
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                                placeholder="https://uhondotu.online"
+                            >
+                            <p class="text-xs text-gray-500 mt-1">Paid users are redirected here with a secure access token.</p>
+                        </div>
+
+                        <div>
+                            <label for="uhondo_return_url" class="block text-sm font-medium text-gray-900 mb-2">Fallback Template URL</label>
+                            <input
+                                type="url"
+                                id="uhondo_return_url"
+                                name="uhondo_return_url"
+                                value="{{ old('uhondo_return_url', $uhondoReturnUrl) }}"
+                                required
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                                placeholder="https://nyonyatu.store"
+                            >
+                            <p class="text-xs text-gray-500 mt-1">Direct or expired Uhondo visitors are sent back here.</p>
+                        </div>
+
+                        <div>
+                            <label for="uhondo_access_hours" class="block text-sm font-medium text-gray-900 mb-2">Access Duration (hours)</label>
+                            <input
+                                type="number"
+                                id="uhondo_access_hours"
+                                name="uhondo_access_hours"
+                                value="{{ old('uhondo_access_hours', $uhondoAccessHours) }}"
+                                min="1"
+                                max="8760"
+                                required
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                            >
+                        </div>
+                    </div>
+                </div>
+
                 <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-4 rounded-lg transition">
                     Save Settings
                 </button>

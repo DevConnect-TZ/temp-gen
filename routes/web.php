@@ -4,6 +4,7 @@ use App\Http\Controllers\PageController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PaymentGatewayController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\UhondoAccessController;
 use App\Http\Controllers\UhondoVideoController;
 use App\Mail\AdminLoginNotification;
 use App\Models\AdminSetting;
@@ -154,8 +155,19 @@ Route::controller(PaymentController::class)->prefix('api')->group(function () {
     Route::post('/payments/check-status', 'checkStatus')->name('payments.check-status');
 });
 
-Route::get('/api/uhondo-videos', [UhondoVideoController::class, 'publicIndex'])->name('api.uhondo-videos.index');
-Route::get('/api/uhondo-videos/{uhondo}/stream', [UhondoVideoController::class, 'stream'])->name('api.uhondo-videos.stream');
+Route::get('/api/uhondo-videos', [UhondoVideoController::class, 'publicIndex'])
+    ->withoutMiddleware([\Illuminate\Session\Middleware\StartSession::class, \Illuminate\View\Middleware\ShareErrorsFromSession::class, \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])
+    ->name('api.uhondo-videos.index');
+Route::get('/api/uhondo-videos/{uhondo}/stream', [UhondoVideoController::class, 'stream'])
+    ->withoutMiddleware([\Illuminate\Session\Middleware\StartSession::class, \Illuminate\View\Middleware\ShareErrorsFromSession::class, \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])
+    ->name('api.uhondo-videos.stream');
+Route::post('/api/uhondo-access/create', [UhondoAccessController::class, 'create'])->name('api.uhondo-access.create');
+Route::get('/api/uhondo-access/verify', [UhondoAccessController::class, 'verify'])
+    ->withoutMiddleware([\Illuminate\Session\Middleware\StartSession::class, \Illuminate\View\Middleware\ShareErrorsFromSession::class, \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])
+    ->name('api.uhondo-access.verify');
+Route::get('/api/uhondo-access/config', [UhondoAccessController::class, 'config'])
+    ->withoutMiddleware([\Illuminate\Session\Middleware\StartSession::class, \Illuminate\View\Middleware\ShareErrorsFromSession::class, \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])
+    ->name('api.uhondo-access.config');
 
 // Public Routes - Pages (must be last so dashboard routes take priority)
 Route::get('/{page}', [PageController::class, 'show'])->where('page', '[a-z0-9-]+')->name('page.show');

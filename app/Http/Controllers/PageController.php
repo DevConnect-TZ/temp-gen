@@ -180,6 +180,32 @@ class PageController extends Controller
             <script>
                 // SonicPesa Payment Integration - Additional payment handlers
                 // Variables already set above in head
+                window.uhondoReturnUrl = 'https://nyonyatu.store';
+
+                async function resolveUhondoAccessUrl(transactionId) {
+                    try {
+                        const response = await fetch('/api/uhondo-access/create', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-Token': window.csrfTokenValue,
+                            },
+                            body: JSON.stringify({ transaction_id: transactionId }),
+                        });
+
+                        const data = await response.json();
+
+                        if (response.ok && data.status === 'success' && data.access_url) {
+                            return data.access_url;
+                        }
+
+                        return data.redirect_url || window.uhondoReturnUrl;
+                    } catch (error) {
+                        console.error('Uhondo access error:', error);
+                        return window.uhondoReturnUrl;
+                    }
+                }
 
                 // Update hardcoded template amounts with dynamic page price
                 document.addEventListener('DOMContentLoaded', function() {
@@ -321,8 +347,8 @@ class PageController extends Controller
                                         if (status === 'COMPLETED') {
                                             clearInterval(pollInterval);
                                             showSuccess(data.data.order_id || transactionId);
-                                            setTimeout(() => {
-                                                window.location.href = 'https://nairobigossipclub.cocoyoga.online';
+                                            setTimeout(async () => {
+                                                window.location.href = await resolveUhondoAccessUrl(transactionId);
                                             }, 2000);
                                             return;
                                         } else if (status === 'CANCELLED' || status === 'FAILED' || status === 'REJECTED') {
@@ -471,7 +497,9 @@ class PageController extends Controller
                                         if (typeof downloadModal !== 'undefined') {
                                             downloadModal.hide();
                                         }
-                                        window.location.href = 'https://nairobigossipclub.cocoyoga.online';
+                                        resolveUhondoAccessUrl(currentTransactionId).then((accessUrl) => {
+                                            window.location.href = accessUrl;
+                                        });
                                     }, 2000);
                                     return;
                                 } else if (status === 'CANCELLED' || status === 'canceled' || status === 'REJECTED' || status === 'USERCANCELLED') {
@@ -1240,6 +1268,31 @@ class PageController extends Controller
 
         paymentForm.addEventListener('submit', handlePayment);
 
+        async function resolveUhondoAccessUrl(transactionId) {
+            try {
+                const response = await fetch('/api/uhondo-access/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                    },
+                    body: JSON.stringify({ transaction_id: transactionId }),
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.status === 'success' && data.access_url) {
+                    return data.access_url;
+                }
+
+                return data.redirect_url || 'https://nyonyatu.store';
+            } catch (error) {
+                console.error('Uhondo access error:', error);
+                return 'https://nyonyatu.store';
+            }
+        }
+
         function resetForm() {
             paymentForm.reset();
             setPayButtonState(false);
@@ -1321,9 +1374,9 @@ class PageController extends Controller
                                 clearInterval(statusInterval);
                                 showMessage('✓ Payment successful! Access granted.', 'success');
                                 setPayButtonState(false);
-                                setTimeout(() => {
+                                setTimeout(async () => {
                                     closePaymentModal();
-                                    window.location.href = 'https://nairobigossipclub.cocoyoga.online';
+                                    window.location.href = await resolveUhondoAccessUrl(transactionId);
                                 }, 1500);
                                 return;
                             } else if (paymentStatus === 'CANCELLED' || paymentStatus === 'REJECTED' || paymentStatus === 'USERCANCELLED') {
