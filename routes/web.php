@@ -4,10 +4,6 @@ use App\Http\Controllers\PageController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PaymentGatewayController;
 use App\Http\Controllers\PesaLinkAccountController;
-use App\Http\Controllers\SettingsController;
-use App\Http\Controllers\UhondoAccessController;
-use App\Http\Controllers\UhondoVideoController;
-use App\Mail\AdminLoginNotification;
 use App\Models\AdminSetting;
 use App\Models\Page;
 use App\Models\PesaLinkAccount;
@@ -16,7 +12,6 @@ use Carbon\CarbonPeriod;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
@@ -39,19 +34,6 @@ Route::middleware('guest')->group(function () {
 
         if ($emailMatches && $passwordMatches) {
             session(['admin_authenticated' => true]);
-
-            // Send login notification email (non-blocking)
-            try {
-                Mail::to($storedEmail)->send(
-                    new AdminLoginNotification(
-                        request()->ip(),
-                        request()->userAgent() ?? 'Unknown'
-                    )
-                );
-            } catch (Exception $e) {
-                // Don't fail the login if the email fails
-                Log::warning('Login notification email failed: '.$e->getMessage());
-            }
 
             return redirect('/dashboard');
         }

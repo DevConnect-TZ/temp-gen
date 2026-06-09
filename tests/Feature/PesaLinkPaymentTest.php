@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Mail\TransactionSuccessNotification;
 use App\Models\Page;
 use App\Models\PaymentGateway;
 use App\Models\PesaLinkAccount;
@@ -218,7 +217,7 @@ class PesaLinkPaymentTest extends TestCase
             'pesalink_account_id' => $account->id,
         ]);
 
-        Mail::assertSent(TransactionSuccessNotification::class);
+        Mail::assertNothingSent();
     }
 
     public function test_it_rejects_pesalink_order_when_sub_account_is_inactive(): void

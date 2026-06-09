@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Mail\TransactionSuccessNotification;
-use App\Models\AdminSetting;
 use App\Models\Page;
 use App\Models\PaymentGateway;
 use App\Models\PesaLinkAccount;
@@ -11,7 +9,6 @@ use App\Models\Transaction;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 
 class PaymentController extends Controller
@@ -500,19 +497,6 @@ class PaymentController extends Controller
                 'completed_at' => $paymentStatus === 'COMPLETED' ? now() : null,
             ]);
 
-            // Send admin email notification on completion (only if it just transitioned)
-            if ($paymentStatus === 'COMPLETED' && ! $wasAlreadyCompleted) {
-                try {
-                    $adminEmail = AdminSetting::get('admin_email');
-                    if ($adminEmail) {
-                        $transaction->load('page');
-                        Mail::to($adminEmail)->send(new TransactionSuccessNotification($transaction));
-                    }
-                } catch (\Exception $e) {
-                    \Log::warning('Transaction notification email failed: '.$e->getMessage());
-                }
-            }
-
             return response()->json([
                 'status' => 'success',
                 'payment_status' => $paymentStatus,
@@ -587,15 +571,6 @@ class PaymentController extends Controller
 
             // Send admin email notification on completion (only if it just transitioned)
             if ($transactionStatus === 'completed' && ! $wasAlreadyCompleted) {
-                try {
-                    $adminEmail = AdminSetting::get('admin_email');
-                    if ($adminEmail) {
-                        $transaction->load('page');
-                        Mail::to($adminEmail)->send(new TransactionSuccessNotification($transaction));
-                    }
-                } catch (\Exception $e) {
-                    \Log::warning('Transaction notification email failed: '.$e->getMessage());
-                }
             }
 
             return response()->json([
@@ -663,15 +638,6 @@ class PaymentController extends Controller
             ]);
 
             if ($paymentStatus === 'COMPLETED' && ! $wasAlreadyCompleted) {
-                try {
-                    $adminEmail = AdminSetting::get('admin_email');
-                    if ($adminEmail) {
-                        $transaction->load('page');
-                        Mail::to($adminEmail)->send(new TransactionSuccessNotification($transaction));
-                    }
-                } catch (\Exception $e) {
-                    \Log::warning('Transaction notification email failed: '.$e->getMessage());
-                }
             }
 
             return response()->json([
@@ -834,15 +800,6 @@ class PaymentController extends Controller
             ]);
 
             if ($paymentStatus === 'COMPLETED' && ! $wasAlreadyCompleted) {
-                try {
-                    $adminEmail = AdminSetting::get('admin_email');
-                    if ($adminEmail) {
-                        $transaction->load('page');
-                        Mail::to($adminEmail)->send(new TransactionSuccessNotification($transaction));
-                    }
-                } catch (\Exception $e) {
-                    \Log::warning('Transaction notification email failed: '.$e->getMessage());
-                }
             }
 
             return response()->json([
@@ -1045,15 +1002,6 @@ class PaymentController extends Controller
             ]);
 
             if ($paymentStatus === 'COMPLETED' && ! $wasAlreadyCompleted) {
-                try {
-                    $adminEmail = AdminSetting::get('admin_email');
-                    if ($adminEmail) {
-                        $transaction->load('page');
-                        Mail::to($adminEmail)->send(new TransactionSuccessNotification($transaction));
-                    }
-                } catch (\Exception $e) {
-                    \Log::warning('Transaction notification email failed: '.$e->getMessage());
-                }
             }
 
             return response()->json([

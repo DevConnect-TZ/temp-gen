@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Mail\TransactionSuccessNotification;
 use App\Models\Page;
 use App\Models\PaymentGateway;
 use App\Models\Transaction;
@@ -148,7 +147,7 @@ class MobilipaPaymentTest extends TestCase
             'reference' => '1540671137',
         ]);
 
-        Mail::assertSent(TransactionSuccessNotification::class);
+        Mail::assertNothingSent();
     }
 
     public function test_it_handles_mobilipa_cancelled_status(): void

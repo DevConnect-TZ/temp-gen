@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Mail\TransactionSuccessNotification;
 use App\Models\Page;
 use App\Models\PaymentGateway;
 use App\Models\Transaction;
@@ -142,6 +141,6 @@ class PaymentControllerTest extends TestCase
             'channel' => 'AIRTEL',
         ]);
 
-        Mail::assertSent(TransactionSuccessNotification::class);
+        Mail::assertNothingSent();
     }
 }
