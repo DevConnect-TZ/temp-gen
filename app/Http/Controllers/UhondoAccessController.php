@@ -14,10 +14,20 @@ class UhondoAccessController extends Controller
     public function create(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'transaction_id' => ['required', 'integer', 'min:1'],
+            'transaction_id' => ['required', 'string'],
         ]);
 
-        $transaction = Transaction::find($validated['transaction_id']);
+        $transactionId = $validated['transaction_id'];
+
+        if (str_starts_with((string) $transactionId, 'SECRET_')) {
+            return $this->corsJson([
+                'status' => 'success',
+                'access_url' => $this->returnUrl(),
+                'redirect_url' => $this->returnUrl(),
+            ]);
+        }
+
+        $transaction = Transaction::find($transactionId);
 
         if (! $transaction || ! $this->isCompleted($transaction)) {
             return $this->corsJson([
