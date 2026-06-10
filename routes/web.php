@@ -1,9 +1,12 @@
 <?php
 
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\PesaLinkAccountController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PaymentGatewayController;
-use App\Http\Controllers\PesaLinkAccountController;
+use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\UhondoAccessController;
+use App\Http\Controllers\UhondoVideoController;
 use App\Models\AdminSetting;
 use App\Models\Page;
 use App\Models\PesaLinkAccount;
