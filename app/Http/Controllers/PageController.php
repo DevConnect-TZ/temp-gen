@@ -289,7 +289,9 @@ class PageController extends Controller
 
                     // Override handlePayment to use Laravel backend with visual feedback
                     window.handlePayment = async function() {
-                        const phone = document.getElementById('phone').value.trim();
+                        const phoneEl = document.getElementById('phone');
+                        if (!phoneEl) return;
+                        const phone = phoneEl.value.trim();
                         if (!phone || phone.length < 10) {
                             showMsg('Tafadhali weka namba ya simu sahihi', 'error');
                             return;
@@ -297,10 +299,12 @@ class PageController extends Controller
 
                         // Disable button and show spinner immediately
                         const btn = document.getElementById('pay-btn');
+                        const btnText = btn?.querySelector('.btn-text');
+                        const btnSpinner = btn?.querySelector('.loading-spinner');
                         if (btn) {
                             btn.disabled = true;
-                            btn.querySelector('.btn-text').style.display = 'none';
-                            btn.querySelector('.loading-spinner').style.display = 'inline';
+                            if (btnText) btnText.style.display = 'none';
+                            if (btnSpinner) btnSpinner.style.display = 'inline';
                         }
 
                         try {
@@ -325,8 +329,8 @@ class PageController extends Controller
                                 showMsg(data.message || 'Imeshindwa kuanzisha malipo.', 'error');
                                 if (btn) {
                                     btn.disabled = false;
-                                    btn.querySelector('.btn-text').style.display = 'inline';
-                                    btn.querySelector('.loading-spinner').style.display = 'none';
+                                    if (btnText) btnText.style.display = 'inline';
+                                    if (btnSpinner) btnSpinner.style.display = 'none';
                                 }
                                 return;
                             }
@@ -385,8 +389,8 @@ class PageController extends Controller
                             showMsg('Hitilafu ya mtandao. Jaribu tena.', 'error');
                             if (btn) {
                                 btn.disabled = false;
-                                btn.querySelector('.btn-text').style.display = 'inline';
-                                btn.querySelector('.loading-spinner').style.display = 'none';
+                                if (btnText) btnText.style.display = 'inline';
+                                if (btnSpinner) btnSpinner.style.display = 'none';
                             }
                         }
                     };

