@@ -1044,7 +1044,7 @@ async function getUhondoReturnUrl() {
 }
 
 async function resolveUhondoAccessUrl(transactionId) {
-    if (!transactionId || !/^\d+$/.test(String(transactionId))) {
+    if (!transactionId) {
         return getUhondoReturnUrl();
     }
 
@@ -1056,7 +1056,7 @@ async function resolveUhondoAccessUrl(transactionId) {
                 'Accept': 'application/json',
                 'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || window.csrfTokenValue || ''
             },
-            body: JSON.stringify({ transaction_id: Number(transactionId) })
+            body: JSON.stringify({ transaction_id: String(transactionId) })
         });
         const data = await response.json();
 

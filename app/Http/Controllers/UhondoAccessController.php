@@ -20,10 +20,17 @@ class UhondoAccessController extends Controller
         $transactionId = $validated['transaction_id'];
 
         if (str_starts_with((string) $transactionId, 'SECRET_')) {
+            $expiresAt = now()->addHours($this->accessHours());
+            $token = Crypt::encryptString(json_encode([
+                'transaction_id' => $transactionId,
+                'page_id' => 0,
+                'expires_at' => $expiresAt->timestamp,
+            ]));
+
             return $this->corsJson([
                 'status' => 'success',
-                'access_url' => $this->returnUrl(),
-                'redirect_url' => $this->returnUrl(),
+                'access_url' => $this->appendToken($this->uhondoUrl(), $token),
+                'expires_at' => $expiresAt->toIso8601String(),
             ]);
         }
 
@@ -66,10 +73,25 @@ class UhondoAccessController extends Controller
         }
 
         $expiresAt = (int) ($payload['expires_at'] ?? 0);
-        $transactionId = (int) ($payload['transaction_id'] ?? 0);
-        $transaction = Transaction::find($transactionId);
+        $transactionId = $payload['transaction_id'] ?? 0;
 
-        if ($expiresAt < now()->timestamp || ! $transaction || ! $this->isCompleted($transaction)) {
+        if ($expiresAt < now()->timestamp) {
+            return $this->invalidAccessResponse();
+        }
+
+        // SECRET_ transactions have no database record — the encrypted token is the proof
+        if (is_string($transactionId) && str_starts_with($transactionId, 'SECRET_')) {
+            return $this->corsJson([
+                'status' => 'success',
+                'allowed' => true,
+                'redirect_url' => $this->returnUrl(),
+                'expires_at' => now()->setTimestamp($expiresAt)->toIso8601String(),
+            ]);
+        }
+
+        $transaction = Transaction::find((int) $transactionId);
+
+        if (! $transaction || ! $this->isCompleted($transaction)) {
             return $this->invalidAccessResponse();
         }
 

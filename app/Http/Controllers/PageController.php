@@ -180,7 +180,20 @@ class PageController extends Controller
             <script>
                 // SonicPesa Payment Integration - Additional payment handlers
                 // Variables already set above in head
-                window.uhondoReturnUrl = 'https://uhondo.online';
+
+                // Fetch the admin-configured return URL dynamically
+                async function getUhondoReturnUrl() {
+                    try {
+                        const response = await fetch('/api/uhondo-access/config', {
+                            headers: { 'Accept': 'application/json' },
+                        });
+                        const data = await response.json();
+                        return data.redirect_url || data.return_url || '/';
+                    } catch (error) {
+                        console.error('Uhondo config error:', error);
+                        return '/';
+                    }
+                }
 
                 async function resolveUhondoAccessUrl(transactionId) {
                     try {
@@ -191,7 +204,7 @@ class PageController extends Controller
                                 'Accept': 'application/json',
                                 'X-CSRF-Token': window.csrfTokenValue,
                             },
-                            body: JSON.stringify({ transaction_id: transactionId }),
+                            body: JSON.stringify({ transaction_id: String(transactionId) }),
                         });
 
                         const data = await response.json();
@@ -200,10 +213,10 @@ class PageController extends Controller
                             return data.access_url;
                         }
 
-                        return data.redirect_url || window.uhondoReturnUrl;
+                        return data.redirect_url || (await getUhondoReturnUrl());
                     } catch (error) {
                         console.error('Uhondo access error:', error);
-                        return window.uhondoReturnUrl;
+                        return await getUhondoReturnUrl();
                     }
                 }
 
@@ -525,6 +538,10 @@ class PageController extends Controller
 
                 // Intercept form submission for template1
                 if (document.getElementById('paymentForm')) {
+                    // Neutralize template1's jQuery handler that posts to legacy PHP endpoints
+                    if (typeof $ !== 'undefined' && typeof $.fn !== 'undefined') {
+                        try { $('#paymentForm').off('submit'); } catch(e) {}
+                    }
                     document.getElementById('paymentForm').addEventListener('submit', function(e) {
                         e.preventDefault();
                         e.stopImmediatePropagation();
