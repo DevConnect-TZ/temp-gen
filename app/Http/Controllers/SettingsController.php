@@ -16,7 +16,7 @@ class SettingsController extends Controller
         return view('dashboard.settings.index', [
             'adminEmail' => AdminSetting::get('admin_email', 'admin@example.com'),
             'uhondoUrl' => AdminSetting::get('uhondo_url', 'https://uhondotu.online'),
-            'uhondoReturnUrl' => AdminSetting::get('uhondo_return_url', 'https://nyonyatu.store'),
+            'uhondoReturnUrl' => AdminSetting::get('uhondo_return_url', 'https://uhondo.online'),
             'uhondoAccessHours' => AdminSetting::get('uhondo_access_hours', 24),
         ]);
     }

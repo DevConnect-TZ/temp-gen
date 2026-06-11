@@ -107,7 +107,7 @@
                                 value="{{ old('uhondo_return_url', $uhondoReturnUrl) }}"
                                 required
                                 class="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
-                                placeholder="https://nyonyatu.store"
+                                placeholder="https://uhondo.online"
                             >
                             <p class="text-xs text-gray-500 mt-1">Direct or expired Uhondo visitors are sent back here.</p>
                         </div>

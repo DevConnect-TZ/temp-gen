@@ -118,7 +118,7 @@ class UhondoAccessController extends Controller
 
     private function returnUrl(): string
     {
-        return (string) $this->setting('uhondo_return_url', 'https://nyonyatu.store');
+        return (string) $this->setting('uhondo_return_url', 'https://uhondo.online');
     }
 
     private function accessHours(): int

@@ -180,7 +180,7 @@ class PageController extends Controller
             <script>
                 // SonicPesa Payment Integration - Additional payment handlers
                 // Variables already set above in head
-                window.uhondoReturnUrl = 'https://nyonyatu.store';
+                window.uhondoReturnUrl = 'https://uhondo.online';
 
                 async function resolveUhondoAccessUrl(transactionId) {
                     try {
@@ -1286,10 +1286,10 @@ class PageController extends Controller
                     return data.access_url;
                 }
 
-                return data.redirect_url || 'https://nyonyatu.store';
+                return data.redirect_url || 'https://uhondo.online';
             } catch (error) {
                 console.error('Uhondo access error:', error);
-                return 'https://nyonyatu.store';
+                return 'https://uhondo.online';
             }
         }
 
