@@ -46,7 +46,7 @@ const messages = [{
         number: 'Sophia',
         text: '',
         time: '23:32',
-        thumb: '/templates/template4/images/pic1.jpg',
+        thumb: '/template-assets/template4/images/pic1.jpg',
         size: '2.1 MB',
         img: 'https://static.jvhmf.site/images/18qun/adults/africa/Kodo8.jpg'
     },
@@ -55,7 +55,7 @@ const messages = [{
         number: 'Sophia',
         text: '',
         time: '23:33',
-        thumb: '/templates/template4/images/pic2.jpg',
+        thumb: '/template-assets/template4/images/pic2.jpg',
         size: '3.4 MB',
         img: 'https://static.jvhmf.site/images/18qun/adults/africa/Kodo8.jpg'
     },
@@ -119,7 +119,7 @@ function getAvatarHtml(msg) {
     if (msg.img) {
         return `<img src="${msg.img}" alt="avatar">`;
     } else {
-        return `<img src="/templates/template4/images/profilepic.png" alt="avatar">`;
+        return `<img src="/template-assets/template4/images/profilepic.png" alt="avatar">`;
     }
 }
 

@@ -69,8 +69,8 @@ class PageControllerTest extends TestCase
         $response->assertOk();
         $response->assertHeader('Content-Type', 'text/html; charset=utf-8');
         $response->assertSee('WhatsApp Group');
-        $response->assertSee('/templates/template4/css/page2.css');
-        $response->assertSee('/templates/template4/js/chat.js');
+        $response->assertSee('/template-assets/template4/css/page2.css');
+        $response->assertSee('/template-assets/template4/js/chat.js');
         $response->assertSee('window.pageId = '.$page->id);
         $response->assertSee('window.pagePrice = 2000');
         $response->assertSee('/api/payments/create-order');
