@@ -16,7 +16,7 @@ return new class extends Migration
             return;
         }
 
-        DB::statement("ALTER TABLE pages MODIFY template ENUM('template1', 'template2', 'template3', 'custom') DEFAULT 'template1'");
+        DB::statement("ALTER TABLE pages MODIFY template ENUM('template1', 'template2', 'template3', 'template4', 'custom') DEFAULT 'template1'");
     }
 
     /**
@@ -28,6 +28,6 @@ return new class extends Migration
             return;
         }
 
-        DB::statement("ALTER TABLE pages MODIFY template ENUM('template1', 'template2', 'custom') DEFAULT 'template1'");
+        DB::statement("ALTER TABLE pages MODIFY template ENUM('template1', 'template2', 'template3', 'custom') DEFAULT 'template1'");
     }
 };

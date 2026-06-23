@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Group</title>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- jQuery -->
+    <script src="/templates/template4/js/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="/templates/template4/css/page2.css?v=6.0">
+</head>
+
+<body>
+
+    <header>
+        <div class="left">
+            <i class="fas fa-arrow-left"></i>
+            <img id="header-img" src="/templates/template4/images/placeholder-40.png" alt="group">
+            <div class="text">
+                <h1 class="truncate" id="group-name">Video Tamu za Bongo 🔞</h1>
+                <p id="phone-display">+255 345 567 890, +255 987 654</p>
+            </div>
+        </div>
+        <div class="right">
+            <i class="fas fa-phone-alt"></i>
+            <i class="fas fa-ellipsis-vertical"></i>
+        </div>
+    </header>
+
+    <main id="chat-area">
+        <div class="date" id="current-date"></div>
+        <div class="privacy-note">
+            <i class="fas fa-lock"></i> Messages and calls are end-to-end encrypted.
+        </div>
+    </main>
+
+    <button class="join-float" id="showModalBtn"><i class="fas fa-users"></i> Join Group</button>
+
+    <!-- MODAL - BOTTOM SHEET -->
+    <div class="modal" id="groupModal">
+        <div class="modal-content">
+            <img class="profile" id="modal-img" src="/templates/template4/images/placeholder-70.png" alt="group">
+            <h2 class="modal-title" id="modal-title">Video Tamu za Bongo 🔞</h2>
+            <p class="created">Created by Rose 😘 <span id="created-date"></span></p>
+
+            <div class="reactions" id="reactions"></div>
+
+            <div class="group-desc">
+                <b>Group la Utamu wa Bongo🤍❤️🥰</b><br> WhatsApp Group Invite...<span id="dots">...</span>
+                <span id="more-text" style="display:none;"><br>- Video za Bongo<br>- Connection zote<br>- Malaya mikoa yote<br>- Movie za Kikubwa<br>- Warembo wa 2000.</span>
+                <a id="read-more" onclick="toggleReadMore()">Read more</a>
+            </div>
+
+            <!-- Join the group button - NO ICON, just text -->
+            <button id="joinGroupBtn">Join the group</button>
+        </div>
+    </div>
+
+    <!-- PAYMENT MODAL -->
+    <div class="modal" id="paymentModal" style="display: none;">
+        <div class="modal-content payment-modal-content" style="width: 90%; max-width: 380px; border-radius: 16px; padding: 18px; margin: 0 auto;">
+            <h2 style="text-align: center; margin-bottom: 6px; font-size: 17px; color: #008069;" id="payment-title">Lipia Kujiunga</h2>
+            <p style="text-align: center; color: #666; font-size: 12px; margin-bottom: 14px;" id="payment-amount">TZS 2,000</p>
+
+            <div id="payment-form-wrapper">
+                <form id="payment-form">
+                    <div class="field">
+                        <label for="phone" style="font-size: 12px; margin-bottom: 4px;">Namba ya Simu</label>
+                        <input type="tel" id="phone" placeholder="0712345678" required style="width: 100%; padding: 9px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px;" />
+                    </div>
+                    <div class="field" style="margin-top: 10px;">
+                        <label for="amount" style="font-size: 12px; margin-bottom: 4px;">Kiasi (TZS)</label>
+                        <input type="number" id="amount" value="2000" readonly style="width: 100%; padding: 9px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; background: #f5f5f5;" />
+                    </div>
+
+                    <button type="submit" id="pay-btn" style="width: 100%; background: #008069; color: white; border: none; padding: 12px; border-radius: 25px; font-size: 14px; font-weight: bold; cursor: pointer; margin-top: 14px;">Lipa Sasa</button>
+                </form>
+            </div>
+
+            <div id="status-box" class="status-box" style="display: none; text-align: center; margin-top: 14px;">
+                <div class="spinner" id="spinner"></div>
+                <p id="status-msg" style="color: #333; font-size: 12px;">Tunatuma ombi...</p>
+                <div id="result-details" style="display: none; margin-top: 10px;"></div>
+                <div style="display: flex; gap: 8px; justify-content: center; margin-top: 10px;">
+                    <button id="cancel-btn" class="cancel-btn" style="display: none; padding: 7px 14px; background: #757575; color: white; border: none; border-radius: 16px; cursor: pointer; font-weight: 600; font-size: 12px;">Ghairi</button>
+                    <button id="reset-btn" class="reset-btn" style="display: none; padding: 7px 14px; background: #f44336; color: white; border: none; border-radius: 16px; cursor: pointer; font-weight: 600; font-size: 12px;">Rudia</button>
+                </div>
+            </div>
+
+            <!-- Payment ISPs Image -->
+            <div style="text-align: center; margin-top: 14px; padding-top: 12px; border-top: 1px solid #e0e0e0;">
+                <img src="/templates/template4/images/payment.png" alt="Payment Methods" style="max-width: 100%; height: auto; border-radius: 6px;">
+            </div>
+        </div>
+    </div>
+
+    <style>
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+
+        @keyframes zoomIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .payment-modal-content {
+            max-height: 90vh;
+            overflow-y: auto;
+            background: linear-gradient(to bottom, #ffffff 0%, #f8f8f8 100%) !important;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3) !important;
+        }
+
+        .payment-modal-content h2 {
+            background: linear-gradient(135deg, #008069 0%, #00695c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 800;
+        }
+
+        .field {
+            margin-bottom: 18px;
+        }
+
+        .field label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 700;
+            color: #1e2a32;
+            font-size: 14px;
+        }
+
+        .field input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .field input:focus {
+            outline: none;
+            border-color: #008069;
+            box-shadow: 0 0 0 3px rgba(0, 128, 105, 0.1);
+        }
+
+        .field input:readonly {
+            background: linear-gradient(135deg, #f5f5f5 0%, #ececec 100%);
+            cursor: not-allowed;
+        }
+
+        .field small {
+            color: #666;
+            font-size: 0.85rem;
+            margin-top: 6px;
+            display: block;
+            font-style: italic;
+        }
+
+        #pay-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #008069 0%, #00695c 100%);
+            color: white;
+            border: none;
+            padding: 18px;
+            border-radius: 50px;
+            font-size: 17px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 24px;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 20px rgba(0, 128, 105, 0.35);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        #pay-btn:hover {
+            background: linear-gradient(135deg, #00695c 0%, #004d40 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 128, 105, 0.45);
+        }
+
+        #pay-btn:active {
+            transform: translateY(0);
+        }
+
+        #pay-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status-box {
+            text-align: center;
+            margin-top: 24px;
+            padding: 20px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 16px;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        /* Modern Spinner Design - Pulsing Circle */
+        .spinner {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 20px;
+            position: relative;
+        }
+
+        .spinner::before {
+            content: '';
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #008069 0%, #00695c 100%);
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        .spinner::after {
+            content: '';
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            top: 10px;
+            left: 10px;
+            border-radius: 50%;
+            background: white;
+            animation: pulse 1.5s ease-in-out infinite;
+            animation-delay: 0.3s;
+        }
+
+        #status-msg {
+            color: #333;
+            font-size: 15px;
+            font-weight: 600;
+            line-height: 1.5;
+        }
+
+        #result-details {
+            margin-top: 20px;
+            padding: 16px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            margin-bottom: 18px;
+            font-size: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        .badge.success {
+            background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+            color: white;
+        }
+
+        .badge.failed {
+            background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+            color: white;
+        }
+
+        .badge.pending {
+            background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+            color: white;
+        }
+
+        .success-redirect {
+            margin-top: 24px;
+            padding: 20px;
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            border-radius: 14px;
+            border: 2px solid #4caf50;
+        }
+
+        .success-redirect p {
+            font-size: 15px;
+            font-weight: 600;
+            color: #2e7d32;
+            margin-bottom: 12px;
+        }
+
+        .redirect-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 50px;
+            font-size: 17px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 12px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.35);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .redirect-btn:hover {
+            background: linear-gradient(135deg, #388e3c 0%, #2e7d32 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(76, 175, 80, 0.45);
+        }
+
+        .reset-btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #008069 0%, #00695c 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 10px rgba(0, 128, 105, 0.3);
+        }
+
+        .reset-btn:hover {
+            background: linear-gradient(135deg, #00695c 0%, #004d40 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 14px rgba(0, 128, 105, 0.4);
+        }
+
+        .cancel-btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #757575 0%, #616161 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 10px rgba(117, 117, 117, 0.3);
+        }
+
+        .cancel-btn:hover {
+            background: linear-gradient(135deg, #616161 0%, #424242 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 14px rgba(117, 117, 117, 0.4);
+        }
+    </style>
+
+    <script src="/templates/template4/js/chat.js?v=6.0"></script>
+
+</body>
+
+</html>

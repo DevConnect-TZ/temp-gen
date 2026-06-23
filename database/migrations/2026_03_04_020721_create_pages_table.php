@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('title');
             $table->string('slug')->unique();
-            $table->enum('template', ['template1', 'template2', 'template3', 'custom'])->default('template1');
+            $table->enum('template', ['template1', 'template2', 'template3', 'template4', 'custom'])->default('template1');
             $table->decimal('price', 10, 2)->nullable();
             $table->string('payment_gateway')->nullable();
             $table->string('video_path')->nullable();
