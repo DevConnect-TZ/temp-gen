@@ -10,6 +10,12 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            // The base pages migration already contains all template values for SQLite,
+            // so no table recreation (and no FK breakage) is needed here.
+            return;
+        }
+
         // Modify template enum to include 'custom'
         DB::statement("ALTER TABLE pages MODIFY template ENUM('template1', 'template2', 'custom') DEFAULT 'template1'");
     }
@@ -19,6 +25,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         DB::statement("ALTER TABLE pages MODIFY template ENUM('template1', 'template2') DEFAULT 'template1'");
     }
 };

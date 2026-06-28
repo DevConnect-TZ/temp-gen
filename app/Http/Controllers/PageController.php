@@ -34,7 +34,7 @@ class PageController extends Controller
         // Validate based on template type
         $rules = [
             'title' => 'required|string|max:255',
-            'template' => 'required|in:template1,template2,template3,custom',
+            'template' => 'required|in:template1,template2,template3,template4,custom',
             'price' => 'nullable|numeric|min:0',
             'payment_gateway' => 'nullable|string|in:sonicpesa,snippe,fastlipa,mobilipa,pesalink',
             'pesalink_account_id' => 'nullable|required_if:payment_gateway,pesalink|exists:pesa_link_accounts,id',

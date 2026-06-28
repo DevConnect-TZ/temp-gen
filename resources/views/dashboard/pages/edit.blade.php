@@ -60,13 +60,12 @@
                     <svg class="w-12 h-12 text-gray-400 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16a1 1 0 001 1h8a1 1 0 001-1V4m0 0H4m12 0h4"/>
                     </svg>
-                @elseif($page->template === 'template3')
-                    <img src="/images/template3.png" alt="MAUTAMU Template" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
-                    <svg class="w-12 h-12 text-gray-400 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
-                    </svg>
-                @else
-                    <div class="text-center">
+            @elseif($page->template === 'template3')
+                <img src="/images/template3.png" alt="MAUTAMU Template" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+            @elseif($page->template === 'template4')
+                <img src="/images/template4.png" alt="WhatsApp Group Template" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+            @else
+                <div class="text-center">
                         <svg class="w-12 h-12 text-indigo-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                         </svg>
@@ -86,6 +85,8 @@
                     UTAMU+ Template
                 @elseif($page->template === 'template3')
                     MAUTAMU Template
+                @elseif($page->template === 'template4')
+                    WhatsApp Group Template
                 @else
                     Custom Template
                 @endif

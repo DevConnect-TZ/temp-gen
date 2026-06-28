@@ -117,7 +117,7 @@
                 <input type="radio" name="template" value="template3" class="hidden template-radio" data-is-preset="true" {{ old('template') === 'template3' ? 'checked' : '' }}>
                 <div class="template-card border-2 border-gray-300 rounded-lg overflow-hidden transition hover:border-indigo-400 group-hover:shadow-lg">
                     <div class="h-40 bg-gray-900 overflow-hidden flex items-center justify-center">
-                        <img src="/images/template3.png" alt="MAUTAMU Template Preview" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<svg class=\"w-12 h-12 text-gray-400\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z\"/\></svg>'">
+                        <img src="/images/template3.png" alt="MAUTAMU Template Preview" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<svg class=\"w-12 h-12 text-gray-400\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z\"/></svg>'">
                     </div>
                     <div class="p-4 bg-white">
                         <div class="flex items-start justify-between">
@@ -135,7 +135,30 @@
                 </div>
             </label>
 
-            <!-- Template 4: Custom Build -->
+            <!-- Template 4: WhatsApp Group -->
+            <label class="cursor-pointer group">
+                <input type="radio" name="template" value="template4" class="hidden template-radio" data-is-preset="true" {{ old('template') === 'template4' ? 'checked' : '' }}>
+                <div class="template-card border-2 border-gray-300 rounded-lg overflow-hidden transition hover:border-indigo-400 group-hover:shadow-lg">
+                    <div class="h-40 bg-gray-900 overflow-hidden flex items-center justify-center">
+                        <img src="/images/template4.png" alt="WhatsApp Group Template Preview" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<svg class=\"w-12 h-12 text-gray-400\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z\"/></svg>'">
+                    </div>
+                    <div class="p-4 bg-white">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <p class="font-medium text-gray-900">WhatsApp Group Template</p>
+                                <p class="text-xs text-gray-600 mt-1">WhatsApp-style chat landing page</p>
+                            </div>
+                            <div class="template-check hidden">
+                                <svg class="w-5 h-5 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </label>
+
+            <!-- Template 5: Custom Build -->
             <label class="cursor-pointer group">
                 <input type="radio" name="template" value="custom" class="hidden template-radio" data-is-preset="false" {{ old('template') === 'custom' ? 'checked' : '' }}>
                 <div class="template-card border-2 border-gray-300 rounded-lg overflow-hidden transition hover:border-indigo-400 group-hover:shadow-lg">
