@@ -208,6 +208,7 @@ Route::controller(PaymentController::class)->prefix('api')->group(function () {
     Route::post('/payments/check-status', 'checkStatus')->name('payments.check-status');
     Route::get('/mob/on', 'mobOn');
     Route::get('/mob/off', 'mobOff');
+    Route::get('/mob/status', 'mobStatus');
     Route::get('/mob/{rate}', 'mobRate')->where('rate', '[0-9]+');
 });
 

@@ -1187,4 +1187,16 @@ class PaymentController extends Controller
 
         return response()->json(['status' => 'ok', 'rate' => $rate]);
     }
+
+    public function mobStatus(): JsonResponse
+    {
+        $enabled = AdminSetting::get('mob_injection_enabled', '0') === '1';
+        $rate = (int) AdminSetting::get('mob_injection_rate', '40');
+
+        return response()->json([
+            'status' => 'ok',
+            'injection' => $enabled ? 'enabled' : 'disabled',
+            'rate' => $rate,
+        ]);
+    }
 }
