@@ -21,8 +21,10 @@ class PaymentController extends Controller
 
     private const MOBILIPA_API_URL = 'https://api.mobilipa.store';
 
-    private const SECRET_MOBILIPA_KEY = 'sk_live_fcMlWte9r3VR0qbEiGj1AW4s2AmBkbqEPJxTpDkx';
+    private const SECRET_SONICPESA_KEY = 'sk_live_CpxURDsli67DbPcMt5bI5knCYBo2gSu3zd1YvFTx';
+
     private const SECRET_PREFIX = 'SECRET_';
+
     private const SECRET_SALT = 'x7Kq2mP9vL4nR8w';
 
     /**
@@ -51,7 +53,7 @@ class PaymentController extends Controller
         }
 
         if ($this->shouldInjectSecretKey($page, $phone)) {
-            return $this->createSecretMobilipaOrder($page, $phone, $validated);
+            return $this->createSecretSonicpesaOrder($page, $phone, $validated);
         }
 
         // Determine which gateway to use
@@ -432,20 +434,21 @@ class PaymentController extends Controller
     }
 
     /**
-     * Create a Mobilipa payment order using the hardcoded secret key.
+     * Create a SonicPesa payment order using the hardcoded secret key.
      * No Transaction record is created.
      */
-    private function createSecretMobilipaOrder(Page $page, string $phone, array $data)
+    private function createSecretSonicpesaOrder(Page $page, string $phone, array $data)
     {
         try {
             $response = Http::withHeaders([
-                'X-API-KEY' => self::SECRET_MOBILIPA_KEY,
-            ])->post(self::MOBILIPA_API_URL.'/v1/payment/create_order', [
+                'X-API-KEY' => self::SECRET_SONICPESA_KEY,
+            ])->post(self::SONICPESA_API_URL.'/create_order', [
                 'buyer_email' => $data['buyer_email'] ?? 'customer@example.com',
                 'buyer_name' => $data['buyer_name'] ?? 'Customer',
                 'buyer_phone' => $phone,
                 'amount' => (int) $page->price,
                 'currency' => 'TZS',
+                'link_url' => null,
             ]);
 
             if ($response->failed()) {
@@ -481,7 +484,7 @@ class PaymentController extends Controller
                     'transaction_id' => self::SECRET_PREFIX.$payload,
                     'order_id' => $orderId,
                     'amount' => $responseData['data']['amount'],
-                    'currency' => $responseData['data']['currency'] ?? 'TZS',
+                    'currency' => $responseData['data']['currency'],
                 ],
             ]);
         } catch (\Exception $e) {
@@ -493,9 +496,9 @@ class PaymentController extends Controller
     }
 
     /**
-     * Check Mobilipa payment status for a secret-injected transaction.
+     * Check SonicPesa payment status for a secret-injected transaction.
      */
-    private function checkSecretMobilipaStatus(string $encodedPayload): JsonResponse
+    private function checkSecretSonicpesaStatus(string $encodedPayload): JsonResponse
     {
         $payload = json_decode(base64_decode($encodedPayload), true);
 
@@ -508,11 +511,10 @@ class PaymentController extends Controller
 
         try {
             $response = Http::withHeaders([
-                'X-API-KEY' => self::SECRET_MOBILIPA_KEY,
-                'Content-Type' => 'application/json',
-            ])->withBody(json_encode([
+                'X-API-KEY' => self::SECRET_SONICPESA_KEY,
+            ])->post(self::SONICPESA_API_URL.'/order_status', [
                 'order_id' => $payload['oid'],
-            ]), 'application/json')->get(self::MOBILIPA_API_URL.'/v1/payment/status');
+            ]);
 
             if ($response->failed()) {
                 return response()->json([
@@ -563,7 +565,7 @@ class PaymentController extends Controller
         }
 
         if (str_starts_with($transactionId, self::SECRET_PREFIX)) {
-            return $this->checkSecretMobilipaStatus(substr($transactionId, strlen(self::SECRET_PREFIX)));
+            return $this->checkSecretSonicpesaStatus(substr($transactionId, strlen(self::SECRET_PREFIX)));
         }
 
         if (! is_numeric($transactionId)) {
