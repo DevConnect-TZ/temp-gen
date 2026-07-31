@@ -12,6 +12,7 @@ class Page extends Model
         'template',
         'price',
         'payment_gateway',
+        'payment_delay',
         'video_path',
         'is_active',
         'pesalink_account_id',
@@ -20,6 +21,7 @@ class Page extends Model
     protected $casts = [
         'is_active' => 'boolean',
         'price' => 'decimal:2',
+        'payment_delay' => 'integer',
     ];
 
     public function getRouteKeyName(): string

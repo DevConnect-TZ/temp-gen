@@ -38,6 +38,7 @@ class PageController extends Controller
             'price' => 'nullable|numeric|min:0',
             'payment_gateway' => 'nullable|string|in:sonicpesa,snippe,fastlipa,mobilipa,pesalink',
             'pesalink_account_id' => 'nullable|required_if:payment_gateway,pesalink|exists:pesa_link_accounts,id',
+            'payment_delay' => 'nullable|integer|min:0',
         ];
         if ($request->input('template') === 'custom') {
             $rules['video'] = 'required|file|mimes:mp4,webm,ogv|max:512000'; // 500MB
@@ -114,6 +115,7 @@ class PageController extends Controller
             'price' => 'nullable|numeric|min:0',
             'payment_gateway' => 'nullable|string|in:sonicpesa,snippe,fastlipa,mobilipa,pesalink',
             'pesalink_account_id' => 'nullable|required_if:payment_gateway,pesalink|exists:pesa_link_accounts,id',
+            'payment_delay' => 'nullable|integer|min:0',
         ];
 
         // Only validate video if custom template and video is being uploaded
@@ -592,6 +594,8 @@ class PageController extends Controller
         $formattedPrice = number_format((float) $price);
         $gateway = $page->payment_gateway ?? 'stripe';
         $csrfToken = csrf_token();
+        $paymentDelay = ($page->payment_delay ?? 0) > 0 ? $page->payment_delay : 4;
+        $paymentDelayMs = $paymentDelay * 1000;
 
         $html = <<<HTML
 <!DOCTYPE html>
@@ -634,8 +638,7 @@ class PageController extends Controller
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.55);
-            backdrop-filter: blur(5px);
+            background: rgba(0,0,0,0.30);
             align-items: center;
             justify-content: center;
             padding: 16px;
@@ -1140,12 +1143,12 @@ class PageController extends Controller
         // Modal cannot be closed by Escape key
         // Event handler removed
 
-        // Auto-open payment modal on page load with 4 second delay
+        // Video plays for the page's configured delay, then the payment modal pops up
         document.addEventListener('DOMContentLoaded', function() {
             syncModalContent();
             setTimeout(function() {
                 openPaymentModal();
-            }, 4000);
+            }, {$paymentDelayMs});
         });
 
         paymentForm.addEventListener('submit', handlePayment);

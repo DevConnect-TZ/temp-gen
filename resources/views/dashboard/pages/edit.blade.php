@@ -186,6 +186,21 @@
                     </select>
                 </div>
             </div>
+
+            <!-- Payment Delay -->
+            <div>
+                <label for="delay" class="block text-sm font-medium text-gray-900 mb-2">Payment Delay (seconds)</label>
+                <input
+                    type="number"
+                    id="delay"
+                    name="payment_delay"
+                    placeholder="0"
+                    min="0"
+                    value="{{ old('payment_delay', $page->payment_delay ?? '') }}"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                >
+                <p class="text-xs text-gray-600 mt-1">Video plays for N seconds before the payment popup appears</p>
+            </div>
         </div>
     </div>
 

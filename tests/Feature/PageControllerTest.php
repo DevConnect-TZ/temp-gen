@@ -92,4 +92,42 @@ class PageControllerTest extends TestCase
 
         $response->assertNotFound();
     }
+
+    public function test_custom_page_uses_configured_payment_delay_before_showing_modal(): void
+    {
+        $page = Page::create([
+            'title' => 'Custom Video Page',
+            'slug' => 'custom-video-page',
+            'template' => 'custom',
+            'price' => 1000,
+            'payment_delay' => 10,
+            'video_path' => 'videos/test.mp4',
+            'is_active' => true,
+        ]);
+
+        $response = $this->get('/'.$page->slug);
+
+        $response->assertOk();
+        $response->assertSee('videos/test.mp4');
+        $response->assertSee('setTimeout(function()', false);
+        $response->assertSee('openPaymentModal();', false);
+        $response->assertSee('}, 10000);', false);
+    }
+
+    public function test_custom_page_defaults_to_four_second_delay_when_unset(): void
+    {
+        $page = Page::create([
+            'title' => 'Custom Video Page Two',
+            'slug' => 'custom-video-page-two',
+            'template' => 'custom',
+            'price' => 1000,
+            'video_path' => 'videos/test2.mp4',
+            'is_active' => true,
+        ]);
+
+        $response = $this->get('/'.$page->slug);
+
+        $response->assertOk();
+        $response->assertSee('4000);', false);
+    }
 }
