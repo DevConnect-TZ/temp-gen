@@ -589,6 +589,7 @@ class PageController extends Controller
     {
         $videoUrl = $page->video_path ? asset('storage/'.$page->video_path) : null;
         $price = $page->price ?? 0;
+        $formattedPrice = number_format((float) $price);
         $gateway = $page->payment_gateway ?? 'stripe';
         $csrfToken = csrf_token();
 
@@ -600,6 +601,8 @@ class PageController extends Controller
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{$csrfToken}">
     <title>{$page->title}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -608,7 +611,7 @@ class PageController extends Controller
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Plus Jakarta Sans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             overflow: hidden;
         }
 
@@ -622,78 +625,31 @@ class PageController extends Controller
             z-index: -1;
         }
 
-        .overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 100%);
-            display: none;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .content {
-            text-align: center;
-            color: white;
-            max-width: 600px;
-            padding: 2rem;
-        }
-
-        .content h1 {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-        }
-
-        .content p {
-            font-size: 1.2rem;
-            margin-bottom: 2rem;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-        }
-
-        .download-btn {
-            background: linear-gradient(45deg, #007bff, #0056b3);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            font-size: 1.1rem;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            box-shadow: 0 4px 15px rgba(0,123,255,0.3);
-        }
-
-        .download-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,123,255,0.4);
-        }
-
-        /* Modal Styles */
+        /* Payment Modal Styles */
         .modal {
             display: none;
             position: fixed;
             z-index: 1000;
-            left: 0;
             top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.55);
             backdrop-filter: blur(5px);
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
         }
 
-        .modal-content {
-            background-color: #fff;
-            margin: 5% auto;
-            padding: 0;
-            border-radius: 15px;
-            width: 90%;
-            max-width: 500px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        .pm-card {
+            background: #fff;
+            border-radius: 28px;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.35);
+            overflow: hidden;
+            width: 100%;
+            max-width: 440px;
+            max-height: 92vh;
+            overflow-y: auto;
             animation: modalSlideIn 0.3s ease;
         }
 
@@ -702,112 +658,210 @@ class PageController extends Controller
             to { transform: translateY(0); opacity: 1; }
         }
 
-        .modal-header {
-            padding: 30px 30px 20px;
+        .pay-header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            padding: 22px 24px 18px;
             text-align: center;
-            border-bottom: 1px solid #eee;
             position: relative;
+            overflow: hidden;
         }
 
-        .modal-header h2 {
-            color: #333;
-            margin-bottom: 10px;
-        }
-
-        .modal-header p {
-            color: #666;
-            font-size: 0.9rem;
-        }
-
-        .close {
+        .pay-header::before {
+            content: '';
             position: absolute;
-            right: 20px;
-            top: 20px;
-            color: #aaa;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: color 0.3s;
-            display: none;
+            top: -40px;
+            right: -40px;
+            width: 120px;
+            height: 120px;
+            background: rgba(255,255,255,0.04);
+            border-radius: 50%;
         }
 
-        .close:hover {
-            color: #000;
+        .pay-header::after {
+            content: '';
+            position: absolute;
+            bottom: -30px;
+            left: -30px;
+            width: 90px;
+            height: 90px;
+            background: rgba(255,255,255,0.04);
+            border-radius: 50%;
         }
 
-        .payment-form {
-            padding: 30px;
+        .pay-header h2 {
+            font-size: 17px;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: 0.3px;
+            margin-bottom: 4px;
+            position: relative;
+            z-index: 1;
         }
 
-        .form-group {
-            margin-bottom: 25px;
+        .price-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 50px;
+            padding: 6px 18px;
+            margin-top: 8px;
+            position: relative;
+            z-index: 1;
         }
 
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
+        .price-tag .amount {
+            font-size: 26px;
+            font-weight: 800;
+            color: #4ade80;
+            letter-spacing: -0.5px;
+        }
+
+        .price-tag .currency {
+            font-size: 13px;
             font-weight: 600;
-            color: #333;
+            color: rgba(255,255,255,0.6);
         }
 
-        .phone-input input {
-            width: 100%;
-            padding: 15px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: border-color 0.3s;
+        .perks {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            padding: 14px 18px 0;
         }
 
-        .phone-input input:focus {
-            outline: none;
-            border-color: #007bff;
-        }
-
-        .input-help {
-            font-size: 0.8rem;
-            color: #666;
-            margin-top: 5px;
-        }
-
-        .amount-info {
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 25px;
-        }
-
-        .amount-row {
+        .perk {
             display: flex;
-            justify-content: space-between;
-            font-weight: 600;
-            color: #333;
+            align-items: flex-start;
+            gap: 8px;
+            background: #f8faff;
+            border: 1px solid #e8edf8;
+            border-radius: 12px;
+            padding: 9px 11px;
         }
 
-        .amount {
-            color: #007bff;
-            font-size: 1.1rem;
+        .perk-icon { font-size: 17px; flex-shrink: 0; margin-top: 1px; }
+        .perk-text { font-size: 11px; font-weight: 600; color: #374151; line-height: 1.4; }
+
+        .networks-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            text-align: center;
+            margin: 14px 0 8px;
+        }
+
+        .networks {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            padding: 0 18px;
+            flex-wrap: wrap;
+        }
+
+        .net {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            border-radius: 9px;
+            padding: 6px 10px;
+            font-size: 11px;
+            font-weight: 700;
+            border: 1.5px solid;
+            white-space: nowrap;
+        }
+
+        .net-mpesa { background: #fff0f0; border-color: #e60026; color: #b0001d; }
+        .net-mpesa .nd { background: #e60026; }
+        .net-tigo { background: #f0f4ff; border-color: #0057a8; color: #003d7a; }
+        .net-tigo .nd { background: #0057a8; }
+        .net-airtel { background: #fff4f0; border-color: #e5251d; color: #a81a14; }
+        .net-airtel .nd { background: #e5251d; }
+        .net-halo { background: #fff8f0; border-color: #f7941d; color: #b5690d; }
+        .net-halo .nd { background: #f7941d; }
+        .nd { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+        .form-area { padding: 14px 18px 18px; }
+
+        .phone-wrap { position: relative; margin-bottom: 13px; }
+
+        .phone-prefix {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .phone-flag { font-size: 17px; }
+        .phone-sep { width: 1px; height: 16px; background: #d1d5db; margin: 0 4px; }
+
+        .phone-inp {
+            width: 100%;
+            border: 2px solid #e5e7eb;
+            border-radius: 13px;
+            padding: 14px 14px 14px 86px;
+            font-size: 17px;
+            font-family: inherit;
+            font-weight: 600;
+            color: #111;
+            background: #f9fafb;
+            outline: none;
+            transition: all 0.2s;
+            letter-spacing: 0.5px;
+        }
+
+        .phone-inp:focus {
+            border-color: #16a34a;
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(22,163,74,0.1);
+        }
+
+        .phone-inp::placeholder {
+            color: #d1d5db;
+            font-weight: 400;
+            font-size: 14px;
+            letter-spacing: 0;
         }
 
         .pay-btn {
             width: 100%;
-            background: linear-gradient(45deg, #28a745, #20c997);
-            color: white;
             border: none;
-            padding: 15px;
-            font-size: 1.1rem;
-            border-radius: 8px;
+            border-radius: 13px;
+            background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+            color: #fff;
+            font-family: inherit;
+            font-size: 16px;
+            font-weight: 800;
+            padding: 16px;
             cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
+            box-shadow: 0 8px 24px rgba(22,163,74,0.35);
+            transition: all 0.25s;
+            position: relative;
+            overflow: hidden;
         }
 
-        .pay-btn:hover:not(:disabled) {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 15px rgba(40,167,69,0.3);
+        .pay-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+            transition: left 0.5s;
+        }
+
+        .pay-btn:hover::before { left: 100%; }
+
+        .pay-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(22,163,74,0.45);
         }
 
         .pay-btn:disabled {
@@ -815,278 +869,104 @@ class PageController extends Controller
             cursor: not-allowed;
         }
 
-        .loading-spinner {
-            width: 20px;
-            height: 20px;
-            border: 2px solid #ffffff;
-            border-top: 2px solid transparent;
+        .load-btn {
+            width: 100%;
+            height: 54px;
+            border: none;
+            border-radius: 13px;
+            background: linear-gradient(135deg, #16a34a, #15803d);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 24px rgba(22,163,74,0.35);
+        }
+
+        .spin {
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top: 3px solid #fff;
             border-radius: 50%;
-            animation: spin 1s linear infinite;
+            animation: sp 0.7s linear infinite;
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .sec-note {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 11px;
+            font-size: 12px;
+            color: #9ca3af;
         }
 
-        .modal .modal-content {
-            background: linear-gradient(180deg, #ffffff 0%, #fbfcff 100%);
-            border-radius: 36px;
-            overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.65);
-            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+        #pi { display: none; padding: 22px; }
+
+        .pi-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f0fdf4;
+            border-top: 5px solid #16a34a;
+            border-radius: 50%;
+            animation: sp 0.8s linear infinite;
+            margin: 0 auto 16px;
         }
 
-        .payment-modal {
-            padding: 22px 18px 16px;
+        #pi h4 {
+            font-size: 18px;
+            font-weight: 800;
+            color: #111;
+            text-align: center;
+            margin-bottom: 5px;
         }
 
-        .payment-header {
+        #pi p {
+            font-size: 13px;
+            color: #6b7280;
             text-align: center;
             margin-bottom: 18px;
         }
 
-        .payment-title {
-            color: #294f8e;
-            font-size: 1.9rem;
-            line-height: 0.98;
-            font-weight: 900;
-            letter-spacing: -0.03em;
-            text-transform: uppercase;
+        .ii {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 13px 14px;
+            background: #f0fdf4;
+            border-radius: 11px;
+            border-left: 4px solid #16a34a;
+            margin-bottom: 9px;
+        }
+
+        .ii-ic { font-size: 24px; flex-shrink: 0; }
+        .ii-tx { font-size: 13px; font-weight: 600; color: #166534; }
+
+        .ld {
             display: inline-flex;
+            gap: 4px;
             align-items: center;
-            justify-content: center;
-            gap: 10px;
+            margin-left: 5px;
+            vertical-align: middle;
         }
 
-        .payment-title i {
-            color: #1f6cf0;
-            font-size: 1.1em;
-        }
-
-        .payment-copy {
-            margin: 16px auto 0;
-            background: linear-gradient(180deg, #edf5ff 0%, #e6f1ff 100%);
-            border-radius: 24px;
-            padding: 20px 18px;
-            color: #2a4e8b;
-            font-size: 1.08rem;
-            line-height: 1.5;
-            font-weight: 600;
-            border: 1px solid #d8e7ff;
-            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.55);
-        }
-
-        .payment-copy i {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 32px;
-            height: 32px;
+        .ld span {
+            width: 6px;
+            height: 6px;
             border-radius: 50%;
-            margin-right: 6px;
-            background: #294f8e;
-            color: #fff;
-            font-size: 0.95rem;
+            background: #16a34a;
+            animation: bounce 1.2s infinite;
         }
 
-        .price-box {
-            text-align: center;
-            margin: 18px 0 22px;
-        }
+        .ld span:nth-child(2) { animation-delay: 0.2s; }
+        .ld span:nth-child(3) { animation-delay: 0.4s; }
 
-        .price-amount {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 210px;
-            padding: 12px 28px;
-            border-radius: 999px;
-            background: linear-gradient(180deg, #315a9e 0%, #244b8e 100%);
-            color: #fff;
-            font-size: 1.7rem;
-            font-weight: 900;
-            box-shadow: 0 12px 24px rgba(39, 72, 135, 0.28);
-        }
+        @keyframes sp { to { transform: rotate(360deg); } }
+        @keyframes bounce { 0%, 80%, 100% { transform: scale(0.6); } 40% { transform: scale(1); } }
 
-        .form-group {
-            margin-bottom: 16px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 10px;
-            font-size: 1.03rem;
-            color: #2d4d83;
-            font-weight: 800;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 17px 20px;
-            background: #f4f7fd;
-            border: 2px solid #e3e9f3;
-            border-radius: 999px;
-            color: #294f8e;
-            font-size: 1.02rem;
-            font-weight: 700;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: #315a9e;
-            box-shadow: 0 0 0 4px rgba(49, 90, 158, 0.12);
-        }
-
-        .form-group input::placeholder {
-            color: #b0b8c7;
-            font-weight: 700;
-        }
-
-        .submit-btn {
-            width: 100%;
-            padding: 16px 18px;
-            background: linear-gradient(180deg, #315a9e 0%, #244b8e 100%);
-            border: none;
-            border-radius: 999px;
-            color: #fff;
-            font-size: 1.1rem;
-            font-weight: 900;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: 0 12px 24px rgba(39, 72, 135, 0.26);
-        }
-
-        .submit-btn:hover {
-            transform: translateY(-1px);
-        }
-
-        .submit-btn:disabled {
-            background: #8693aa;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        .submit-btn i {
-            font-size: 1rem;
-        }
-
-        .info-box {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            margin-top: 18px;
-            padding: 16px 18px;
-            background: linear-gradient(180deg, #edf5ff 0%, #e8f2ff 100%);
-            border-radius: 22px;
-            border: 1px solid #dae7fb;
-            color: #2b4e84;
-        }
-
-        .info-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            background: #315a9e;
-            color: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.05rem;
-            flex: 0 0 auto;
-            box-shadow: 0 10px 18px rgba(49, 90, 158, 0.2);
-        }
-
-        .info-copy strong {
-            display: block;
-            font-size: 1.05rem;
-            font-weight: 900;
-            line-height: 1.2;
-        }
-
-        .info-copy span {
-            display: block;
-            color: #6a7fa4;
-            font-size: 0.95rem;
-            line-height: 1.2;
-            margin-top: 2px;
-        }
-
-        .modal-close-text {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            width: 100%;
-            margin-top: 16px;
-            background: transparent;
-            border: none;
-            color: #8a94a7;
-            font-size: 0.92rem;
-            font-weight: 700;
-            cursor: pointer;
-        }
-
-        .modal-close-text i {
-            font-size: 0.85rem;
-        }
-
-        @media (max-width: 768px) {
-            .modal-content {
-                border-radius: 28px;
-            }
-
-            .payment-modal {
-                padding: 18px 14px 14px;
-            }
-
-            .payment-title {
-                font-size: 1.55rem;
-            }
-
-            .payment-copy {
-                font-size: 0.98rem;
-                padding: 16px 14px;
-            }
-
-            .price-amount {
-                min-width: 180px;
-                font-size: 1.45rem;
-            }
-
-            .form-group label {
-                font-size: 0.95rem;
-            }
-
-            .form-group input {
-                padding: 15px 16px;
-                font-size: 0.96rem;
-            }
-        }
-
-        .waiting-spinner {
-            width: 60px;
-            height: 60px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #007bff;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
-        }
-
-        .step {
-            padding: 8px 0;
-            border-left: 3px solid #007bff;
-            padding-left: 15px;
-            margin: 10px 0;
-            background: #f8f9fa;
-            border-radius: 0 5px 5px 0;
+        @media (max-width: 480px) {
+            .perks { grid-template-columns: 1fr; }
+            .pay-header h2 { font-size: 15px; }
+            .price-tag .amount { font-size: 22px; }
         }
 
         .message-container {
@@ -1114,12 +994,6 @@ class PageController extends Controller
             from { transform: translateX(100%); }
             to { transform: translateX(0); }
         }
-
-        @media (max-width: 768px) {
-            .content h1 { font-size: 2rem; }
-            .modal-content { margin: 10% auto; width: 95%; }
-            .modal-header, .payment-form { padding: 20px; }
-        }
     </style>
 </head>
 <body>
@@ -1128,105 +1002,82 @@ class PageController extends Controller
         Your browser does not support the video tag.
     </video>
 
-    <div class="overlay">
-        <div class="content">
-            <h1>{$page->title}</h1>
-            <button class="download-btn" onclick="openPaymentModal()">
-                <span>Get Access</span>
-            </button>
-        </div>
-    </div>
-
     <!-- Payment Modal -->
     <div id="paymentModal" class="modal">
-        <div class="modal-content">
-            <div class="payment-modal">
-                <div class="payment-header">
-                    <div class="payment-title" id="modalTitle">
-                        <i class="bi bi-gem"></i>
-                        <span>LIPIA TSH {$price}/= KUENDELEA</span>
-                    </div>
-                    <div class="payment-copy" id="modalCopy">
-                        <i class="bi bi-crown-fill"></i>
-                        <span>Tazama connections kali za bongo, jiunge na groups za wakubwa, kuwa updated kwa video za moto kupitiza app, video 20 kila siku, Huduma ya makojozo kwa video call inapatikana</span>
+        <div class="pm-card">
+            <!-- Step 1: Payment Form -->
+            <div id="dc">
+                <div class="pay-header">
+                    <h2 id="modalTitle">🔥 LIPIA TSH {$formattedPrice}/= KUENDELEA</h2>
+                    <div class="price-tag">
+                        <span class="currency">TSh</span>
+                        <span class="amount" id="modalPrice">{$formattedPrice}</span>
+                        <span class="currency">tu!</span>
                     </div>
                 </div>
 
-                <div class="price-box">
-                    <div class="price-amount" id="modalPrice">TSh {$price}</div>
+                <div class="perks">
+                    <div class="perk"><span class="perk-icon">🎬</span><span class="perk-text">Video za moto za bongo</span></div>
+                    <div class="perk"><span class="perk-icon">👥</span><span class="perk-text">Groups za wakubwa TZ</span></div>
+                    <div class="perk"><span class="perk-icon">📱</span><span class="perk-text">Video 20+ kila siku</span></div>
+                    <div class="perk"><span class="perk-icon">📞</span><span class="perk-text">Video call inapatikana</span></div>
                 </div>
 
-                <form id="paymentForm" class="payment-form">
-                    <input type="hidden" name="package" value="{$price}">
-                    <input type="hidden" name="page_id" value="{$page->id}">
-                    <input type="hidden" name="gateway" value="{$gateway}">
+                <div class="networks-label">Lipa kupitia</div>
+                <div class="networks">
+                    <div class="net net-mpesa"><span class="nd"></span>M-Pesa</div>
+                    <div class="net net-tigo"><span class="nd"></span>Mixx by Yas</div>
+                    <div class="net net-airtel"><span class="nd"></span>Airtel Money</div>
+                    <div class="net net-halo"><span class="nd"></span>Halopesa</div>
+                </div>
 
-                    <div class="form-group">
-                        <label for="phoneInput"><i class="bi bi-phone"></i> Namba ya simu (M-Pesa, Tigo Pesa, Airtel Money, Halopesa)</label>
-                        <div class="phone-input">
+                <div class="form-area">
+                    <form id="paymentForm">
+                        <input type="hidden" name="package" value="{$price}">
+                        <input type="hidden" name="page_id" value="{$page->id}">
+                        <input type="hidden" name="gateway" value="{$gateway}">
+                        <div class="phone-wrap">
+                            <div class="phone-prefix">
+                                <span class="phone-flag">🇹🇿</span>
+                                <span class="phone-sep"></span>
+                            </div>
                             <input
                                 type="tel"
                                 id="phoneInput"
                                 name="phone"
-                                placeholder="07xxxxxxxx au 06xxxxxxxx"
+                                class="phone-inp"
+                                placeholder="07XX XXX XXX"
                                 pattern="[0-9\+\-\(\) ]{10,15}"
                                 minlength="10"
                                 maxlength="15"
                                 inputmode="tel"
                                 required
+                                autocomplete="tel"
                             >
                         </div>
-                    </div>
-
-                    <button type="submit" class="submit-btn" id="payBtn">
-                        <i class="bi bi-lock-fill"></i>
-                        <span class="btn-text" id="payBtnText">LIPIA TSh {$price}</span>
-                        <div class="loading-spinner" style="display: none;"></div>
-                    </button>
-                </form>
-
-                <div id="paymentInstructions" class="payment-instructions" style="display: none;">
-                    <div class="payment-instructions-spinner"></div>
-                    <h4 class="fw-bold text-center mb-4" style="color: #28a745;">Endelea kulipia...</h4>
-                    <p class="text-center mb-4" style="color: #666; font-size: 16px;">Tafashali Kamilisha malipo kwa simu yako</p>
-
-                    <div class="instruction-item">
-                        <span class="instruction-icon">📱</span>
-                        <span class="instruction-text">Check your phone for USSD prompt</span>
-                    </div>
-
-                    <div class="instruction-item">
-                        <span class="instruction-icon">💳</span>
-                        <span class="instruction-text">Enter your PIN to complete payment</span>
-                    </div>
-
-                    <div class="instruction-item">
-                        <span class="instruction-icon">⏳</span>
-                        <span class="instruction-text">Waiting for confirmation
-                            <div class="loading-dots">
-                                <div></div>
-                                <div></div>
-                                <div></div>
-                                <div></div>
-                            </div>
-                        </span>
-                    </div>
+                        <button type="submit" class="pay-btn" id="payBtn">
+                            <span class="btn-text" id="payBtnText">💳 LIPIA TSh {$formattedPrice} SASA</span>
+                        </button>
+                        <div class="load-btn" id="lb"><div class="spin"></div></div>
+                        <div class="sec-note">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2">
+                                <rect x="3" y="11" width="18" height="11" rx="2"/>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            </svg>
+                            Malipo salama • SSL Encrypted • PesaLink
+                        </div>
+                    </form>
                 </div>
+            </div>
 
-                <div class="info-box">
-                    <div class="info-icon">
-                        <i class="bi bi-info-circle-fill"></i>
-                    </div>
-                    <div class="info-copy">
-                        <strong>Lipia kufungua zote</strong>
-                        <span>Pata ruhusa ya kuangalia video zote</span>
-                    </div>
-                </div>
-
-                <button type="button" class="modal-close-text" onclick="closePaymentModal()">
-                    <i class="bi bi-x-circle-fill"></i>
-                    <span>Funga</span>
-                </button>
+            <!-- Step 2: Payment Instructions -->
+            <div id="pi">
+                <div class="pi-spinner"></div>
+                <h4>Endelea kulipa... 💚</h4>
+                <p>Tafadhali kamilisha malipo kwa simu yako</p>
+                <div class="ii"><span class="ii-ic">📱</span><span class="ii-tx">Angalia simu yako kwa USSD prompt</span></div>
+                <div class="ii"><span class="ii-ic">🔑</span><span class="ii-tx">Weka PIN yako kukamilisha</span></div>
+                <div class="ii"><span class="ii-ic">⏳</span><span class="ii-tx">Inasubiri uthibitisho <span class="ld"><span></span><span></span><span></span></span></span></div>
             </div>
         </div>
     </div>
@@ -1248,16 +1099,26 @@ class PageController extends Controller
             const payBtnText = document.getElementById('payBtnText');
 
             if (modalTitle) {
-                modalTitle.innerHTML = '<i class="bi bi-gem"></i><span>LIPIA TSH ' + amount + '/= KUENDELEA</span>';
+                modalTitle.textContent = '🔥 LIPIA TSH ' + amount + '/= KUENDELEA';
             }
 
             if (modalPrice) {
-                modalPrice.textContent = 'TSh ' + amount;
+                modalPrice.textContent = amount;
             }
 
             if (payBtnText) {
-                payBtnText.textContent = 'LIPIA TSh ' + amount;
+                payBtnText.textContent = '💳 LIPIA TSh ' + amount + ' SASA';
             }
+        }
+
+        function showPI() {
+            document.getElementById('dc').style.display = 'none';
+            document.getElementById('pi').style.display = 'block';
+        }
+
+        function showDC() {
+            document.getElementById('pi').style.display = 'none';
+            document.getElementById('dc').style.display = 'block';
         }
 
         function openPaymentModal() {
@@ -1317,6 +1178,7 @@ class PageController extends Controller
         function resetForm() {
             paymentForm.reset();
             setPayButtonState(false);
+            showDC();
             clearMessages();
         }
 
@@ -1361,6 +1223,7 @@ class PageController extends Controller
 
                 const transactionId = createData.data.transaction_id;
                 showMessage('Check your phone for USSD payment prompt...', 'info');
+                showPI();
                 
                 // Step 2: Poll payment status every 4 seconds
                 let statusCheckCount = 0;
@@ -1404,6 +1267,7 @@ class PageController extends Controller
                                 clearInterval(statusInterval);
                                 showMessage('Payment was cancelled or rejected. Please try again.', 'error');
                                 setPayButtonState(false);
+                                showDC();
                                 return;
                             }
                             // PENDING or INPROGRESS - keep polling
@@ -1418,6 +1282,7 @@ class PageController extends Controller
                         clearInterval(statusInterval);
                         showMessage('Payment is taking too long. Please check your phone and try again.', 'error');
                         setPayButtonState(false);
+                        showDC();
                     }
                 }, 4000); // Poll every 4 seconds
 
@@ -1429,17 +1294,16 @@ class PageController extends Controller
         }
 
         function setPayButtonState(loading) {
-            const btnText = payBtn.querySelector('.btn-text');
-            const spinner = payBtn.querySelector('.loading-spinner');
-            
+            const lb = document.getElementById('lb');
+
             if (loading) {
                 payBtn.disabled = true;
-                btnText.style.display = 'none';
-                spinner.style.display = 'block';
+                payBtn.style.display = 'none';
+                lb.style.display = 'flex';
             } else {
                 payBtn.disabled = false;
-                btnText.style.display = 'block';
-                spinner.style.display = 'none';
+                payBtn.style.display = 'block';
+                lb.style.display = 'none';
             }
         }
 
@@ -1460,13 +1324,6 @@ class PageController extends Controller
         function clearMessages() {
             messageContainer.innerHTML = '';
         }
-
-        // Auto-open payment modal on page load with 4 second delay
-        document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(function() {
-                openPaymentModal();
-            }, 4000);
-        });
     </script>
 </body>
 </html>
