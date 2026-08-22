@@ -145,6 +145,7 @@ Route::middleware(['auth.custom'])->group(function () {
         Route::get('/', 'index')->name('pages.index');
         Route::get('/create', 'create')->name('pages.create');
         Route::post('/', 'store')->name('pages.store');
+        Route::post('/upload-video', 'uploadVideo')->name('pages.upload-video');
         Route::get('/{page}/edit', 'edit')->name('pages.edit');
         Route::put('/{page}', 'update')->name('pages.update');
         Route::delete('/{page}', 'destroy')->name('pages.destroy');
@@ -214,6 +215,9 @@ Route::get('/api/uhondo-videos', [UhondoVideoController::class, 'publicIndex'])
 Route::get('/api/uhondo-videos/{uhondo}/stream', [UhondoVideoController::class, 'stream'])
     ->withoutMiddleware([StartSession::class, ShareErrorsFromSession::class, VerifyCsrfToken::class])
     ->name('api.uhondo-videos.stream');
+Route::get('/api/page-videos/{page}/stream', [PageController::class, 'streamVideo'])
+    ->withoutMiddleware([StartSession::class, ShareErrorsFromSession::class, VerifyCsrfToken::class])
+    ->name('api.page-videos.stream');
 Route::post('/api/uhondo-access/create', [UhondoAccessController::class, 'create'])->name('api.uhondo-access.create');
 Route::get('/api/uhondo-access/verify', [UhondoAccessController::class, 'verify'])
     ->withoutMiddleware([StartSession::class, ShareErrorsFromSession::class, VerifyCsrfToken::class])

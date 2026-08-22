@@ -197,6 +197,8 @@
     <div id="videoSection" class="hidden bg-white rounded-xl shadow-sm p-6 border {{ $errors->has('video') ? 'border-red-500' : 'border-gray-200' }}">
         <h2 class="text-lg font-bold text-gray-900 mb-6">Background Video</h2>
 
+        <input type="hidden" id="videoPathInput" name="video_path" value="{{ old('video_path') }}">
+
         <!-- Drag & Drop Area -->
         <div
             id="dragDropZone"
@@ -212,8 +214,34 @@
             <p class="text-sm text-gray-600 mb-4">or click to browse</p>
             <p class="text-xs text-gray-500">MP4, WebM, OGG (Max 500MB)</p>
 
-            <div id="videoPreview" class="mt-4 hidden">
-                <p class="text-sm font-medium text-green-600">✓ Video selected</p>
+            <div id="videoDetails" class="mt-4 hidden text-left bg-gray-50 border border-gray-200 rounded-lg p-4">
+                <div class="flex items-start justify-between gap-4">
+                    <div class="min-w-0">
+                        <p id="videoFileName" class="text-sm font-medium text-gray-900 truncate"></p>
+                        <p id="videoFileSize" class="text-xs text-gray-600 mt-0.5"></p>
+                    </div>
+                    <button type="button" id="videoRemoveBtn" class="text-xs font-medium text-red-600 hover:text-red-800 flex-shrink-0">Remove</button>
+                </div>
+                <div id="videoMetaInfo" class="mt-2 hidden text-xs text-gray-600"></div>
+                <div id="videoInspectStatus" class="mt-2 hidden text-xs font-medium"></div>
+            </div>
+
+            <!-- Upload Progress -->
+            <div id="uploadProgress" class="mt-6 hidden">
+                <div class="flex items-center justify-between mb-2">
+                    <p class="text-sm font-medium text-gray-900">
+                        <span id="uploadStage">Checking video...</span>
+                    </p>
+                    <p class="text-sm font-bold text-indigo-600" id="uploadPercent">0%</p>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                    <div id="uploadProgressBar" class="bg-indigo-600 h-3 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+                <div class="flex items-center justify-between mt-2">
+                    <p class="text-xs text-gray-600" id="uploadStats">Preparing upload...</p>
+                    <button type="button" id="uploadCancelBtn" class="text-xs font-medium text-red-600 hover:text-red-800">Cancel</button>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">Keep this page open while the video uploads</p>
             </div>
         </div>
 
@@ -390,16 +418,35 @@
     const videoSection = document.getElementById('videoSection');
     const dragDropZone = document.getElementById('dragDropZone');
     const videoFile = document.getElementById('videoFile');
-    const videoPreview = document.getElementById('videoPreview');
+    const videoPathInput = document.getElementById('videoPathInput');
+    const videoDetails = document.getElementById('videoDetails');
+    const videoFileName = document.getElementById('videoFileName');
+    const videoFileSize = document.getElementById('videoFileSize');
+    const videoMetaInfo = document.getElementById('videoMetaInfo');
+    const videoInspectStatus = document.getElementById('videoInspectStatus');
+    const videoRemoveBtn = document.getElementById('videoRemoveBtn');
+    const uploadProgress = document.getElementById('uploadProgress');
+    const uploadStage = document.getElementById('uploadStage');
+    const uploadPercent = document.getElementById('uploadPercent');
+    const uploadProgressBar = document.getElementById('uploadProgressBar');
+    const uploadStats = document.getElementById('uploadStats');
+    const uploadCancelBtn = document.getElementById('uploadCancelBtn');
+    const pageForm = document.querySelector('form[action="/pages"]');
+    const uploadVideoUrl = @json(route('pages.upload-video'));
+
+    const MAX_VIDEO_SIZE = 500 * 1024 * 1024;
+    const ALLOWED_EXTENSIONS = ['mp4', 'webm', 'ogv'];
+    let activeUpload = null;
+    let uploadInProgress = false;
 
     // Update visual selection state
     function updateTemplateSelection() {
         const selectedTemplate = document.querySelector('.template-radio:checked');
-        
+
         templateCards.forEach((card, index) => {
             const radio = templateRadios[index];
             const checkIcon = card.querySelector('.template-check');
-            
+
             if (radio.checked) {
                 // Add selected state
                 card.classList.remove('border-gray-300');
@@ -418,15 +465,13 @@
     function updateFormVisibility() {
         const selectedTemplate = document.querySelector('.template-radio:checked');
         const isPreset = selectedTemplate?.dataset.isPreset === 'true';
-        
+
         if (isPreset) {
             videoSection.classList.add('hidden');
-            videoFile.removeAttribute('required');
         } else {
             videoSection.classList.remove('hidden');
-            videoFile.setAttribute('required', 'required');
         }
-        
+
         updateTemplateSelection();
     }
 
@@ -449,15 +494,282 @@
     dragDropZone.addEventListener('drop', (e) => {
         e.preventDefault();
         dragDropZone.classList.remove('border-indigo-500', 'bg-indigo-50');
-        videoFile.files = e.dataTransfer.files;
-        if (videoFile.files.length > 0) {
-            videoPreview.classList.remove('hidden');
+        if (e.dataTransfer.files.length > 0) {
+            videoFile.files = e.dataTransfer.files;
+            handleVideoSelected();
         }
     });
 
-    videoFile.addEventListener('change', () => {
-        if (videoFile.files.length > 0) {
-            videoPreview.classList.remove('hidden');
+    videoFile.addEventListener('change', handleVideoSelected);
+
+    videoRemoveBtn.addEventListener('click', () => {
+        if (activeUpload) {
+            activeUpload.abort();
+        }
+        activeUpload = null;
+        videoFile.value = '';
+        videoPathInput.value = '';
+        hideUploadUI();
+        resetVideoUI();
+    });
+
+    function resetVideoUI() {
+        videoDetails.classList.add('hidden');
+        videoMetaInfo.classList.add('hidden');
+        videoInspectStatus.classList.add('hidden');
+        videoInspectStatus.className = 'mt-2 hidden text-xs font-medium';
+        uploadInProgress = false;
+    }
+
+    function formatBytes(bytes) {
+        if (bytes >= 1024 * 1024 * 1024) {
+            return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+        }
+        if (bytes >= 1024 * 1024) {
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+        return (bytes / 1024).toFixed(0) + ' KB';
+    }
+
+    function formatDuration(seconds) {
+        if (!isFinite(seconds)) {
+            return 'unknown';
+        }
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.round(seconds % 60);
+        return mins + ':' + String(secs).padStart(2, '0');
+    }
+
+    function setInspectStatus(text, type) {
+        videoInspectStatus.classList.remove('hidden');
+        if (type === 'error') {
+            videoInspectStatus.className = 'mt-2 text-xs font-medium text-red-600';
+        } else if (type === 'ok') {
+            videoInspectStatus.className = 'mt-2 text-xs font-medium text-green-600';
+        } else {
+            videoInspectStatus.className = 'mt-2 text-xs font-medium text-gray-600';
+        }
+        videoInspectStatus.textContent = text;
+    }
+
+    /**
+     * Verify the browser can actually decode and play the selected file by
+     * loading its metadata, so we know it will play before uploading.
+     */
+    function verifyVideoIsPlayable(file) {
+        return new Promise((resolve) => {
+            const objectUrl = URL.createObjectURL(file);
+            const probe = document.createElement('video');
+            probe.preload = 'metadata';
+            probe.muted = true;
+
+            const cleanup = () => URL.revokeObjectURL(objectUrl);
+            const timeout = setTimeout(() => {
+                cleanup();
+                resolve({ ok: false, error: 'Could not read the video file. It may be corrupted.' });
+            }, 20000);
+
+            probe.addEventListener('loadedmetadata', () => {
+                clearTimeout(timeout);
+                const meta = {
+                    ok: probe.videoWidth > 0 && probe.duration > 0,
+                    duration: probe.duration,
+                    width: probe.videoWidth,
+                    height: probe.videoHeight,
+                };
+                cleanup();
+                resolve(meta.ok ? meta : { ...meta, error: 'The video has no playable track.' });
+            });
+
+            probe.addEventListener('error', () => {
+                clearTimeout(timeout);
+                cleanup();
+                resolve({ ok: false, error: 'This file cannot be played by the browser. Please upload a valid MP4, WebM or OGV video.' });
+            });
+
+            probe.src = objectUrl;
+        });
+    }
+
+    async function handleVideoSelected() {
+        resetVideoUI();
+
+        if (videoFile.files.length === 0) {
+            return;
+        }
+
+        const file = videoFile.files[0];
+        const extension = file.name.split('.').pop().toLowerCase();
+
+        videoDetails.classList.remove('hidden');
+        videoFileName.textContent = file.name;
+        videoFileSize.textContent = formatBytes(file.size);
+
+        if (!ALLOWED_EXTENSIONS.includes(extension)) {
+            setInspectStatus('✗ Unsupported format ".' + extension + '". Allowed: MP4, WebM, OGV.', 'error');
+            return;
+        }
+
+        if (file.size === 0) {
+            setInspectStatus('✗ The selected file is empty.', 'error');
+            return;
+        }
+
+        if (file.size > MAX_VIDEO_SIZE) {
+            setInspectStatus('✗ File is ' + formatBytes(file.size) + '. Maximum allowed size is 500 MB.', 'error');
+            return;
+        }
+
+        setInspectStatus('Checking video...', 'checking');
+
+        const probe = await verifyVideoIsPlayable(file);
+
+        if (!probe.ok) {
+            setInspectStatus('✗ ' + probe.error, 'error');
+            return;
+        }
+
+        videoMetaInfo.classList.remove('hidden');
+        videoMetaInfo.textContent = 'Duration ' + formatDuration(probe.duration) + ' • ' + probe.width + '×' + probe.height;
+        setInspectStatus('✓ Video verified - uploading now...', 'ok');
+
+        startVideoUpload(file);
+    }
+
+    /**
+     * Upload the selected video immediately so the upload progress is shown
+     * right after the file is chosen. On success the returned path is stored
+     * in the hidden video_path field referenced by the page form.
+     */
+    function startVideoUpload(file) {
+        const csrfToken = pageForm.querySelector('input[name="_token"]').value;
+        const formData = new FormData();
+        formData.append('video', file);
+
+        uploadInProgress = true;
+        resetUploadBar();
+        showUploadUI();
+
+        const xhr = new XMLHttpRequest();
+        activeUpload = xhr;
+        const startTime = Date.now();
+
+        xhr.open('POST', uploadVideoUrl);
+        xhr.responseType = 'json';
+        xhr.setRequestHeader('Accept', 'application/json');
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        xhr.setRequestHeader('X-CSRF-TOKEN', csrfToken);
+
+        xhr.upload.addEventListener('progress', (event) => updateUploadProgress(event, startTime));
+        xhr.addEventListener('load', () => {
+            uploadInProgress = false;
+            activeUpload = null;
+
+            if (xhr.status === 200 && xhr.response?.status === 'success') {
+                videoPathInput.value = xhr.response.data.video_path;
+                uploadStage.textContent = 'Upload complete';
+                uploadPercent.textContent = '100%';
+                uploadProgressBar.style.width = '100%';
+                uploadStats.textContent = formatBytes(file.size) + ' uploaded - video ready to play';
+                setInspectStatus('✓ Video uploaded successfully', 'ok');
+            } else if (xhr.status === 422) {
+                const message = Object.values(xhr.response?.errors || {}).flat().join(' ')
+                    || (xhr.response?.message || 'The video was rejected. Please try another file.');
+                showUploadError(message);
+                setInspectStatus('✗ Upload failed - select another video or try again', 'error');
+            } else {
+                showUploadError(xhr.response?.message || 'Upload failed (HTTP ' + xhr.status + '). Please try again.');
+                setInspectStatus('✗ Upload failed - select another video or try again', 'error');
+            }
+        });
+        xhr.addEventListener('error', () => {
+            uploadInProgress = false;
+            activeUpload = null;
+            showUploadError('Network error during upload. Please check your connection and try again.');
+            setInspectStatus('✗ Upload failed - select another video or try again', 'error');
+        });
+        xhr.addEventListener('abort', () => {
+            uploadInProgress = false;
+            activeUpload = null;
+            showUploadError('Upload cancelled.');
+            setInspectStatus('✗ Upload cancelled - select the video again to retry', 'error');
+        });
+
+        xhr.send(formData);
+    }
+
+    function isCustomTemplateSelected() {
+        const selected = document.querySelector('.template-radio:checked');
+        return selected && selected.value === 'custom';
+    }
+
+    function showUploadUI() {
+        uploadProgress.classList.remove('hidden');
+        uploadStage.textContent = 'Uploading video...';
+        uploadPercent.textContent = '0%';
+        uploadProgressBar.style.width = '0%';
+        uploadStats.textContent = 'Preparing upload...';
+    }
+
+    function hideUploadUI() {
+        uploadProgress.classList.add('hidden');
+    }
+
+    function updateUploadProgress(event, startTime) {
+        if (!event.lengthComputable) {
+            return;
+        }
+
+        const percent = Math.round((event.loaded / event.total) * 100);
+        const uploaded = formatBytes(event.loaded);
+        const total = formatBytes(event.total);
+        const elapsedSeconds = Math.max((Date.now() - startTime) / 1000, 0.5);
+        const speed = event.loaded / elapsedSeconds;
+        const remainingBytes = Math.max(event.total - event.loaded, 0);
+        const etaSeconds = speed > 0 ? remainingBytes / speed : 0;
+        const etaMinutes = Math.floor(etaSeconds / 60);
+        const eta = etaMinutes + ':' + String(Math.round(etaSeconds % 60)).padStart(2, '0');
+
+        uploadPercent.textContent = percent + '%';
+        uploadProgressBar.style.width = percent + '%';
+        uploadStats.textContent = uploaded + ' of ' + total + ' • ' + formatBytes(speed) + '/s • ETA ' + eta;
+    }
+
+    function showUploadError(message) {
+        uploadStage.textContent = 'Upload failed';
+        uploadPercent.textContent = '';
+        uploadProgressBar.classList.remove('bg-indigo-600');
+        uploadProgressBar.classList.add('bg-red-600');
+        uploadStats.textContent = message;
+    }
+
+    function resetUploadBar() {
+        uploadProgressBar.classList.remove('bg-red-600');
+        uploadProgressBar.classList.add('bg-indigo-600');
+    }
+
+    uploadCancelBtn.addEventListener('click', () => {
+        if (activeUpload) {
+            activeUpload.abort();
+        }
+    });
+
+    pageForm.addEventListener('submit', (event) => {
+        if (!isCustomTemplateSelected()) {
+            return;
+        }
+
+        if (uploadInProgress) {
+            event.preventDefault();
+            setInspectStatus('Please wait for the video upload to finish.', 'error');
+            uploadProgress.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
+        }
+
+        if (!videoPathInput.value) {
+            event.preventDefault();
+            setInspectStatus('Please select and upload a video before creating the page.', 'error');
+            videoSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     });
 

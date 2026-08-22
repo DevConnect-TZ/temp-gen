@@ -3,8 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Page;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class PageController extends Controller
 {
@@ -41,7 +45,8 @@ class PageController extends Controller
             'payment_delay' => 'nullable|integer|min:0',
         ];
         if ($request->input('template') === 'custom') {
-            $rules['video'] = 'required|file|mimes:mp4,webm,ogv|max:512000'; // 500MB
+            $rules['video'] = 'nullable|file|mimes:mp4,webm,ogv|max:512000'; // 500MB
+            $rules['video_path'] = ['required_without:video', 'nullable', 'string', 'regex:/^videos\/[a-zA-Z0-9_.-]+\.(mp4|webm|ogv)$/'];
         }
 
         $validated = $request->validate($rules);
@@ -59,15 +64,22 @@ class PageController extends Controller
         $validated['slug'] = $slug;
         $validated['is_active'] = $request->has('is_active');
 
-        // Handle video upload for custom template
-        if ($request->input('template') === 'custom' && $request->hasFile('video')) {
-            $videoPath = $request->file('video')->store('videos', 'public');
-            $validated['video_path'] = $videoPath;
+        // Handle video for custom template (immediate upload or fallback direct file)
+        if ($request->input('template') === 'custom') {
+            $videoPath = $this->resolveVideoPath($request);
+
+            if ($videoPath === false) {
+                return $this->failureResponse($request, 'The video upload was incomplete or corrupted. Please try again.');
+            }
+
+            if ($videoPath !== null) {
+                $validated['video_path'] = $videoPath;
+            }
         }
 
-        Page::create($validated);
+        $page = Page::create($validated);
 
-        return redirect('/pages')->with('success', 'Page created successfully! Access it at: /'.$slug);
+        return $this->successResponse($request, 'Page created successfully! Access it at: /'.$slug, $page);
     }
 
     /**
@@ -118,27 +130,36 @@ class PageController extends Controller
             'payment_delay' => 'nullable|integer|min:0',
         ];
 
-        // Only validate video if custom template and video is being uploaded
-        if ($page->template === 'custom' && $request->hasFile('video')) {
-            $rules['video'] = 'file|mimes:mp4,webm,ogv|max:512000'; // 500MB
+        // Only validate video if custom template
+        if ($page->template === 'custom') {
+            $rules['video'] = 'nullable|file|mimes:mp4,webm,ogv|max:512000'; // 500MB
+            $rules['video_path'] = ['nullable', 'string', 'regex:/^videos\/[a-zA-Z0-9_.-]+\.(mp4|webm|ogv)$/'];
         }
 
         $validated = $request->validate($rules);
         $validated['is_active'] = $request->has('is_active');
 
-        // Handle video upload for custom template
-        if ($page->template === 'custom' && $request->hasFile('video')) {
-            // Delete old video if exists
-            if ($page->video_path && \Storage::disk('public')->exists($page->video_path)) {
-                \Storage::disk('public')->delete($page->video_path);
+        // Handle video replacement for custom template (immediate upload or fallback direct file)
+        if ($page->template === 'custom') {
+            $videoPath = $this->resolveVideoPath($request);
+
+            if ($videoPath === false) {
+                return $this->failureResponse($request, 'The video upload was incomplete or corrupted. Please try again.');
             }
-            $videoPath = $request->file('video')->store('videos', 'public');
-            $validated['video_path'] = $videoPath;
+
+            if ($videoPath !== null && $videoPath !== $page->video_path) {
+                // Delete old video if exists
+                if ($page->video_path && Storage::disk('public')->exists($page->video_path)) {
+                    Storage::disk('public')->delete($page->video_path);
+                }
+
+                $validated['video_path'] = $videoPath;
+            }
         }
 
         $page->update($validated);
 
-        return redirect('/pages')->with('success', 'Page updated successfully!');
+        return $this->successResponse($request, 'Page updated successfully!', $page);
     }
 
     /**
@@ -589,7 +610,7 @@ class PageController extends Controller
      */
     private function serveCustomPage(Page $page)
     {
-        $videoUrl = $page->video_path ? asset('storage/'.$page->video_path) : null;
+        $videoUrl = $page->video_path ? route('api.page-videos.stream', $page, false) : null;
         $price = $page->price ?? 0;
         $formattedPrice = number_format((float) $price);
         $gateway = $page->payment_gateway ?? 'stripe';
@@ -1000,7 +1021,7 @@ class PageController extends Controller
     </style>
 </head>
 <body>
-    <video class="video" autoplay loop muted playsinline>
+    <video class="video" autoplay loop muted playsinline preload="auto">
         <source src="{$videoUrl}" type="video/mp4">
         Your browser does not support the video tag.
     </video>
@@ -1334,5 +1355,131 @@ HTML;
 
         return response($html)
             ->header('Content-Type', 'text/html; charset=utf-8');
+    }
+
+    /**
+     * Stream the custom page background video with HTTP range support
+     * so browsers can seek and buffer efficiently.
+     */
+    public function streamVideo(Page $page): BinaryFileResponse
+    {
+        abort_unless($page->is_active, 404);
+        abort_unless($page->video_path, 404);
+        abort_unless(Storage::disk('public')->exists($page->video_path), 404);
+
+        return response()
+            ->file(Storage::disk('public')->path($page->video_path), [
+                'Content-Type' => Storage::disk('public')->mimeType($page->video_path) ?? 'video/mp4',
+                'Cache-Control' => 'public, max-age=3600',
+            ]);
+    }
+
+    /**
+     * Immediately store a background video uploaded by the dashboard
+     * and return its storage path so the page form can reference it.
+     */
+    public function uploadVideo(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'video' => 'required|file|mimes:mp4,webm,ogv|max:512000', // 500MB
+        ]);
+
+        $videoPath = $request->file('video')->store('videos', 'public');
+
+        if (! $this->isStoredVideoIntact($videoPath)) {
+            Storage::disk('public')->delete($videoPath);
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'The video upload was incomplete or corrupted. Please try again.',
+            ], 422);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'data' => ['video_path' => $videoPath],
+        ]);
+    }
+
+    /**
+     * Resolve the video to use for a page from either a pre-uploaded
+     * video_path (immediate upload) or a direct file upload (fallback).
+     *
+     * @return string|false|null false on corrupted upload, null when absent
+     */
+    private function resolveVideoPath(Request $request): string|false|null
+    {
+        if ($request->hasFile('video')) {
+            $videoPath = $request->file('video')->store('videos', 'public');
+
+            if (! $this->isStoredVideoIntact($videoPath)) {
+                Storage::disk('public')->delete($videoPath);
+
+                return false;
+            }
+
+            return $videoPath;
+        }
+
+        $videoPath = $request->input('video_path');
+
+        if (is_string($videoPath) && $videoPath !== '') {
+            return Storage::disk('public')->exists($videoPath) ? $videoPath : false;
+        }
+
+        return null;
+    }
+
+    /**
+     * Verify the uploaded video was fully written to disk and is non-empty.
+     */
+    private function isStoredVideoIntact(string $videoPath): bool
+    {
+        $disk = Storage::disk('public');
+
+        return $disk->exists($videoPath) && $disk->size($videoPath) > 0;
+    }
+
+    /**
+     * Redirect for regular form posts, JSON payload for XHR uploads.
+     *
+     * @return JsonResponse|RedirectResponse
+     */
+    private function successResponse(Request $request, string $message, Page $page)
+    {
+        if ($request->expectsJson()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => $message,
+                'data' => [
+                    'id' => $page->id,
+                    'slug' => $page->slug,
+                    'video_path' => $page->video_path,
+                    'redirect' => route('pages.index'),
+                ],
+            ]);
+        }
+
+        return redirect('/pages')->with('success', $message);
+    }
+
+    /**
+     * Redirect back with an error for regular form posts, JSON error for XHR uploads.
+     *
+     * @return JsonResponse|RedirectResponse
+     */
+    private function failureResponse(Request $request, string $message)
+    {
+        if ($request->expectsJson()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $message,
+            ], 422);
+        }
+
+        return redirect()
+            ->back()
+            ->withInput()
+            ->withErrors(['video' => $message]);
     }
 }
