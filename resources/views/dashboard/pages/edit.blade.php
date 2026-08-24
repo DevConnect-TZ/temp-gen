@@ -64,6 +64,8 @@
                 <img src="/images/template3.png" alt="MAUTAMU Template" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
             @elseif($page->template === 'template4')
                 <img src="/images/template4.png" alt="WhatsApp Group Template" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+            @elseif($page->template === 'template5')
+                <img src="/images/tiktoklive.png" alt="TikTok Live Template" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
             @else
                 <div class="text-center">
                         <svg class="w-12 h-12 text-indigo-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -87,13 +89,15 @@
                     MAUTAMU Template
                 @elseif($page->template === 'template4')
                     WhatsApp Group Template
+                @elseif($page->template === 'template5')
+                    TikTok Live Template
                 @else
                     Custom Template
                 @endif
             </p>
             <p class="text-xs text-gray-600 mt-2">
-                @if($page->template === 'custom')
-                    Custom template with uploaded video
+                @if(in_array($page->template, ['custom', 'template5'], true))
+                    Template with uploaded video
                 @else
                     Pre-built template (cannot be changed)
                 @endif
@@ -101,8 +105,8 @@
         </div>
     </div>
 
-    <!-- Video Upload Section (only for custom template) -->
-    @if($page->template === 'custom')
+    <!-- Video Upload Section (only for custom/tiktok template) -->
+    @if(in_array($page->template, ['custom', 'template5'], true))
     <div id="videoSection" class="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
         <h2 class="text-lg font-bold text-gray-900 mb-6">Background Video</h2>
 
@@ -160,6 +164,24 @@
                 <p class="text-xs text-gray-500 mt-2">Keep this page open while the video uploads</p>
             </div>
         </div>
+    </div>
+    @endif
+
+    <!-- Account Name Section (only for TikTok Live template) -->
+    @if($page->template === 'template5')
+    <div id="accountNameSection" class="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+        <h2 class="text-lg font-bold text-gray-900 mb-6">Live Account Name</h2>
+
+        <label for="account_name" class="block text-sm font-medium text-gray-900 mb-2">Account Name</label>
+        <input
+            type="text"
+            id="account_name"
+            name="account_name"
+            placeholder="e.g. @juma_live"
+            value="{{ old('account_name', $page->account_name) }}"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+        >
+        <p class="text-xs text-gray-600 mt-1">Shown at the top-right of the TikTok LIVE screen</p>
     </div>
     @endif
 
@@ -269,7 +291,7 @@
     const dragDropZone = document.getElementById('dragDropZone');
     const videoFile = document.getElementById('videoFile');
 
-    @if($page->template === 'custom')
+    @if(in_array($page->template, ['custom', 'template5'], true))
     const videoDetails = document.getElementById('videoDetails');
     const videoFileName = document.getElementById('videoFileName');
     const videoFileSize = document.getElementById('videoFileSize');

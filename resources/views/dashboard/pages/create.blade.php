@@ -158,6 +158,29 @@
                 </div>
             </label>
 
+            <!-- Template 5: TikTok Live -->
+            <label class="cursor-pointer group">
+                <input type="radio" name="template" value="template5" class="hidden template-radio" data-is-preset="false" {{ old('template') === 'template5' ? 'checked' : '' }}>
+                <div class="template-card border-2 border-gray-300 rounded-lg overflow-hidden transition hover:border-indigo-400 group-hover:shadow-lg">
+                    <div class="h-40 bg-gray-900 overflow-hidden flex items-center justify-center">
+                        <img src="/images/tiktoklive.png" alt="TikTok Live Template Preview" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<svg class=\"w-12 h-12 text-gray-400\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z\"/><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M21 12a9 9 0 11-18 0 9 9 0 0118 0z\"/></svg>'">
+                    </div>
+                    <div class="p-4 bg-white">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <p class="font-medium text-gray-900">TikTok Live Template</p>
+                                <p class="text-xs text-gray-600 mt-1">TikTok-style live with uploaded video</p>
+                            </div>
+                            <div class="template-check hidden">
+                                <svg class="w-5 h-5 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </label>
+
             <!-- Template 5: Custom Build -->
             <label class="cursor-pointer group">
                 <input type="radio" name="template" value="custom" class="hidden template-radio" data-is-preset="false" {{ old('template') === 'custom' ? 'checked' : '' }}>
@@ -247,6 +270,26 @@
 
         @if ($errors->has('video'))
             <p class="text-red-600 text-xs mt-2">{{ $errors->first('video') }}</p>
+        @endif
+    </div>
+
+    <!-- Account Name Section (only for TikTok Live template) -->
+    <div id="accountNameSection" class="hidden bg-white rounded-xl shadow-sm p-6 border {{ $errors->has('account_name') ? 'border-red-500' : 'border-gray-200' }}">
+        <h2 class="text-lg font-bold text-gray-900 mb-6">Live Account Name</h2>
+
+        <label for="account_name" class="block text-sm font-medium text-gray-900 mb-2">Account Name</label>
+        <input
+            type="text"
+            id="account_name"
+            name="account_name"
+            placeholder="e.g. @juma_live"
+            value="{{ old('account_name') }}"
+            class="w-full px-4 py-3 border {{ $errors->has('account_name') ? 'border-red-500' : 'border-gray-300' }} rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+        >
+        @if ($errors->has('account_name'))
+            <p class="text-red-600 text-xs mt-1">{{ $errors->first('account_name') }}</p>
+        @else
+            <p class="text-xs text-gray-600 mt-1">Shown at the top-right of the TikTok LIVE screen</p>
         @endif
     </div>
 
@@ -416,6 +459,7 @@
     const templateRadios = document.querySelectorAll('.template-radio');
     const templateCards = document.querySelectorAll('.template-card');
     const videoSection = document.getElementById('videoSection');
+    const accountNameSection = document.getElementById('accountNameSection');
     const dragDropZone = document.getElementById('dragDropZone');
     const videoFile = document.getElementById('videoFile');
     const videoPathInput = document.getElementById('videoPathInput');
@@ -461,15 +505,22 @@
         });
     }
 
-    // Show/hide video section based on template selection
+    // Show/hide video + account name sections based on template selection
     function updateFormVisibility() {
         const selectedTemplate = document.querySelector('.template-radio:checked');
         const isPreset = selectedTemplate?.dataset.isPreset === 'true';
+        const isTikTok = selectedTemplate?.value === 'template5';
 
         if (isPreset) {
             videoSection.classList.add('hidden');
         } else {
             videoSection.classList.remove('hidden');
+        }
+
+        if (isTikTok) {
+            accountNameSection.classList.remove('hidden');
+        } else {
+            accountNameSection.classList.add('hidden');
         }
 
         updateTemplateSelection();
@@ -700,7 +751,7 @@
 
     function isCustomTemplateSelected() {
         const selected = document.querySelector('.template-radio:checked');
-        return selected && selected.value === 'custom';
+        return selected && (selected.value === 'custom' || selected.value === 'template5');
     }
 
     function showUploadUI() {

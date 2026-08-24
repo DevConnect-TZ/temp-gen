@@ -390,4 +390,169 @@ class PageControllerTest extends TestCase
         Storage::disk('public')->assertExists($page->video_path);
         Storage::disk('public')->assertMissing('videos/old.mp4');
     }
+
+    public function test_admin_can_create_tiktok_live_page_with_video_and_account_name(): void
+    {
+        Storage::fake('public');
+        session(['admin_authenticated' => true]);
+
+        $response = $this->post('/pages', [
+            'title' => 'TikTok Live Page',
+            'template' => 'template5',
+            'account_name' => '@juma_live',
+            'price' => 1500,
+            'payment_gateway' => 'sonicpesa',
+            'is_active' => true,
+            'video' => $this->fakeMp4Upload(),
+        ], [
+            'Accept' => 'application/json',
+            'X-Requested-With' => 'XMLHttpRequest',
+        ]);
+
+        $response->assertOk();
+        $response->assertJsonPath('status', 'success');
+        $response->assertJsonPath('data.slug', 'tiktok-live-page');
+
+        $this->assertDatabaseHas('pages', [
+            'slug' => 'tiktok-live-page',
+            'template' => 'template5',
+            'account_name' => '@juma_live',
+        ]);
+
+        $page = Page::where('slug', 'tiktok-live-page')->firstOrFail();
+        $this->assertNotNull($page->video_path);
+        Storage::disk('public')->assertExists($page->video_path);
+    }
+
+    public function test_tiktok_live_page_requires_account_name(): void
+    {
+        Storage::fake('public');
+        session(['admin_authenticated' => true]);
+
+        $response = $this->post('/pages', [
+            'title' => 'TikTok No Account Page',
+            'template' => 'template5',
+            'price' => 1500,
+            'is_active' => true,
+            'video' => $this->fakeMp4Upload(),
+        ], [
+            'Accept' => 'application/json',
+            'X-Requested-With' => 'XMLHttpRequest',
+        ]);
+
+        $response->assertUnprocessable();
+        $response->assertJsonValidationErrors('account_name');
+        $this->assertDatabaseMissing('pages', ['title' => 'TikTok No Account Page']);
+    }
+
+    public function test_public_tiktok_live_page_is_served_with_account_name_and_live_ui(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('videos/tiktok-live.mp4', $this->fakeMp4Content());
+
+        $page = Page::create([
+            'title' => 'TikTok Live Page',
+            'slug' => 'tiktok-live-page',
+            'template' => 'template5',
+            'account_name' => '@juma_live',
+            'price' => 1500,
+            'payment_delay' => 6,
+            'video_path' => 'videos/tiktok-live.mp4',
+            'is_active' => true,
+        ]);
+
+        $response = $this->get('/'.$page->slug);
+
+        $response->assertOk();
+        $response->assertHeader('Content-Type', 'text/html; charset=utf-8');
+        $response->assertSee('/api/page-videos/'.$page->slug.'/stream');
+        $response->assertSee('@juma_live');
+        $response->assertSee('LIVE');
+        $response->assertSee('host-chip');
+        $response->assertSee('viewerCount');
+        $response->assertSee('joinStack');
+        $response->assertSee('likeCount');
+        $response->assertSee('openPaymentModal();', false);
+        $response->assertSee('}, 6000);', false);
+    }
+
+    public function test_tiktok_live_page_defaults_account_name_to_page_title(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('videos/tiktok-live-2.mp4', $this->fakeMp4Content());
+
+        $page = Page::create([
+            'title' => 'Default Account Live',
+            'slug' => 'default-account-live',
+            'template' => 'template5',
+            'price' => 1000,
+            'video_path' => 'videos/tiktok-live-2.mp4',
+            'is_active' => true,
+        ]);
+
+        $response = $this->get('/'.$page->slug);
+
+        $response->assertOk();
+        $response->assertSee('Default Account Live');
+    }
+
+    public function test_admin_can_update_tiktok_live_account_name(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('videos/tiktok-edit.mp4', $this->fakeMp4Content());
+
+        $page = Page::create([
+            'title' => 'Edit TikTok Live',
+            'slug' => 'edit-tiktok-live',
+            'template' => 'template5',
+            'account_name' => '@old_name',
+            'price' => 1000,
+            'video_path' => 'videos/tiktok-edit.mp4',
+            'is_active' => true,
+        ]);
+
+        session(['admin_authenticated' => true]);
+
+        $response = $this->put('/pages/'.$page->slug, [
+            'title' => 'Edit TikTok Live',
+            'account_name' => '@new_name',
+            'price' => 1200,
+            'is_active' => true,
+            'video_path' => 'videos/tiktok-edit.mp4',
+        ], [
+            'Accept' => 'application/json',
+            'X-Requested-With' => 'XMLHttpRequest',
+        ]);
+
+        $response->assertOk();
+        $response->assertJsonPath('status', 'success');
+
+        $this->assertDatabaseHas('pages', [
+            'slug' => 'edit-tiktok-live',
+            'account_name' => '@new_name',
+        ]);
+    }
+
+    public function test_templates_index_renders_template5(): void
+    {
+        session(['admin_authenticated' => true]);
+
+        $response = $this->get('/templates');
+
+        $response->assertOk();
+        $response->assertSee('template5');
+        $response->assertSee('/images/tiktoklive.png');
+    }
+
+    public function test_create_page_renders_tiktok_card_and_account_field(): void
+    {
+        session(['admin_authenticated' => true]);
+
+        $response = $this->get('/pages/create');
+
+        $response->assertOk();
+        $response->assertSee('TikTok Live Template');
+        $response->assertSee('account_name');
+        $response->assertSee('accountNameSection');
+    }
 }

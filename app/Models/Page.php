@@ -8,6 +8,7 @@ class Page extends Model
 {
     protected $fillable = [
         'title',
+        'account_name',
         'slug',
         'template',
         'price',
