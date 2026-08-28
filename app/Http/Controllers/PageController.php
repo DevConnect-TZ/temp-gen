@@ -47,7 +47,8 @@ class PageController extends Controller
         ];
         if (in_array($request->input('template'), ['custom', 'template5', 'template6'], true)) {
             $rules['video'] = 'nullable|file|mimes:mp4,webm,ogv|max:512000'; // 500MB
-            $rules['video_path'] = ['required_without:video', 'nullable', 'string', 'regex:/^videos\/[a-zA-Z0-9_.-]+\.(mp4|webm|ogv)$/'];
+            $rules['video_path'] = ['required_without_all:video,video_paths', 'nullable', 'string', 'regex:/^videos\/[a-zA-Z0-9_.-]+\.(mp4|webm|ogv)$/'];
+            $rules['video_paths'] = ['nullable', 'string', 'json'];
         }
 
         $validated = $request->validate($rules);
@@ -65,17 +66,31 @@ class PageController extends Controller
         $validated['slug'] = $slug;
         $validated['is_active'] = $request->has('is_active');
 
-        // Handle video for custom/tiktok templates (immediate upload or fallback direct file)
         // Handle video for custom/tiktok/reel templates (immediate upload or fallback direct file)
         if (in_array($request->input('template'), ['custom', 'template5', 'template6'], true)) {
-            $videoPath = $this->resolveVideoPath($request);
+            // Reel pages support multiple videos via a JSON list of stored paths
+            $videoPaths = json_decode((string) $request->input('video_paths', ''), true);
 
-            if ($videoPath === false) {
-                return $this->failureResponse($request, 'The video upload was incomplete or corrupted. Please try again.');
-            }
+            if (is_array($videoPaths) && $videoPaths !== []) {
+                foreach ($videoPaths as $videoPath) {
+                    if (! is_string($videoPath) || ! Storage::disk('public')->exists($videoPath)) {
+                        return $this->failureResponse($request, 'One of the uploaded videos could not be found. Please upload it again.');
+                    }
+                }
 
-            if ($videoPath !== null) {
-                $validated['video_path'] = $videoPath;
+                $validated['videos'] = $videoPaths;
+                $validated['video_path'] = $videoPaths[0];
+            } else {
+                $videoPath = $this->resolveVideoPath($request);
+
+                if ($videoPath === false) {
+                    return $this->failureResponse($request, 'The video upload was incomplete or corrupted. Please try again.');
+                }
+
+                if ($videoPath !== null) {
+                    $validated['video_path'] = $videoPath;
+                    $validated['videos'] = [$videoPath];
+                }
             }
         }
 
@@ -89,9 +104,11 @@ class PageController extends Controller
      */
     public function destroy(Page $page)
     {
-        // Delete uploaded video if exists
-        if ($page->video_path && \Storage::disk('public')->exists($page->video_path)) {
-            \Storage::disk('public')->delete($page->video_path);
+        // Delete uploaded videos if exists
+        foreach (collect($page->videos ?? [])->push($page->video_path)->filter()->unique() as $videoPath) {
+            if (Storage::disk('public')->exists($videoPath)) {
+                Storage::disk('public')->delete($videoPath);
+            }
         }
 
         $page->delete();
@@ -137,6 +154,7 @@ class PageController extends Controller
         if (in_array($page->template, ['custom', 'template5', 'template6'], true)) {
             $rules['video'] = 'nullable|file|mimes:mp4,webm,ogv|max:512000'; // 500MB
             $rules['video_path'] = ['nullable', 'string', 'regex:/^videos\/[a-zA-Z0-9_.-]+\.(mp4|webm|ogv)$/'];
+            $rules['video_paths'] = ['nullable', 'string', 'json'];
         }
 
         $validated = $request->validate($rules);
@@ -144,19 +162,42 @@ class PageController extends Controller
 
         // Handle video replacement for custom/tiktok/reel templates (immediate upload or fallback direct file)
         if (in_array($page->template, ['custom', 'template5', 'template6'], true)) {
-            $videoPath = $this->resolveVideoPath($request);
+            // Reel pages support multiple videos via a JSON list of stored paths
+            $videoPaths = json_decode((string) $request->input('video_paths', ''), true);
 
-            if ($videoPath === false) {
-                return $this->failureResponse($request, 'The video upload was incomplete or corrupted. Please try again.');
-            }
-
-            if ($videoPath !== null && $videoPath !== $page->video_path) {
-                // Delete old video if exists
-                if ($page->video_path && Storage::disk('public')->exists($page->video_path)) {
-                    Storage::disk('public')->delete($page->video_path);
+            if (is_array($videoPaths) && $videoPaths !== []) {
+                foreach ($videoPaths as $videoPath) {
+                    if (! is_string($videoPath) || ! Storage::disk('public')->exists($videoPath)) {
+                        return $this->failureResponse($request, 'One of the uploaded videos could not be found. Please upload it again.');
+                    }
                 }
 
-                $validated['video_path'] = $videoPath;
+                // Delete old videos no longer referenced
+                $oldVideos = collect($page->videos ?? [])->diff($videoPaths);
+                foreach ($oldVideos as $oldVideo) {
+                    if (Storage::disk('public')->exists($oldVideo)) {
+                        Storage::disk('public')->delete($oldVideo);
+                    }
+                }
+
+                $validated['videos'] = $videoPaths;
+                $validated['video_path'] = $videoPaths[0];
+            } else {
+                $videoPath = $this->resolveVideoPath($request);
+
+                if ($videoPath === false) {
+                    return $this->failureResponse($request, 'The video upload was incomplete or corrupted. Please try again.');
+                }
+
+                if ($videoPath !== null && $videoPath !== $page->video_path) {
+                    // Delete old video if exists
+                    if ($page->video_path && Storage::disk('public')->exists($page->video_path)) {
+                        Storage::disk('public')->delete($page->video_path);
+                    }
+
+                    $validated['video_path'] = $videoPath;
+                    $validated['videos'] = [$videoPath];
+                }
             }
         }
 
@@ -2690,13 +2731,32 @@ HTML;
      */
     private function serveReelPage(Page $page)
     {
-        $videoUrl = $page->video_path ? route('api.page-videos.stream', $page, false) : null;
+        $videos = collect($page->videos ?: [])->filter();
+        if ($videos->isEmpty() && $page->video_path) {
+            $videos = collect([$page->video_path]);
+        }
+
+        $videoUrls = $videos->keys()->map(function (int $index) use ($page): string {
+            return route('api.page-videos.stream', [$page, 'index' => $index], false);
+        });
+        $videoUrlsJson = $videoUrls->values()->toJson();
+        $slideCount = $videoUrls->count();
         $price = $page->price ?? 0;
         $formattedPrice = number_format((float) $price);
-        $gateway = $page->payment_gateway ?? 'stripe';
         $csrfToken = csrf_token();
         $paymentDelay = ($page->payment_delay ?? 0) > 0 ? $page->payment_delay : 4;
         $paymentDelayMs = $paymentDelay * 1000;
+
+        $slidesHtml = '';
+        $dotsHtml = '';
+
+        foreach ($videoUrls->values() as $index => $videoUrl) {
+            $active = $index === 0 ? ' is-active' : '';
+            $slidesHtml .= '<div class="slide'.$active.'" data-i="'.$index.'">'
+                .'<video class="slide-video" playsinline webkit-playsinline muted loop preload="'.($index === 0 ? 'auto' : 'none').'" src="'.$videoUrl.'"></video>'
+                .'</div>';
+            $dotsHtml .= '<button type="button" class="reel-dot'.($index === 0 ? ' is-on' : '').'" data-i="'.$index.'">'.($index + 1).'</button>';
+        }
 
         $html = <<<HTML
 <!DOCTYPE html>
@@ -2757,9 +2817,14 @@ HTML;
         .slide{
           position:absolute;
           inset:0;
-          transform:translate3d(0,0,0);
+          transform:translate3d(100%,0,0);
+          transition:transform .5s cubic-bezier(.4,0,.2,1);
+          will-change:transform;
+          backface-visibility:hidden;
           background:#000;
         }
+        .slide.is-active{transform:translate3d(0,0,0);z-index:2}
+        .slide.is-prev{transform:translate3d(-100%,0,0);z-index:1}
 
         .slide-video{
           position:absolute;inset:0;
@@ -2768,6 +2833,35 @@ HTML;
           display:block;
           background:#000;
         }
+
+        .reel-nav {
+          position:absolute;
+          right:12px;
+          top:50%;
+          transform:translateY(-50%);
+          z-index:5;
+          display:flex;
+          flex-direction:column;
+          gap:8px;
+        }
+
+        .reel-dot {
+          width:26px;
+          height:26px;
+          border-radius:50%;
+          border:2px solid rgba(255,255,255,.5);
+          background:rgba(255,255,255,.18);
+          color:#fff;
+          font-size:12px;
+          font-weight:800;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          cursor:pointer;
+          transition:background .2s,transform .12s;
+        }
+        .reel-dot:active{transform:scale(.85)}
+        .reel-dot.is-on{background:#fff;color:#0a3fa8;border-color:#fff}
 
         /* ─────────────── payment sheet ─────────────── */
         .sheet-wrap{
@@ -2933,14 +3027,13 @@ HTML;
 </head>
 <body>
 
-<!-- ═══ FULLSCREEN PORTRAIT REEL ═══ -->
+<!-- ═══ FULLSCREEN PORTRAIT REEL SLIDER ═══ -->
 <main class="stage" id="stage" aria-label="Video">
   <div class="reel" id="reel">
-    <div class="slide is-active" data-i="0">
-      <video class="slide-video" id="reelVideo"
-             playsinline webkit-playsinline muted loop autoplay preload="auto"
-             src="{$videoUrl}"></video>
-    </div>
+    {$slidesHtml}
+  </div>
+  <div class="reel-nav" id="reelNav">
+    {$dotsHtml}
   </div>
 </main>
 
@@ -3201,6 +3294,72 @@ HTML;
         hideError();
     });
 
+    // ═══ REEL SLIDER ═══
+    var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+    var dots = Array.prototype.slice.call(document.querySelectorAll('.reel-dot'));
+    var current = 0;
+    var slideCount = slides.length;
+    var touchStartX = null;
+
+    function setSlide(index) {
+        if (index < 0 || index >= slideCount || index === current) {
+            return;
+        }
+
+        slides.forEach(function (slide, i) {
+            slide.classList.remove('is-active');
+            slide.classList.remove('is-prev');
+            if (i === index) {
+                slide.classList.add('is-active');
+            } else if (i < index) {
+                slide.classList.add('is-prev');
+            }
+        });
+
+        dots.forEach(function (dot, i) {
+            dot.classList.toggle('is-on', i === index);
+        });
+
+        current = index;
+    }
+
+    dots.forEach(function (dot) {
+        dot.addEventListener('click', function () {
+            setSlide(parseInt(dot.dataset.i, 10));
+        });
+    });
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowRight' && current < slideCount - 1) {
+            setSlide(current + 1);
+        } else if (e.key === 'ArrowLeft' && current > 0) {
+            setSlide(current - 1);
+        }
+    });
+
+    document.addEventListener('touchstart', function (e) {
+        touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+
+    document.addEventListener('touchend', function (e) {
+        if (touchStartX === null) {
+            return;
+        }
+
+        var delta = e.changedTouches[0].screenX - touchStartX;
+        touchStartX = null;
+
+        if (Math.abs(delta) < 50) {
+            return;
+        }
+
+        if (delta < 0 && current < slideCount - 1) {
+            setSlide(current + 1);
+        } else if (delta > 0 && current > 0) {
+            setSlide(current - 1);
+        }
+    }, { passive: true });
+
     document.addEventListener('DOMContentLoaded', function () {
         setTimeout(function () {
             openSheet();
@@ -3222,12 +3381,23 @@ HTML;
     public function streamVideo(Page $page): BinaryFileResponse
     {
         abort_unless($page->is_active, 404);
-        abort_unless($page->video_path, 404);
-        abort_unless(Storage::disk('public')->exists($page->video_path), 404);
+
+        // Reel pages can stream a specific video by index (defaults to first)
+        $index = (int) request()->query('index', 0);
+        $videoPath = null;
+
+        if ($index > 0 && ! empty($page->videos)) {
+            $videoPath = $page->videos[$index] ?? null;
+        }
+
+        $videoPath = $videoPath ?: ($page->video_path ?: null);
+
+        abort_unless($videoPath, 404);
+        abort_unless(Storage::disk('public')->exists($videoPath), 404);
 
         return response()
-            ->file(Storage::disk('public')->path($page->video_path), [
-                'Content-Type' => Storage::disk('public')->mimeType($page->video_path) ?? 'video/mp4',
+            ->file(Storage::disk('public')->path($videoPath), [
+                'Content-Type' => Storage::disk('public')->mimeType($videoPath) ?? 'video/mp4',
                 'Cache-Control' => 'public, max-age=3600',
             ]);
     }

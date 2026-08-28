@@ -15,15 +15,20 @@ class Page extends Model
         'payment_gateway',
         'payment_delay',
         'video_path',
+        'videos',
         'is_active',
         'pesalink_account_id',
     ];
 
-    protected $casts = [
-        'is_active' => 'boolean',
-        'price' => 'decimal:2',
-        'payment_delay' => 'integer',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'is_active' => 'boolean',
+            'price' => 'decimal:2',
+            'payment_delay' => 'integer',
+            'videos' => 'array',
+        ];
+    }
 
     public function getRouteKeyName(): string
     {

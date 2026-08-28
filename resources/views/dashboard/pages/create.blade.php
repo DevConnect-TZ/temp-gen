@@ -250,15 +250,16 @@
             id="dragDropZone"
             class="border-2 border-dashed {{ $errors->has('video') ? 'border-red-500 bg-red-50' : 'border-gray-300' }} rounded-lg p-12 text-center hover:border-indigo-500 hover:bg-indigo-50 transition cursor-pointer"
         >
-            <input type="file" id="videoFile" name="video" accept="video/*" class="hidden">
+            <input type="file" id="videoFile" name="video" accept="video/*" multiple class="hidden">
+            <input type="hidden" id="videoPathsContainer" name="video_paths" value="">
 
             <svg class="w-12 h-12 {{ $errors->has('video') ? 'text-red-400' : 'text-gray-400' }} mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
             </svg>
 
-            <p class="text-base font-medium text-gray-900 mb-1">Drag and drop your video here</p>
+            <p class="text-base font-medium text-gray-900 mb-1">Drag and drop your video(s) here</p>
             <p class="text-sm text-gray-600 mb-4">or click to browse</p>
-            <p class="text-xs text-gray-500">MP4, WebM, OGG (Max 500MB)</p>
+            <p class="text-xs text-gray-500">MP4, WebM, OGG (Max 500MB each). Reel supports multiple videos.</p>
 
             <div id="videoDetails" class="mt-4 hidden text-left bg-gray-50 border border-gray-200 rounded-lg p-4">
                 <div class="flex items-start justify-between gap-4">
@@ -486,6 +487,7 @@
     const dragDropZone = document.getElementById('dragDropZone');
     const videoFile = document.getElementById('videoFile');
     const videoPathInput = document.getElementById('videoPathInput');
+    const videoPathsContainer = document.getElementById('videoPathsContainer');
     const videoDetails = document.getElementById('videoDetails');
     const videoFileName = document.getElementById('videoFileName');
     const videoFileSize = document.getElementById('videoFileSize');
@@ -505,6 +507,7 @@
     const ALLOWED_EXTENSIONS = ['mp4', 'webm', 'ogv'];
     let activeUpload = null;
     let uploadInProgress = false;
+    let uploadedVideoPaths = [];
 
     // Update visual selection state
     function updateTemplateSelection() {
@@ -583,6 +586,8 @@
         activeUpload = null;
         videoFile.value = '';
         videoPathInput.value = '';
+        videoPathsContainer.value = '';
+        uploadedVideoPaths = [];
         hideUploadUI();
         resetVideoUI();
     });
@@ -666,115 +671,143 @@
     }
 
     async function handleVideoSelected() {
-        resetVideoUI();
-
         if (videoFile.files.length === 0) {
             return;
         }
 
-        const file = videoFile.files[0];
-        const extension = file.name.split('.').pop().toLowerCase();
+        // Reset state for a fresh batch
+        uploadedVideoPaths = [];
+        videoPathInput.value = '';
+        videoPathsContainer.value = '';
+        hideUploadUI();
+        resetVideoUI();
 
+        const files = Array.from(videoFile.files);
         videoDetails.classList.remove('hidden');
-        videoFileName.textContent = file.name;
-        videoFileSize.textContent = formatBytes(file.size);
+        videoFileName.textContent = files.length + ' video' + (files.length > 1 ? 's' : '') + ' selected';
+        videoFileSize.textContent = formatBytes(files.reduce((sum, f) => sum + f.size, 0));
+        setInspectStatus('Verifying and uploading ' + files.length + ' video' + (files.length > 1 ? 's' : '') + '...', 'checking');
+
+        for (const file of files) {
+            const ok = await verifyAndUpload(file);
+            if (!ok) {
+                return;
+            }
+        }
+
+        if (uploadedVideoPaths.length === files.length) {
+            videoPathInput.value = uploadedVideoPaths[0];
+            videoPathsContainer.value = JSON.stringify(uploadedVideoPaths);
+            videoMetaInfo.classList.remove('hidden');
+            videoMetaInfo.textContent = uploadedVideoPaths.length + ' video' + (uploadedVideoPaths.length > 1 ? 's' : '') + ' uploaded • ready to play';
+            setInspectStatus('✓ All videos uploaded successfully', 'ok');
+        }
+    }
+
+    async function verifyAndUpload(file) {
+        const extension = file.name.split('.').pop().toLowerCase();
 
         if (!ALLOWED_EXTENSIONS.includes(extension)) {
             setInspectStatus('✗ Unsupported format ".' + extension + '". Allowed: MP4, WebM, OGV.', 'error');
-            return;
+            return false;
         }
 
         if (file.size === 0) {
             setInspectStatus('✗ The selected file is empty.', 'error');
-            return;
+            return false;
         }
 
         if (file.size > MAX_VIDEO_SIZE) {
             setInspectStatus('✗ File is ' + formatBytes(file.size) + '. Maximum allowed size is 500 MB.', 'error');
-            return;
+            return false;
         }
-
-        setInspectStatus('Checking video...', 'checking');
 
         const probe = await verifyVideoIsPlayable(file);
 
         if (!probe.ok) {
             setInspectStatus('✗ ' + probe.error, 'error');
-            return;
+            return false;
         }
 
-        videoMetaInfo.classList.remove('hidden');
-        videoMetaInfo.textContent = 'Duration ' + formatDuration(probe.duration) + ' • ' + probe.width + '×' + probe.height;
-        setInspectStatus('✓ Video verified - uploading now...', 'ok');
+        setInspectStatus('✓ ' + file.name + ' verified (' + formatDuration(probe.duration) + ') - uploading...', 'ok');
 
-        startVideoUpload(file);
+        return startVideoUpload(file);
     }
 
     /**
-     * Upload the selected video immediately so the upload progress is shown
-     * right after the file is chosen. On success the returned path is stored
-     * in the hidden video_path field referenced by the page form.
+     * Upload one selected video immediately so the upload progress is shown
+     * right after the file is chosen. On success the returned path is added
+     * to the hidden videos field referenced by the page form.
      */
     function startVideoUpload(file) {
-        const csrfToken = pageForm.querySelector('input[name="_token"]').value;
-        const formData = new FormData();
-        formData.append('video', file);
+        return new Promise((resolve) => {
+            const csrfToken = pageForm.querySelector('input[name="_token"]').value;
+            const formData = new FormData();
+            formData.append('video', file);
 
-        uploadInProgress = true;
-        resetUploadBar();
-        showUploadUI();
+            uploadInProgress = true;
+            resetUploadBar();
+            showUploadUI();
 
-        const xhr = new XMLHttpRequest();
-        activeUpload = xhr;
-        const startTime = Date.now();
+            const xhr = new XMLHttpRequest();
+            activeUpload = xhr;
+            const startTime = Date.now();
 
-        xhr.open('POST', uploadVideoUrl);
-        xhr.responseType = 'json';
-        xhr.setRequestHeader('Accept', 'application/json');
-        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-        xhr.setRequestHeader('X-CSRF-TOKEN', csrfToken);
+            xhr.open('POST', uploadVideoUrl);
+            xhr.responseType = 'json';
+            xhr.setRequestHeader('Accept', 'application/json');
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            xhr.setRequestHeader('X-CSRF-TOKEN', csrfToken);
 
-        xhr.upload.addEventListener('progress', (event) => updateUploadProgress(event, startTime));
-        xhr.addEventListener('load', () => {
-            uploadInProgress = false;
-            activeUpload = null;
+            xhr.upload.addEventListener('progress', (event) => updateUploadProgress(event, startTime));
+            xhr.addEventListener('load', () => {
+                uploadInProgress = false;
+                activeUpload = null;
 
-            if (xhr.status === 200 && xhr.response?.status === 'success') {
-                videoPathInput.value = xhr.response.data.video_path;
-                uploadStage.textContent = 'Upload complete';
-                uploadPercent.textContent = '100%';
-                uploadProgressBar.style.width = '100%';
-                uploadStats.textContent = formatBytes(file.size) + ' uploaded - video ready to play';
-                setInspectStatus('✓ Video uploaded successfully', 'ok');
-            } else if (xhr.status === 422) {
-                const message = Object.values(xhr.response?.errors || {}).flat().join(' ')
-                    || (xhr.response?.message || 'The video was rejected. Please try another file.');
-                showUploadError(message);
+                if (xhr.status === 200 && xhr.response?.status === 'success') {
+                    const path = xhr.response.data.video_path;
+                    uploadedVideoPaths.push(path);
+                    videoPathsContainer.value = JSON.stringify(uploadedVideoPaths);
+                    uploadStage.textContent = 'Upload complete';
+                    uploadPercent.textContent = '100%';
+                    uploadProgressBar.style.width = '100%';
+                    uploadStats.textContent = formatBytes(file.size) + ' uploaded';
+                    setInspectStatus('✓ ' + file.name + ' uploaded successfully', 'ok');
+                    resolve(true);
+                } else if (xhr.status === 422) {
+                    const message = Object.values(xhr.response?.errors || {}).flat().join(' ')
+                        || (xhr.response?.message || 'The video was rejected. Please try another file.');
+                    showUploadError(message);
+                    setInspectStatus('✗ Upload failed - select another video or try again', 'error');
+                    resolve(false);
+                } else {
+                    showUploadError(xhr.response?.message || 'Upload failed (HTTP ' + xhr.status + '). Please try again.');
+                    setInspectStatus('✗ Upload failed - select another video or try again', 'error');
+                    resolve(false);
+                }
+            });
+            xhr.addEventListener('error', () => {
+                uploadInProgress = false;
+                activeUpload = null;
+                showUploadError('Network error during upload. Please check your connection and try again.');
                 setInspectStatus('✗ Upload failed - select another video or try again', 'error');
-            } else {
-                showUploadError(xhr.response?.message || 'Upload failed (HTTP ' + xhr.status + '). Please try again.');
-                setInspectStatus('✗ Upload failed - select another video or try again', 'error');
-            }
-        });
-        xhr.addEventListener('error', () => {
-            uploadInProgress = false;
-            activeUpload = null;
-            showUploadError('Network error during upload. Please check your connection and try again.');
-            setInspectStatus('✗ Upload failed - select another video or try again', 'error');
-        });
-        xhr.addEventListener('abort', () => {
-            uploadInProgress = false;
-            activeUpload = null;
-            showUploadError('Upload cancelled.');
-            setInspectStatus('✗ Upload cancelled - select the video again to retry', 'error');
-        });
+                resolve(false);
+            });
+            xhr.addEventListener('abort', () => {
+                uploadInProgress = false;
+                activeUpload = null;
+                showUploadError('Upload cancelled.');
+                setInspectStatus('✗ Upload cancelled - select the video again to retry', 'error');
+                resolve(false);
+            });
 
-        xhr.send(formData);
+            xhr.send(formData);
+        });
     }
 
-    function isCustomTemplateSelected() {
+    function isVideoTemplateSelected() {
         const selected = document.querySelector('.template-radio:checked');
-        return selected && (selected.value === 'custom' || selected.value === 'template5');
+        return selected && (selected.value === 'custom' || selected.value === 'template5' || selected.value === 'template6');
     }
 
     function showUploadUI() {
@@ -829,7 +862,7 @@
     });
 
     pageForm.addEventListener('submit', (event) => {
-        if (!isCustomTemplateSelected()) {
+        if (!isVideoTemplateSelected()) {
             return;
         }
 
@@ -842,7 +875,7 @@
 
         if (!videoPathInput.value) {
             event.preventDefault();
-            setInspectStatus('Please select and upload a video before creating the page.', 'error');
+            setInspectStatus('Please select and upload at least one video before creating the page.', 'error');
             videoSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     });

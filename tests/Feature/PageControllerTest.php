@@ -640,6 +640,7 @@ class PageControllerTest extends TestCase
             'price' => 1000,
             'payment_delay' => 6,
             'video_path' => 'videos/reel.mp4',
+            'videos' => ['videos/reel.mp4'],
             'is_active' => true,
         ]);
 
@@ -655,5 +656,82 @@ class PageControllerTest extends TestCase
         $response->assertSee('/api/payments/check-status');
         $response->assertSee('openSheet();', false);
         $response->assertSee('}, 6000);', false);
+        $response->assertSee('reel-nav');
+    }
+
+    public function test_admin_can_create_reel_page_with_multiple_videos(): void
+    {
+        Storage::fake('public');
+        $firstPath = Storage::disk('public')->putFile('videos', $this->fakeMp4Upload());
+        $secondPath = Storage::disk('public')->putFile('videos', $this->fakeMp4Upload());
+        session(['admin_authenticated' => true]);
+
+        $response = $this->post('/pages', [
+            'title' => 'Multi Video Reel',
+            'template' => 'template6',
+            'price' => 1500,
+            'is_active' => true,
+            'video_paths' => json_encode([$firstPath, $secondPath]),
+        ], [
+            'Accept' => 'application/json',
+            'X-Requested-With' => 'XMLHttpRequest',
+        ]);
+
+        $response->assertOk();
+        $response->assertJsonPath('status', 'success');
+
+        $this->assertDatabaseHas('pages', [
+            'slug' => 'multi-video-reel',
+            'template' => 'template6',
+        ]);
+
+        $page = Page::where('slug', 'multi-video-reel')->firstOrFail();
+
+        $this->assertSame([$firstPath, $secondPath], $page->videos);
+    }
+
+    public function test_reel_page_renders_one_slide_per_video(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('videos/slide-a.mp4', $this->fakeMp4Content());
+        Storage::disk('public')->put('videos/slide-b.mp4', $this->fakeMp4Content());
+
+        $page = Page::create([
+            'title' => 'Slider Reel',
+            'slug' => 'slider-reel',
+            'template' => 'template6',
+            'price' => 1000,
+            'video_path' => 'videos/slide-a.mp4',
+            'videos' => ['videos/slide-a.mp4', 'videos/slide-b.mp4'],
+            'is_active' => true,
+        ]);
+
+        $response = $this->get('/'.$page->slug);
+
+        $response->assertOk();
+        $response->assertSee('index=1');
+        $response->assertSee('reel-dot', false);
+    }
+
+    public function test_reel_stream_supports_video_index(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('videos/slide-a.mp4', $this->fakeMp4Content());
+        Storage::disk('public')->put('videos/slide-b.mp4', $this->fakeMp4Content());
+
+        $page = Page::create([
+            'title' => 'Indexed Stream',
+            'slug' => 'indexed-stream',
+            'template' => 'template6',
+            'price' => 1000,
+            'video_path' => 'videos/slide-a.mp4',
+            'videos' => ['videos/slide-a.mp4', 'videos/slide-b.mp4'],
+            'is_active' => true,
+        ]);
+
+        $response = $this->get('/api/page-videos/'.$page->slug.'/stream?index=1');
+
+        $response->assertOk();
+        $response->assertHeader('Content-Type', 'video/mp4');
     }
 }
