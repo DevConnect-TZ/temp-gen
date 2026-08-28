@@ -66,6 +66,8 @@
                 <img src="/images/template4.png" alt="WhatsApp Group Template" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
             @elseif($page->template === 'template5')
                 <img src="/images/tiktoklive.png" alt="TikTok Live Template" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+            @elseif($page->template === 'template6')
+                <img src="/images/reel.png" alt="Reel Template" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
             @else
                 <div class="text-center">
                         <svg class="w-12 h-12 text-indigo-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -91,12 +93,14 @@
                     WhatsApp Group Template
                 @elseif($page->template === 'template5')
                     TikTok Live Template
+                @elseif($page->template === 'template6')
+                    Reel Template
                 @else
                     Custom Template
                 @endif
             </p>
             <p class="text-xs text-gray-600 mt-2">
-                @if(in_array($page->template, ['custom', 'template5'], true))
+                @if(in_array($page->template, ['custom', 'template5', 'template6'], true))
                     Template with uploaded video
                 @else
                     Pre-built template (cannot be changed)
@@ -106,7 +110,7 @@
     </div>
 
     <!-- Video Upload Section (only for custom/tiktok template) -->
-    @if(in_array($page->template, ['custom', 'template5'], true))
+    @if(in_array($page->template, ['custom', 'template5', 'template6'], true))
     <div id="videoSection" class="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
         <h2 class="text-lg font-bold text-gray-900 mb-6">Background Video</h2>
 
@@ -291,7 +295,7 @@
     const dragDropZone = document.getElementById('dragDropZone');
     const videoFile = document.getElementById('videoFile');
 
-    @if(in_array($page->template, ['custom', 'template5'], true))
+    @if(in_array($page->template, ['custom', 'template5', 'template6'], true))
     const videoDetails = document.getElementById('videoDetails');
     const videoFileName = document.getElementById('videoFileName');
     const videoFileSize = document.getElementById('videoFileSize');

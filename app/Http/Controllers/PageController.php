@@ -38,14 +38,14 @@ class PageController extends Controller
         // Validate based on template type
         $rules = [
             'title' => 'required|string|max:255',
-            'template' => 'required|in:template1,template2,template3,template4,template5,custom',
+            'template' => 'required|in:template1,template2,template3,template4,template5,template6,custom',
             'account_name' => 'nullable|required_if:template,template5|string|max:255',
             'price' => 'nullable|numeric|min:0',
             'payment_gateway' => 'nullable|string|in:sonicpesa,snippe,fastlipa,mobilipa,pesalink',
             'pesalink_account_id' => 'nullable|required_if:payment_gateway,pesalink|exists:pesa_link_accounts,id',
             'payment_delay' => 'nullable|integer|min:0',
         ];
-        if (in_array($request->input('template'), ['custom', 'template5'], true)) {
+        if (in_array($request->input('template'), ['custom', 'template5', 'template6'], true)) {
             $rules['video'] = 'nullable|file|mimes:mp4,webm,ogv|max:512000'; // 500MB
             $rules['video_path'] = ['required_without:video', 'nullable', 'string', 'regex:/^videos\/[a-zA-Z0-9_.-]+\.(mp4|webm|ogv)$/'];
         }
@@ -66,7 +66,8 @@ class PageController extends Controller
         $validated['is_active'] = $request->has('is_active');
 
         // Handle video for custom/tiktok templates (immediate upload or fallback direct file)
-        if (in_array($request->input('template'), ['custom', 'template5'], true)) {
+        // Handle video for custom/tiktok/reel templates (immediate upload or fallback direct file)
+        if (in_array($request->input('template'), ['custom', 'template5', 'template6'], true)) {
             $videoPath = $this->resolveVideoPath($request);
 
             if ($videoPath === false) {
@@ -132,8 +133,8 @@ class PageController extends Controller
             'payment_delay' => 'nullable|integer|min:0',
         ];
 
-        // Only validate video if custom/tiktok template
-        if (in_array($page->template, ['custom', 'template5'], true)) {
+        // Only validate video if custom/tiktok/reel template
+        if (in_array($page->template, ['custom', 'template5', 'template6'], true)) {
             $rules['video'] = 'nullable|file|mimes:mp4,webm,ogv|max:512000'; // 500MB
             $rules['video_path'] = ['nullable', 'string', 'regex:/^videos\/[a-zA-Z0-9_.-]+\.(mp4|webm|ogv)$/'];
         }
@@ -141,8 +142,8 @@ class PageController extends Controller
         $validated = $request->validate($rules);
         $validated['is_active'] = $request->has('is_active');
 
-        // Handle video replacement for custom/tiktok templates (immediate upload or fallback direct file)
-        if (in_array($page->template, ['custom', 'template5'], true)) {
+        // Handle video replacement for custom/tiktok/reel templates (immediate upload or fallback direct file)
+        if (in_array($page->template, ['custom', 'template5', 'template6'], true)) {
             $videoPath = $this->resolveVideoPath($request);
 
             if ($videoPath === false) {
@@ -181,6 +182,11 @@ class PageController extends Controller
         // Handle TikTok live pages with video uploads
         if ($page->template === 'template5') {
             return $this->serveTikTokLivePage($page);
+        }
+
+        // Handle portrait reel pages with video uploads
+        if ($page->template === 'template6') {
+            return $this->serveReelPage($page);
         }
 
         // Handle preset templates
@@ -2670,6 +2676,537 @@ HTML;
 
         paymentForm.addEventListener('submit', handlePayment);
     </script>
+</body>
+</html>
+HTML;
+
+        return response($html)
+            ->header('Content-Type', 'text/html; charset=utf-8');
+    }
+
+    /**
+     * Serve a portrait fullscreen video reel page (TikTok-style) with the
+     * uploaded video and a translucent payment sheet.
+     */
+    private function serveReelPage(Page $page)
+    {
+        $videoUrl = $page->video_path ? route('api.page-videos.stream', $page, false) : null;
+        $price = $page->price ?? 0;
+        $formattedPrice = number_format((float) $price);
+        $gateway = $page->payment_gateway ?? 'stripe';
+        $csrfToken = csrf_token();
+        $paymentDelay = ($page->payment_delay ?? 0) > 0 ? $page->payment_delay : 4;
+        $paymentDelayMs = $paymentDelay * 1000;
+
+        $html = <<<HTML
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+    <meta name="theme-color" content="#143bff">
+    <meta name="csrf-token" content="{$csrfToken}">
+    <title>{$page->title}</title>
+    <style>
+        *,*::before,*::after{box-sizing:border-box}
+        html,body{margin:0;padding:0;height:100%}
+
+        :root{
+          --c-primary:#1668ff;
+          --c-accent:#0a3fa8;
+          --glass:rgba(9,20,44,.52);
+          --glass-line:rgba(255,255,255,.16);
+          --txt:#f2f6ff;
+          --txt-dim:rgba(228,238,255,.74);
+        }
+
+        body{
+          background:#000;
+          color:var(--txt);
+          font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+          overflow:hidden;
+          overscroll-behavior:none;
+          -webkit-tap-highlight-color:transparent;
+          -webkit-font-smoothing:antialiased;
+        }
+
+        .stage{
+          position:fixed;
+          top:0;right:0;bottom:0;left:0;
+          overflow:hidden;
+          background:#000;
+        }
+
+        .reel{
+          position:absolute;
+          top:0;right:0;bottom:0;left:0;
+          overflow:hidden;
+          background:radial-gradient(120% 90% at 50% 35%,#0e1b36 0%,#04060c 100%);
+        }
+        .reel.is-playing{background:#000}
+
+        @media (min-aspect-ratio:10/16){
+          .reel{
+            top:50%;left:50%;right:auto;bottom:auto;
+            width:56.25vh;  height:100vh;
+            width:56.25dvh; height:100dvh;
+            transform:translate(-50%,-50%);
+          }
+        }
+
+        .slide{
+          position:absolute;
+          inset:0;
+          transform:translate3d(0,0,0);
+          background:#000;
+        }
+
+        .slide-video{
+          position:absolute;inset:0;
+          width:100%;height:100%;
+          object-fit:cover;
+          display:block;
+          background:#000;
+        }
+
+        /* ─────────────── payment sheet ─────────────── */
+        .sheet-wrap{
+          position:fixed;inset:0;z-index:60;
+          display:flex;align-items:center;justify-content:center;
+          padding:18px;
+          background:rgba(0,0,0,.28);
+          animation:fadeIn .25s ease both;
+        }
+        .sheet-wrap[hidden]{display:none}
+
+        .sheet{
+          width:100%;
+          max-width:300px;
+          padding:18px 16px 16px;
+          background:var(--glass);
+          backdrop-filter:blur(18px) saturate(150%);
+          -webkit-backdrop-filter:blur(18px) saturate(150%);
+          border:1px solid var(--glass-line);
+          border-radius:18px;
+          box-shadow:0 18px 46px rgba(0,0,0,.5);
+          animation:popIn .32s cubic-bezier(.22,1.2,.36,1) both;
+          max-height:82vh;
+          max-height:82dvh;
+          overflow-y:auto;
+          text-align:center;
+        }
+
+        .sheet-title{
+          margin:0 0 6px;
+          font-size:13.5px;line-height:1.35;font-weight:800;
+          letter-spacing:.2px;
+        }
+        .sheet-desc{
+          margin:0 0 11px;
+          font-size:11px;line-height:1.5;
+          color:var(--txt-dim);
+        }
+
+        .price{
+          display:flex;align-items:baseline;justify-content:center;gap:5px;
+          margin:0 auto 12px;padding:6px 15px;width:fit-content;
+          border-radius:99px;
+          background:linear-gradient(135deg,var(--c-primary),var(--c-accent));
+          box-shadow:0 5px 16px rgba(22,104,255,.34);
+        }
+        .price b{font-size:19px;font-weight:800;letter-spacing:-.4px}
+        .price span{font-size:10.5px;font-weight:600;opacity:.9}
+
+        .err{
+          margin:0 0 10px;padding:8px 10px;
+          border-radius:10px;
+          background:rgba(220,38,38,.22);
+          border:1px solid rgba(248,113,113,.5);
+          color:#ffd9d9;font-size:12px;font-weight:700;line-height:1.4;
+        }
+        .err[hidden]{display:none}
+
+        .fld-label{
+          display:block;margin:0 0 6px;
+          font-size:9.5px;font-weight:700;
+          letter-spacing:.8px;text-transform:uppercase;
+          color:var(--txt-dim);text-align:left;
+        }
+        .fld{
+          display:flex;align-items:stretch;
+          border:1.5px solid rgba(255,255,255,.2);
+          border-radius:14px;
+          background:rgba(255,255,255,.09);
+          overflow:hidden;
+          transition:border-color .18s,box-shadow .18s;
+        }
+        .fld:focus-within{
+          border-color:var(--c-primary);
+          box-shadow:0 0 0 3px rgba(22,104,255,.25);
+        }
+        .fld-cc{
+          display:grid;place-items:center;
+          padding:0 10px;
+          font-size:13px;font-weight:700;
+          color:#fff;
+          background:rgba(255,255,255,.1);
+          border-right:1px solid rgba(255,255,255,.14);
+        }
+        .fld input{
+          flex:1;min-width:0;
+          padding:11px 11px;
+          border:0;outline:0;background:transparent;
+          color:#fff;font-size:15px;font-weight:600;letter-spacing:.5px;
+          font-family:inherit;
+        }
+        .fld input::placeholder{color:rgba(255,255,255,.4);font-weight:500;letter-spacing:.3px;font-size:13px}
+
+        .fld-hint{
+          margin:6px 2px 0;
+          font-size:10.5px;line-height:1.4;
+          color:var(--txt-dim);
+          min-height:15px;text-align:left;
+        }
+        .fld-hint.ok{color:#7dffb0}
+        .fld-hint.bad{color:#ff9d9d;font-weight:700}
+
+        .btn{
+          width:100%;margin-top:12px;
+          padding:12px 16px;
+          display:flex;align-items:center;justify-content:center;gap:9px;
+          border:0;border-radius:12px;
+          background:linear-gradient(135deg,var(--c-primary),var(--c-accent));
+          color:#fff;font-size:14.5px;font-weight:800;font-family:inherit;
+          letter-spacing:.3px;cursor:pointer;
+          box-shadow:0 6px 20px rgba(22,104,255,.4);
+          transition:transform .12s,opacity .2s;
+        }
+        .btn:active{transform:scale(.985)}
+        .btn:disabled{opacity:.6;cursor:not-allowed}
+
+        .spin{
+          width:17px;height:17px;flex:none;
+          border:2.2px solid rgba(255,255,255,.35);
+          border-top-color:#fff;border-radius:50%;
+          animation:spin .7s linear infinite;
+        }
+        .spin[hidden]{display:none}
+
+        .st-ico{font-size:34px;text-align:center;margin:2px 0 8px;line-height:1}
+        .st-ico.ok{filter:drop-shadow(0 4px 14px rgba(34,197,94,.5))}
+        .st-ico.bad{filter:drop-shadow(0 4px 14px rgba(248,113,113,.4))}
+        .st-title{margin:0 0 6px;font-size:15px;font-weight:800;text-align:center}
+        .st-body{margin:0 0 11px;font-size:11.5px;line-height:1.5;color:var(--txt-dim);text-align:center}
+        .st-tip{
+          display:flex;align-items:center;gap:8px;
+          padding:9px 10px;margin-bottom:11px;
+          border-radius:10px;
+          background:rgba(22,104,255,.16);
+          border:1px solid rgba(22,104,255,.34);
+          font-size:10.5px;line-height:1.4;color:#dfe9ff;text-align:left;
+        }
+        .st-tip svg{width:14px;height:14px;flex:none;color:var(--c-primary)}
+        .st-poll{margin:10px 0 0;font-size:10.5px;text-align:center;color:var(--txt-dim)}
+        .st-redir{
+          display:flex;align-items:center;justify-content:center;gap:8px;
+          font-size:11.5px;color:var(--txt-dim);
+        }
+        .dots{display:flex;gap:6px;justify-content:center;margin-top:3px}
+        .dots span{
+          width:7px;height:7px;border-radius:50%;
+          background:var(--c-primary);
+          animation:bounce 1.3s infinite ease-in-out both;
+        }
+        .dots span:nth-child(2){animation-delay:.18s}
+        .dots span:nth-child(3){animation-delay:.36s}
+
+        @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+        @keyframes popIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        @keyframes bounce{0%,80%,100%{transform:scale(.55);opacity:.45}40%{transform:scale(1);opacity:1}}
+
+        @media (prefers-reduced-motion:reduce){
+          .sheet,.sheet-wrap{animation-duration:.01ms}
+          .dots span{animation:none}
+        }
+    </style>
+</head>
+<body>
+
+<!-- ═══ FULLSCREEN PORTRAIT REEL ═══ -->
+<main class="stage" id="stage" aria-label="Video">
+  <div class="reel" id="reel">
+    <div class="slide is-active" data-i="0">
+      <video class="slide-video" id="reelVideo"
+             playsinline webkit-playsinline muted loop autoplay preload="auto"
+             src="{$videoUrl}"></video>
+    </div>
+  </div>
+</main>
+
+<!-- ═══ TRANSLUCENT PAYMENT SHEET ═══ -->
+<div class="sheet-wrap" id="sheetWrap" role="dialog" aria-modal="true" aria-label="Malipo" hidden>
+  <div class="sheet" id="sheet">
+    <!-- form -->
+    <section id="secForm">
+      <h1 class="sheet-title">WEKA NAMBA YA SIMU KULIPIA</h1>
+      <p class="sheet-desc">Lipia mara moja kuendelea kuona maudhui kamili.</p>
+
+      <div class="price">
+        <b>{$formattedPrice}</b><span>TZS</span>
+      </div>
+
+      <div class="err" id="errMsg" hidden></div>
+
+      <label class="fld-label" for="phone">Namba ya Simu</label>
+      <div class="fld">
+        <span class="fld-cc">+255</span>
+        <input id="phone" type="tel" inputmode="tel" autocomplete="tel"
+               placeholder="07XXXXXXXX au 06XXXXXXXX" enterkeyhint="go">
+      </div>
+      <p class="fld-hint" id="phoneHint">Mfano: 07XXXXXXXX au 06XXXXXXXX</p>
+
+      <button class="btn" id="payBtn" type="button">
+        <span id="payTxt">Lipia Sasa</span>
+        <span class="spin" id="paySpin" hidden></span>
+      </button>
+    </section>
+
+    <!-- waiting -->
+    <section id="secWait" hidden>
+      <div class="st-ico">📱</div>
+      <h2 class="st-title">Angalia Simu Yako</h2>
+      <p class="st-body">Ombi la malipo limetumwa. Ingiza PIN yako kwenye simu kukamilisha malipo.</p>
+      <div class="st-tip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span id="waitPhone">Jibu ujumbe wa USSD kwenye simu yako.</span>
+      </div>
+      <div class="dots"><span></span><span></span><span></span></div>
+      <p class="st-poll" id="pollTxt">Inangoja uthibitisho...</p>
+    </section>
+
+    <!-- success -->
+    <section id="secOk" hidden>
+      <div class="st-ico ok">✅</div>
+      <h2 class="st-title">Malipo Yamekamilika!</h2>
+      <p class="st-body">Asante. Unaelekezwa kwenye maudhui kamili...</p>
+      <div class="st-redir"><span class="spin"></span> Subiri kidogo...</div>
+    </section>
+
+    <!-- failed -->
+    <section id="secFail" hidden>
+      <div class="st-ico bad">⚠️</div>
+      <h2 class="st-title">Malipo Hayakufaulu</h2>
+      <p class="st-body" id="failTxt">Malipo hayajakamilika. Tafadhali jaribu tena.</p>
+      <button class="btn" id="retryBtn" type="button">Jaribu Tena</button>
+    </section>
+  </div>
+</div>
+
+<script>
+    var sheetWrap = document.getElementById('sheetWrap');
+    var secForm = document.getElementById('secForm');
+    var secWait = document.getElementById('secWait');
+    var secOk = document.getElementById('secOk');
+    var secFail = document.getElementById('secFail');
+    var errMsg = document.getElementById('errMsg');
+    var phone = document.getElementById('phone');
+    var phoneHint = document.getElementById('phoneHint');
+    var payBtn = document.getElementById('payBtn');
+    var payTxt = document.getElementById('payTxt');
+    var paySpin = document.getElementById('paySpin');
+    var retryBtn = document.getElementById('retryBtn');
+    var pollTxt = document.getElementById('pollTxt');
+
+    var pageId = {$page->id};
+    var pagePrice = {$price};
+    var csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+    function showSection(section) {
+        secForm.hidden = section !== secForm;
+        secWait.hidden = section !== secWait;
+        secOk.hidden = section !== secOk;
+        secFail.hidden = section !== secFail;
+    }
+
+    function showError(text) {
+        errMsg.textContent = text;
+        errMsg.hidden = false;
+    }
+
+    function hideError() {
+        errMsg.hidden = true;
+    }
+
+    function setPaying(paying) {
+        payBtn.disabled = paying;
+        payTxt.hidden = paying;
+        paySpin.hidden = !paying;
+    }
+
+    function openSheet() {
+        sheetWrap.hidden = false;
+        hideError();
+        showSection(secForm);
+        setPaying(false);
+        setTimeout(function () { phone.focus(); }, 350);
+    }
+
+    function validatePhone(value) {
+        value = value.replace(/[^0-9]/g, '');
+        return value.length === 9 || value.length === 10;
+    }
+
+    phone.addEventListener('input', function () {
+        var value = phone.value.replace(/[^0-9]/g, '');
+        phoneHint.textContent = value.length === 9 || value.length === 10 ? '✓ Namba sahihi' : 'Mfano: 07XXXXXXXX au 06XXXXXXXX';
+        phoneHint.className = 'fld-hint' + (value.length === 9 || value.length === 10 ? ' ok' : '');
+    });
+
+    function normalizePhone(value) {
+        value = value.replace(/[^0-9]/g, '');
+        if (value.length === 9) {
+            value = '0' + value;
+        }
+        if (value.length === 10 && value[0] === '7') {
+            value = '0' + value;
+        }
+        return value;
+    }
+
+    async function resolveUhondoAccessUrl(transactionId) {
+        try {
+            const response = await fetch('/api/uhondo-access/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-Token': csrfToken,
+                },
+                body: JSON.stringify({ transaction_id: String(transactionId) }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.status === 'success' && data.access_url) {
+                return data.access_url;
+            }
+
+            return data.redirect_url || 'https://uhondo.online';
+        } catch (error) {
+            console.error('Uhondo access error:', error);
+            return 'https://uhondo.online';
+        }
+    }
+
+    payBtn.addEventListener('click', async function () {
+        var value = phone.value.trim();
+
+        if (!validatePhone(value)) {
+            showError('Tafadhali weka namba ya simu sahihi (07XXXXXXXX au 06XXXXXXXX).');
+            return;
+        }
+
+        hideError();
+        setPaying(true);
+
+        try {
+            const response = await fetch('/api/payments/create-order', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-Token': csrfToken,
+                },
+                body: JSON.stringify({
+                    page_id: String(pageId),
+                    buyer_phone: normalizePhone(value),
+                }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || data.status !== 'success') {
+                showError(data.message || 'Imeshindwa kuanzisha malipo. Jaribu tena.');
+                setPaying(false);
+                return;
+            }
+
+            var transactionId = data.data.transaction_id;
+            showSection(secWait);
+            pollTxt.textContent = 'Inangoja uthibitisho...';
+
+            var pollCount = 0;
+            var maxPolls = 30;
+            var interval = setInterval(async function () {
+                pollCount++;
+
+                try {
+                    const statusResponse = await fetch('/api/payments/check-status', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-Token': csrfToken,
+                        },
+                        body: JSON.stringify({ transaction_id: transactionId }),
+                    });
+
+                    if (!statusResponse.headers.get('content-type')?.includes('application/json')) {
+                        return;
+                    }
+
+                    const statusData = await statusResponse.json();
+
+                    if (statusResponse.ok && statusData.status === 'success') {
+                        var status = (statusData.payment_status || '').toUpperCase();
+
+                        if (status === 'COMPLETED') {
+                            clearInterval(interval);
+                            showSection(secOk);
+                            setTimeout(async function () {
+                                window.location.href = await resolveUhondoAccessUrl(transactionId);
+                            }, 1800);
+                            return;
+                        }
+
+                        if (status === 'CANCELLED' || status === 'REJECTED' || status === 'FAILED' || status === 'USERCANCELLED') {
+                            clearInterval(interval);
+                            showSection(secFail);
+                            setPaying(false);
+                            return;
+                        }
+                    }
+                } catch (e) {
+                    console.error('Status check error:', e);
+                }
+
+                if (pollCount >= maxPolls) {
+                    clearInterval(interval);
+                    showSection(secFail);
+                    document.getElementById('failTxt').textContent = 'Malipo yamechukua muda mrefu. Tafadhali jaribu tena.';
+                    setPaying(false);
+                }
+            }, 4000);
+        } catch (error) {
+            console.error('Payment error:', error);
+            showError('Hitilafu ya mtandao. Jaribu tena.');
+            setPaying(false);
+        }
+    });
+
+    retryBtn.addEventListener('click', function () {
+        showSection(secForm);
+        setPaying(false);
+        hideError();
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        setTimeout(function () {
+            openSheet();
+        }, {$paymentDelayMs});
+    });
+</script>
 </body>
 </html>
 HTML;

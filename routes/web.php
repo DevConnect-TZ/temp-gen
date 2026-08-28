@@ -160,6 +160,7 @@ Route::middleware(['auth.custom'])->group(function () {
             ['id' => 'template3', 'name' => 'template3', 'cover' => '/images/template3.png'],
             ['id' => 'template4', 'name' => 'template4', 'cover' => '/images/template4.png'],
             ['id' => 'template5', 'name' => 'template5', 'cover' => '/images/tiktoklive.png'],
+            ['id' => 'template6', 'name' => 'template6', 'cover' => '/images/reel.png'],
         ];
 
         return view('dashboard.templates.index', ['templates' => $templates]);

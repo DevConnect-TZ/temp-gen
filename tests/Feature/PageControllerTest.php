@@ -555,4 +555,105 @@ class PageControllerTest extends TestCase
         $response->assertSee('account_name');
         $response->assertSee('accountNameSection');
     }
+
+    public function test_templates_index_renders_template6(): void
+    {
+        session(['admin_authenticated' => true]);
+
+        $response = $this->get('/templates');
+
+        $response->assertOk();
+        $response->assertSee('template6');
+        $response->assertSee('/images/reel.png');
+    }
+
+    public function test_create_page_renders_reel_card(): void
+    {
+        session(['admin_authenticated' => true]);
+
+        $response = $this->get('/pages/create');
+
+        $response->assertOk();
+        $response->assertSee('Reel Template');
+    }
+
+    public function test_admin_can_create_reel_page_with_video(): void
+    {
+        Storage::fake('public');
+        session(['admin_authenticated' => true]);
+
+        $response = $this->post('/pages', [
+            'title' => 'Reel Page',
+            'template' => 'template6',
+            'price' => 1500,
+            'payment_gateway' => 'sonicpesa',
+            'is_active' => true,
+            'video' => $this->fakeMp4Upload(),
+        ], [
+            'Accept' => 'application/json',
+            'X-Requested-With' => 'XMLHttpRequest',
+        ]);
+
+        $response->assertOk();
+        $response->assertJsonPath('status', 'success');
+        $response->assertJsonPath('data.slug', 'reel-page');
+
+        $this->assertDatabaseHas('pages', [
+            'slug' => 'reel-page',
+            'template' => 'template6',
+        ]);
+
+        $page = Page::where('slug', 'reel-page')->firstOrFail();
+        $this->assertNotNull($page->video_path);
+        Storage::disk('public')->assertExists($page->video_path);
+    }
+
+    public function test_reel_page_requires_video(): void
+    {
+        Storage::fake('public');
+        session(['admin_authenticated' => true]);
+
+        $response = $this->post('/pages', [
+            'title' => 'Reel No Video Page',
+            'template' => 'template6',
+            'price' => 1500,
+            'is_active' => true,
+        ], [
+            'Accept' => 'application/json',
+            'X-Requested-With' => 'XMLHttpRequest',
+        ]);
+
+        $response->assertUnprocessable();
+        $response->assertJsonValidationErrors('video_path');
+        $this->assertDatabaseMissing('pages', ['title' => 'Reel No Video Page']);
+    }
+
+    public function test_public_reel_page_is_served_with_payment_sheet(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('videos/reel.mp4', $this->fakeMp4Content());
+
+        $page = Page::create([
+            'title' => 'Reel Page',
+            'slug' => 'reel-page',
+            'template' => 'template6',
+            'price' => 1000,
+            'payment_delay' => 6,
+            'video_path' => 'videos/reel.mp4',
+            'is_active' => true,
+        ]);
+
+        $response = $this->get('/'.$page->slug);
+
+        $response->assertOk();
+        $response->assertHeader('Content-Type', 'text/html; charset=utf-8');
+        $response->assertSee('/api/page-videos/'.$page->slug.'/stream');
+        $response->assertSee('slide-video');
+        $response->assertSee('sheetWrap');
+        $response->assertSee('WEKA NAMBA YA SIMU KULIPIA');
+        $response->assertSee('/api/payments/create-order');
+        $response->assertSee('/api/payments/check-status');
+        $response->assertSee('openSheet();', false);
+        $response->assertSee('}, 6000);', false);
+    }
 }
