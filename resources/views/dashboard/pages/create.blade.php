@@ -273,6 +273,13 @@
                 <div id="videoInspectStatus" class="mt-2 hidden text-xs font-medium"></div>
             </div>
 
+            <button type="button" id="addAnotherVideoBtn" class="mt-4 hidden inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-100 text-sm font-medium rounded-lg transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Add another video
+            </button>
+
             <!-- Upload Progress -->
             <div id="uploadProgress" class="mt-6 hidden">
                 <div class="flex items-center justify-between mb-2">
@@ -494,6 +501,7 @@
     const videoMetaInfo = document.getElementById('videoMetaInfo');
     const videoInspectStatus = document.getElementById('videoInspectStatus');
     const videoRemoveBtn = document.getElementById('videoRemoveBtn');
+    const addAnotherVideoBtn = document.getElementById('addAnotherVideoBtn');
     const uploadProgress = document.getElementById('uploadProgress');
     const uploadStage = document.getElementById('uploadStage');
     const uploadPercent = document.getElementById('uploadPercent');
@@ -588,8 +596,14 @@
         videoPathInput.value = '';
         videoPathsContainer.value = '';
         uploadedVideoPaths = [];
+        addAnotherVideoBtn.classList.add('hidden');
         hideUploadUI();
         resetVideoUI();
+    });
+
+    addAnotherVideoBtn.addEventListener('click', () => {
+        videoFile.value = '';
+        videoFile.click();
     });
 
     function resetVideoUI() {
@@ -675,18 +689,23 @@
             return;
         }
 
-        // Reset state for a fresh batch
-        uploadedVideoPaths = [];
-        videoPathInput.value = '';
-        videoPathsContainer.value = '';
-        hideUploadUI();
-        resetVideoUI();
+        // If this is the first batch of the session, start fresh
+        const isFirstBatch = uploadedVideoPaths.length === 0;
+
+        if (isFirstBatch) {
+            videoPathInput.value = '';
+            videoPathsContainer.value = '';
+            hideUploadUI();
+            resetVideoUI();
+        }
 
         const files = Array.from(videoFile.files);
         videoDetails.classList.remove('hidden');
         videoFileName.textContent = files.length + ' video' + (files.length > 1 ? 's' : '') + ' selected';
         videoFileSize.textContent = formatBytes(files.reduce((sum, f) => sum + f.size, 0));
         setInspectStatus('Verifying and uploading ' + files.length + ' video' + (files.length > 1 ? 's' : '') + '...', 'checking');
+
+        const totalAfter = uploadedVideoPaths.length + files.length;
 
         for (const file of files) {
             const ok = await verifyAndUpload(file);
@@ -695,12 +714,14 @@
             }
         }
 
-        if (uploadedVideoPaths.length === files.length) {
+        if (uploadedVideoPaths.length === totalAfter) {
             videoPathInput.value = uploadedVideoPaths[0];
             videoPathsContainer.value = JSON.stringify(uploadedVideoPaths);
             videoMetaInfo.classList.remove('hidden');
             videoMetaInfo.textContent = uploadedVideoPaths.length + ' video' + (uploadedVideoPaths.length > 1 ? 's' : '') + ' uploaded • ready to play';
             setInspectStatus('✓ All videos uploaded successfully', 'ok');
+            addAnotherVideoBtn.classList.remove('hidden');
+            addAnotherVideoBtn.textContent = '+ Add another video (' + uploadedVideoPaths.length + ' added)';
         }
     }
 
