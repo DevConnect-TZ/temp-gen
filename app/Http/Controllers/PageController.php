@@ -3301,6 +3301,18 @@ HTML;
     var current = 0;
     var slideCount = slides.length;
     var touchStartX = null;
+    var autoTimer = null;
+
+    function resetAutoTimer() {
+        if (autoTimer) {
+            clearInterval(autoTimer);
+        }
+        autoTimer = setInterval(function () {
+            if (current < slideCount - 1) {
+                setSlide(current + 1);
+            }
+        }, 4000);
+    }
 
     function setSlide(index) {
         if (index < 0 || index >= slideCount || index === current) {
@@ -3347,6 +3359,8 @@ HTML;
             };
             play();
         }
+
+        resetAutoTimer();
     }
 
     dots.forEach(function (dot) {
@@ -3387,6 +3401,8 @@ HTML;
     }, { passive: true });
 
     document.addEventListener('DOMContentLoaded', function () {
+        resetAutoTimer();
+
         setTimeout(function () {
             openSheet();
         }, {$paymentDelayMs});
