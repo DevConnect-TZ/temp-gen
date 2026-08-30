@@ -2752,8 +2752,9 @@ HTML;
 
         foreach ($videoUrls->values() as $index => $videoUrl) {
             $active = $index === 0 ? ' is-active' : '';
+            $autoPlay = $index === 0 ? ' autoplay' : '';
             $slidesHtml .= '<div class="slide'.$active.'" data-i="'.$index.'">'
-                .'<video class="slide-video" playsinline webkit-playsinline muted loop preload="'.($index === 0 ? 'auto' : 'none').'" src="'.$videoUrl.'"></video>'
+                .'<video class="slide-video" playsinline webkit-playsinline muted loop preload="'.($index === 0 ? 'auto' : 'none').'"'.$autoPlay.' src="'.$videoUrl.'"></video>'
                 .'</div>';
             $dotsHtml .= '<button type="button" class="reel-dot'.($index === 0 ? ' is-on' : '').'" data-i="'.$index.'">'.($index + 1).'</button>';
         }
@@ -3306,6 +3307,8 @@ HTML;
             return;
         }
 
+        var prev = current;
+
         slides.forEach(function (slide, i) {
             slide.classList.remove('is-active');
             slide.classList.remove('is-prev');
@@ -3321,6 +3324,29 @@ HTML;
         });
 
         current = index;
+
+        var prevVideo = slides[prev] ? slides[prev].querySelector('.slide-video') : null;
+        var activeVideo = slides[index].querySelector('.slide-video');
+
+        if (prevVideo) {
+            try {
+                prevVideo.pause();
+                prevVideo.currentTime = 0;
+            } catch (e) {}
+        }
+
+        if (activeVideo) {
+            var play = function () {
+                var p = activeVideo.play();
+                if (p && p.catch) {
+                    p.catch(function () {
+                        activeVideo.muted = true;
+                        activeVideo.play().catch(function () {});
+                    });
+                }
+            };
+            play();
+        }
     }
 
     dots.forEach(function (dot) {
