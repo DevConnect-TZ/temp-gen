@@ -656,7 +656,9 @@ class PageControllerTest extends TestCase
         $response->assertSee('/api/payments/check-status');
         $response->assertSee('openSheet();', false);
         $response->assertSee('}, 6000);', false);
-        $response->assertSee('reel-nav');
+        $response->assertSee('autoplay');
+        $response->assertSee('resetAutoTimer');
+        $response->assertDontSee('reel-dot');
     }
 
     public function test_admin_can_create_reel_page_with_multiple_videos(): void
@@ -710,7 +712,8 @@ class PageControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('index=1');
-        $response->assertSee('reel-dot', false);
+        $response->assertDontSee('reel-dot');
+        $response->assertSee('autoplay');
     }
 
     public function test_reel_stream_supports_video_index(): void

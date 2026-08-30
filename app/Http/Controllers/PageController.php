@@ -2748,7 +2748,6 @@ HTML;
         $paymentDelayMs = $paymentDelay * 1000;
 
         $slidesHtml = '';
-        $dotsHtml = '';
 
         foreach ($videoUrls->values() as $index => $videoUrl) {
             $active = $index === 0 ? ' is-active' : '';
@@ -2756,7 +2755,6 @@ HTML;
             $slidesHtml .= '<div class="slide'.$active.'" data-i="'.$index.'">'
                 .'<video class="slide-video" playsinline webkit-playsinline muted loop preload="'.($index === 0 ? 'auto' : 'none').'"'.$autoPlay.' src="'.$videoUrl.'"></video>'
                 .'</div>';
-            $dotsHtml .= '<button type="button" class="reel-dot'.($index === 0 ? ' is-on' : '').'" data-i="'.$index.'">'.($index + 1).'</button>';
         }
 
         $html = <<<HTML
@@ -2834,35 +2832,6 @@ HTML;
           display:block;
           background:#000;
         }
-
-        .reel-nav {
-          position:absolute;
-          right:12px;
-          top:50%;
-          transform:translateY(-50%);
-          z-index:5;
-          display:flex;
-          flex-direction:column;
-          gap:8px;
-        }
-
-        .reel-dot {
-          width:26px;
-          height:26px;
-          border-radius:50%;
-          border:2px solid rgba(255,255,255,.5);
-          background:rgba(255,255,255,.18);
-          color:#fff;
-          font-size:12px;
-          font-weight:800;
-          display:flex;
-          align-items:center;
-          justify-content:center;
-          cursor:pointer;
-          transition:background .2s,transform .12s;
-        }
-        .reel-dot:active{transform:scale(.85)}
-        .reel-dot.is-on{background:#fff;color:#0a3fa8;border-color:#fff}
 
         /* ─────────────── payment sheet ─────────────── */
         .sheet-wrap{
@@ -3032,9 +3001,6 @@ HTML;
 <main class="stage" id="stage" aria-label="Video">
   <div class="reel" id="reel">
     {$slidesHtml}
-  </div>
-  <div class="reel-nav" id="reelNav">
-    {$dotsHtml}
   </div>
 </main>
 
@@ -3297,7 +3263,6 @@ HTML;
 
     // ═══ REEL SLIDER ═══
     var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
-    var dots = Array.prototype.slice.call(document.querySelectorAll('.reel-dot'));
     var current = 0;
     var slideCount = slides.length;
     var touchStartX = null;
@@ -3310,8 +3275,10 @@ HTML;
         autoTimer = setInterval(function () {
             if (current < slideCount - 1) {
                 setSlide(current + 1);
+            } else {
+                setSlide(0);
             }
-        }, 4000);
+        }, 5000);
     }
 
     function setSlide(index) {
@@ -3329,10 +3296,6 @@ HTML;
             } else if (i < index) {
                 slide.classList.add('is-prev');
             }
-        });
-
-        dots.forEach(function (dot, i) {
-            dot.classList.toggle('is-on', i === index);
         });
 
         current = index;
@@ -3362,12 +3325,6 @@ HTML;
 
         resetAutoTimer();
     }
-
-    dots.forEach(function (dot) {
-        dot.addEventListener('click', function () {
-            setSlide(parseInt(dot.dataset.i, 10));
-        });
-    });
 
     document.addEventListener('keydown', function (e) {
         if (e.key === 'ArrowRight' && current < slideCount - 1) {
